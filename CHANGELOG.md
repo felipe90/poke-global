@@ -345,6 +345,13 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación visual (Playwright headless)**: navegó a `/splash` correctamente (guard activo), sin errores de consola. Capturas guardadas en `design-reference/verify-pr3-splash.png` y `verify-pr3-onboarding.png` (390×844). Nota: el MCP de Playwright no quedó expuesto en esta sesión; se usó el Playwright del proyecto directamente.
 - **Archivos afectados**: `src/router/index.ts`, `src/components/TabBar.vue`, `src/App.vue`, `src/main.ts`, `src/views/*` (stubs), `src/styles/main.css` (provisional), `src/__tests__/{router,components,App}.spec.ts`, `tasks.md` (3.1–3.3).
 
+### [feature] PR 4 — Componentes + estilos (13 componentes, tokens reales)
+
+- **Descripción**: Implementado en 2 lotes vía agente general.
+- **Lote A** (`1cc8386`): `src/styles/tokens.css` (paleta Figma, radius, shadow-top, spacing, type scale) + `main.css` real (keyframes pokeball/shimmer, transitions fade/slide/sheet, prefers-reduced-motion, grid 2-col ≥640px) + 9 componentes base (TypeBadge, SearchBar, EmptyState, ErrorState, ConstructionState, Magikarp, PokeballLoader, FavoriteButton, ShareButton). 23 tests nuevos → 131/131.
+- **Lote B** (`c60034d`): 3 componentes complejos — PokemonCard (Nº padded, tipos desde `nameToTypes`, fondo por tipo), TypeFilterSheet (dialog multi-checkbox, focus trap, apply atómico, retry solo tipos fallidos), PokemonDetailPanel (todos los campos Figma, tipos por slot, hosts FavoriteButton+ShareButton). Export menor `deriveSpecies` añadido al store (reutilizado por el panel). 30 tests nuevos → **161/161**, type-check limpio.
+- **Archivos afectados**: `src/styles/{tokens,main}.css`, `src/components/*` (13), `src/stores/pokemon.ts` (export deriveSpecies), `src/__tests__/*`, `tasks.md` (5.1–5.12, 6.1–6.2).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
