@@ -330,6 +330,15 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Resultado**: Lote A (tasks 2.1–2.3: store catalog + filter + search + nav) implementado con TDD estricto vía agente general: `src/stores/pokemon.ts` + `src/__tests__/pokemon-store.spec.ts` (22 tests nuevos). Suite completa **53/53**, type-check limpio. Commit `a3c06b4`.
 - **Archivos afectados**: `src/stores/pokemon.ts`, `src/__tests__/pokemon-store.spec.ts`, `openspec/changes/pokemon-favorites/tasks.md` (2.1–2.3 marcadas).
 
+### [feature] PR 2 completado — Core state (store + composables)
+
+- **Descripción**: Fase 2 implementada en 3 lotes vía agente `general` (canal que sí funciona; `sdd-apply` falló 3 veces por transporte y quedó descartado para esta sesión).
+- **Lote A** (`a3c06b4`): store slices catalog/filter/search/nav — 22 tests nuevos, suite 53/53.
+- **Lote B** (`c7d2339`): store slices detail+species/favorites/type-preload — `nameToTypes` compartido con `applyTypeFilter` (cero red al aplicar), preload ≤6 en vuelo; 22 tests nuevos, suite 75/75.
+- **Lote C** (`97e3a0e`): composables `useInfiniteScroll`, `useDebouncedRef`, `useClipboard` — 17 tests nuevos, suite **92/92**, type-check limpio.
+- **Riesgo anotado**: la spec de pokemon-detail lista 4 chips de debilidades para Bulbasaur pero la cláusula normativa exige union WEAKNESS_CHART (7 para grass+poison) — se siguió la normativa.
+- **Archivos afectados**: `src/stores/pokemon.ts`, `src/composables/{useInfiniteScroll,useDebouncedRef,useClipboard}.ts`, `src/__tests__/{pokemon-store,composables}.spec.ts`, `tasks.md` (2.1–2.9 marcadas).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
