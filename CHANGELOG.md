@@ -360,6 +360,15 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación visual (Playwright headless)**: journey completo sin errores — splash → onboarding 01/02 → lista (120 cards cargadas, 5 páginas) → detalle `/pokemon/bulbasaur` → back. Input de búsqueda con placeholder correcto, TabBar 4 items exactos. Capturas `design-reference/journey-*.png`.
 - **Archivos afectados**: `src/views/*` (6 reales), `src/stores/pokemon.ts` (detailNotFound), `src/components/TabBar.vue` (isActive), `src/__tests__/*`, `tasks.md` (4.1–4.6).
 
+### [bugfix] Verificación Figma vs implementación — preload de tipos huérfano
+
+- **Descripción**: Al medir la implementación contra los valores exactos del Figma (colores/radios/sombras/tipografías), se detectó que **6 de 7 mediciones coincidían** pero las cards NO pintaban el fondo por tipo (Bulbasaur salía `#fafafa` en vez de `#8bc34a` grass) y no mostraban chips de tipo.
+- **Causa raíz**: `preloadTypes()` existía en el store (bien implementado, ≤6 en vuelo, cache compartido) pero **nadie lo llamaba** — ni la vista, ni el router, ni App. La función estaba huérfana.
+- **Fix**: `PokedexListView.onMounted` ahora dispara `store.preloadTypes()` en paralelo con `loadFirstPage()`. Commit `9644d2c`.
+- **Verificado en browser**: card 1 = Bulbasaur con fondo `rgb(139,195,74)` (`#8bc34a` grass), chips `Planta | Veneno`, radius 16, zero errores. Suite 197/197 + type-check limpio.
+- **Lección**: la verificación visual contra el Figma no es opcional — atrapó un bug de integración que los unit tests no cubrían (ningún test montaba la vista y disparaba el preload real).
+- **Archivos afectados**: `src/views/PokedexListView.vue`, `design-reference/journey-04-pokedex-list.png` (captura corregida).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
