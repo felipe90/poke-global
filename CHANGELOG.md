@@ -418,6 +418,14 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **W-6** ✅ Marcado RESUELTO/ACEPTADO (preload `nameToTypes` decisión aprobada; `imageUrl: string` con coerción `?? ''`).
 - **Lección**: el lote inicial abortado dejó W-1/W-2 implementados sin commitear; la verificación independiente confirmó 210→211 tests con el cierre completo.
 
+### [archive] Cambio pokemon-favorites ARCHIVADO — commit `d732d4b`
+
+- **Descripción**: ciclo SDD completo cerrado. El dispatcher nativo pasó a `verify: all_done` / `archive: ready` tras corregir el total de escenarios del verify-report de 80 → **84** (las specs reales tienen 84 escenarios; el dispatcher compara los totales con las specs).
+- **Sync de specs**: las 8 specs delta copiadas byte-idénticas a `openspec/specs/{pokemon-list,pokemon-detail,favorites,share,onboarding-flow,navigation-tabbar,type-filter,feedback-states}/spec.md` (verificado con diff).
+- **Archive report**: `openspec/changes/pokemon-favorites/archive-report.md` — estado final, decisiones de diseño, Known Debt, trazabilidad (commits + CHANGELOG). El directorio del change se conservó por instrucción del usuario (trail de evaluación), desviación documentada.
+- **Assets**: PNG/SVG sueltos de Figma en la raíz movidos a `design-reference/root-figures/`.
+- **Lección de proceso**: el dispatcher nativo rechaza verify si los totales de requirements/scenarios del envelope no coinciden con el conteo real de las specs; el envelope debe usar los conteos AUTORITATIVOS (grep de `### Requirement` / `#### Scenario`).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
