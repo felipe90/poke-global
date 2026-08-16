@@ -4,6 +4,17 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 import App from '@/App.vue'
 
+vi.mock('@/services/pokeapi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/pokeapi')>()
+  return {
+    ...actual,
+    fetchPokemonPage: vi.fn(),
+    fetchTypeCatalog: vi.fn(),
+    fetchPokemonDetail: vi.fn(),
+    fetchPokemonSpecies: vi.fn(),
+  }
+})
+
 /**
  * Views integration (PR 5 Lote A): Splash (4.1), Onboarding (4.2),
  * Construction (4.6). Mounted with a REAL router (fresh module per test, so the

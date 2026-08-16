@@ -4,6 +4,17 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 import App from '@/App.vue'
 
+vi.mock('@/services/pokeapi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/pokeapi')>()
+  return {
+    ...actual,
+    fetchPokemonPage: vi.fn(),
+    fetchTypeCatalog: vi.fn(),
+    fetchPokemonDetail: vi.fn(),
+    fetchPokemonSpecies: vi.fn(),
+  }
+})
+
 describe('App shell (3.3)', () => {
   beforeEach(() => {
     setActivePinia(createPinia())

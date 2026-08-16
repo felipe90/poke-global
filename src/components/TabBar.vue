@@ -11,6 +11,7 @@ const tabs = [
 ] as const
 
 function isActive(path: string): boolean {
+  if (path === '/') return route.path === '/' || route.path.startsWith('/pokemon/')
   return route.path === path
 }
 

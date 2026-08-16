@@ -372,6 +372,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
   const selectedDetail = ref<PokemonDetail | null>(null)
   const selectedSpecies = ref<PokemonDerivedSpecies | null>(null)
   const detailError = ref<string | null>(null)
+  const detailNotFound = ref(false)
   const detailLoading = ref(false)
   const detailLoadingName = ref<string | null>(null)
   /** Store-level mirror of loaded entities so cached visits skip re-requests. */
@@ -406,6 +407,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     if (cached) {
       selectedDetail.value = cached
       detailError.value = null
+      detailNotFound.value = false
       hydrateSpecies(cached)
       return
     }
@@ -413,6 +415,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     detailLoadingName.value = name
     detailLoading.value = true
     detailError.value = null
+    detailNotFound.value = false
     selectedDetail.value = null
     selectedSpecies.value = null
     try {
@@ -420,8 +423,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
       detailByName.set(name, detail)
       selectedDetail.value = detail
       hydrateSpecies(detail)
-    } catch {
+    } catch (error) {
       detailError.value = name
+      detailNotFound.value = error instanceof Error && /\b404\b/.test(error.message)
     } finally {
       detailLoading.value = false
       detailLoadingName.value = null
@@ -505,6 +509,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     selectedDetail,
     selectedSpecies,
     detailError,
+    detailNotFound,
     detailLoading,
     openDetail,
 
