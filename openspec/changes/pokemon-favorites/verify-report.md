@@ -1,6 +1,6 @@
 ```yaml
 schema: gentle-ai.verify-result/v1
-evidence_revision: sha256:8ba8745ba81f67a2472b8b59d1a1754d3026b5b3d61804140d8d04d041185c91
+evidence_revision: sha256:f9d485395332095144708addb5c9b52fac20e1a16d2a4fafc627ba29d7c37304
 verdict: pass_with_warnings
 blockers: 0
 critical_findings: 0
@@ -8,10 +8,10 @@ requirements: 43/43
 scenarios: 80/80
 test_command: npm run test:unit -- --run
 test_exit_code: 0
-test_output_hash: sha256:8a4631f8cf2016e8eee080367a08f5aebef72eadcdba8de24b53180d7bc91786
+test_output_hash: sha256:20f22a2bb320f85e36720014883c645ecbb21c508b360890e57cfe7cb1d4af6b
 build_command: npm run type-check
 build_exit_code: 0
-build_output_hash: sha256:ba69af235235cd439187366c852641309fcba34fd777764157a72944f090d812
+build_output_hash: sha256:7c6e8a049ab79b464e6ff31f41fdb29a5ae795c59e4841a2fc44e6232d26b4fa
 ```
 
 # Verification Report — pokemon-favorites
