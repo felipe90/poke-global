@@ -1,17 +1,43 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { flushPromises, mount } from '@vue/test-utils'
 
 import PokemonDetailPanel from '@/components/PokemonDetailPanel.vue'
-import type { PokemonDetail, PokemonSpecies } from '@/types/pokemon'
+import { fetchTypeCatalog } from '@/services/pokeapi'
+import { usePokemonStore } from '@/stores/pokemon'
+import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
+
+vi.mock('@/services/pokeapi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/pokeapi')>()
+  return {
+    ...actual,
+    fetchTypeCatalog: vi.fn<typeof actual.fetchTypeCatalog>(),
+  }
+})
 
 let pinia: Pinia
 
 beforeEach(() => {
   pinia = createPinia()
   setActivePinia(pinia)
+  vi.mocked(fetchTypeCatalog).mockReset()
 })
+
+/** Seed the store's type catalog cache through the preload path (API truth). */
+async function preloadWith(
+  weaknessByType: Record<string, string[]>,
+  labelByType: Record<string, string> = {},
+): Promise<void> {
+  vi.mocked(fetchTypeCatalog).mockImplementation((type: TypeName) =>
+    Promise.resolve({
+      damage_relations: { double_damage_from: (weaknessByType[type] ?? []).map((name) => ({ name })) },
+      names: [{ language: { name: 'es' }, name: labelByType[type] ?? type }],
+      pokemon: [],
+    }),
+  )
+  await usePokemonStore().preloadTypes()
+}
 
 const bulbasaurDetail: PokemonDetail = {
   id: 1,
@@ -127,7 +153,14 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(wrapper.text()).toContain('Sin género')
   })
 
-  it('renders Debilidades chips from the local chart union in chart order', () => {
+  it('renders Debilidades chips from the API catalog union in chart order', async () => {
+    await preloadWith(
+      {
+        grass: ['fire', 'ice', 'poison', 'flying', 'bug'],
+        poison: ['ground', 'psychic'],
+      },
+      { grass: 'Planta', poison: 'Veneno', fire: 'Fuego', ice: 'Hielo', flying: 'Volador', bug: 'Bicho', ground: 'Tierra', psychic: 'Psíquico' },
+    )
     const wrapper = mountPanel(bulbasaurDetail)
     const chips = wrapper.findAll('.type-badge').map((el) => el.text())
     expect(chips).toEqual(['Planta', 'Veneno', 'Fuego', 'Hielo', 'Veneno', 'Volador', 'Bicho', 'Tierra', 'Psíquico'])

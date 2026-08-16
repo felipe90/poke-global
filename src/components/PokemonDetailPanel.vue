@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { getTypeMeta } from '@/data/types'
-import { deriveSpecies } from '@/stores/pokemon'
-import type { PokemonDerivedSpecies } from '@/stores/pokemon'
+import { FALLBACK_TYPE_COLOR, getTypeMeta, resolveWeaknesses } from '@/data/types'
 import { getOfficialArtwork, statsToPokemonStats } from '@/services/pokeapi'
-import type { PokemonDetail, PokemonSpecies } from '@/types/pokemon'
+import { deriveSpecies, usePokemonStore } from '@/stores/pokemon'
+import type { PokemonDerivedSpecies } from '@/stores/pokemon'
+import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
 
 import FavoriteButton from './FavoriteButton.vue'
 import ShareButton from './ShareButton.vue'
@@ -19,6 +19,8 @@ const props = defineProps<{
   prevName?: string | null
   nextName?: string | null
 }>()
+
+const store = usePokemonStore()
 
 const emit = defineEmits<{
   back: []
@@ -34,7 +36,10 @@ const displayName = computed(() => props.detail.name.charAt(0).toUpperCase() + p
 
 const typesBySlot = computed(() => [...props.detail.types].sort((a, b) => a.slot - b.slot))
 
-const fields = computed(() => props.derived ?? deriveSpecies(props.detail, props.species ?? null))
+const fields = computed(() => {
+  const resolveWeaknessesFor = (type: TypeName): TypeName[] => resolveWeaknesses(type, store.typeCatalog(type))
+  return props.derived ?? deriveSpecies(props.detail, props.species ?? null, resolveWeaknessesFor)
+})
 
 const artwork = computed(() => props.detail.sprites.front_default ?? getOfficialArtwork(props.detail))
 
@@ -43,7 +48,7 @@ const favoriteTypes = computed(() => props.detail.types.map((entry) => entry.typ
 /** Header circle background = the color of the pokémon's first (primary) type. */
 const headerColor = computed(() => {
   const primary = props.detail.types[0]?.type.name
-  return primary ? getTypeMeta(primary)?.color : undefined
+  return primary ? getTypeMeta(primary)?.color ?? FALLBACK_TYPE_COLOR : undefined
 })
 
 const stats = computed(() => statsToPokemonStats(props.detail.stats))

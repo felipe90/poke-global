@@ -38,7 +38,6 @@ button {
 .app-main {
   flex: 1 0 auto;
   max-width: 640px;
-  margin: 0 auto;
   padding: 0 var(--space-card) 120px;
 }
 
@@ -103,12 +102,18 @@ button {
   border-radius: var(--radius-lg);
 }
 
-/* ------------------------------------------------------------------- Grid */
+/* ------------------------------------------------------------------- Grid
+   Always one pokémon per row (mobile-first list), full width. */
 
 .pokemon-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-card);
+  width: 100%;
+}
+
+.pokemon-card {
+  width: 100%;
 }
 
 /* --------------------------------------------------------- Pokemon card */
@@ -174,11 +179,17 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--radius-icon-circle);
   background: #fafafa;
   pointer-events: none;
+}
+
+.type-badge__icon img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
 }
 
 /* ---------------------------------------------------------------- States */
@@ -404,12 +415,6 @@ button {
 }
 
 /* ------------------------------------------------------- Responsive */
-
-@media (min-width: 640px) {
-  .pokemon-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .pokeball-loader,

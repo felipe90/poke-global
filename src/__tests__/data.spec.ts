@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
-import { TYPE_META, WEAKNESS_CHART } from '@/data/types'
-import type { TypeName } from '@/types/pokemon'
+import { FALLBACK_TYPE_COLOR, TYPE_META, getTypeMeta, resolveEsLabel, resolveWeaknesses } from '@/data/types'
+import type { TypeCatalogResponse, TypeName } from '@/types/pokemon'
 
 const TYPE_NAMES: TypeName[] = [
   'grass',
@@ -65,21 +65,51 @@ describe('TYPE_META', () => {
   })
 })
 
-describe('WEAKNESS_CHART', () => {
-  it('covers all 18 types', () => {
-    const keys = Object.keys(WEAKNESS_CHART) as TypeName[]
-    expect(keys.sort()).toEqual([...TYPE_NAMES].sort())
+describe('getTypeMeta + unmapped fallback', () => {
+  it('returns the Figma metadata for the 18 mapped types', () => {
+    for (const meta of TYPE_META) {
+      expect(getTypeMeta(meta.name)?.color).toBe(meta.color)
+    }
   })
 
-  it('maps electric to ground as its only weakness', () => {
-    expect(WEAKNESS_CHART.electric).toEqual(['ground'])
+  it('falls back to the neutral color for an unmapped type', () => {
+    expect(FALLBACK_TYPE_COLOR).toBe('#9e9e9e')
+    expect(getTypeMeta('stellar' as TypeName)).toBeUndefined()
+  })
+})
+
+describe('resolveWeaknesses (API truth, catalog-derived)', () => {
+  const electricCatalog: TypeCatalogResponse = {
+    damage_relations: { double_damage_from: [{ name: 'ground' }] },
+    names: [{ language: { name: 'es' }, name: 'Eléctrico' }],
+    pokemon: [],
+  }
+
+  it('derives weaknesses from the catalog damage_relations', () => {
+    expect(resolveWeaknesses('electric', electricCatalog)).toEqual(['ground'])
   })
 
-  it('maps fire to water, ground, and rock', () => {
-    expect(WEAKNESS_CHART.fire).toEqual(['water', 'ground', 'rock'])
+  it('returns [] when no catalog is available yet', () => {
+    expect(resolveWeaknesses('electric')).toEqual([])
+  })
+})
+
+describe('resolveEsLabel (API-first, Figma fallback)', () => {
+  const grassCatalog: TypeCatalogResponse = {
+    damage_relations: { double_damage_from: [] },
+    names: [{ language: { name: 'es' }, name: 'Planta' }],
+    pokemon: [],
+  }
+
+  it('prefers the API Spanish name when the catalog is loaded', () => {
+    expect(resolveEsLabel('grass', grassCatalog)).toBe('Planta')
   })
 
-  it('maps normal to fighting as its only weakness', () => {
-    expect(WEAKNESS_CHART.normal).toEqual(['fighting'])
+  it('falls back to the Figma label without a catalog', () => {
+    expect(resolveEsLabel('grass')).toBe('Planta')
+  })
+
+  it('falls back to the canonical name for an unmapped type without a catalog', () => {
+    expect(resolveEsLabel('stellar' as TypeName)).toBe('stellar')
   })
 })

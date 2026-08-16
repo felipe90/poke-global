@@ -96,14 +96,9 @@ export interface TypeMeta {
 /** Response of `GET /api/v2/type/{type}` — full catalog, unpaginated. */
 export interface TypeCatalogResponse {
   damage_relations: { double_damage_from: { name: string }[] }
+  names: { language: { name: string }; name: string }[]
   pokemon: { slot: number; pokemon: PokemonSummary }[]
 }
-
-/**
- * Local static mirror of each type's `double_damage_from` (weaknesses).
- * Values are ordered like the PokeAPI chart; used to render Debilidades with zero API calls.
- */
-export type WeaknessChart = Record<TypeName, TypeName[]>
 
 /** Fixed catalog page size (confirmed 20–30 range). */
 export const PAGE_SIZE = 24

@@ -1,9 +1,10 @@
 /**
- * Static type metadata and weakness chart.
+ * Static type metadata.
  * TYPE_META drives card backgrounds, chips, and the filter sheet (18 types).
- * WEAKNESS_CHART mirrors each type's `double_damage_from` locally — zero API calls.
+ * esLabel/color/icon come from the Figma; weaknesses are derived at runtime
+ * from each type catalog's `damage_relations` (see the store preload).
  */
-import type { TypeMeta, TypeName, WeaknessChart } from '@/types/pokemon'
+import type { TypeCatalogResponse, TypeMeta, TypeName } from '@/types/pokemon'
 
 import iconBug from '@/assets/icons/type-bug.png'
 import iconDark from '@/assets/icons/type-dark.png'
@@ -46,29 +47,30 @@ export const TYPE_META: TypeMeta[] = [
   { name: 'flying', esLabel: 'Volador', color: '#a98ff3', icon: iconFlying },
 ]
 
-/** Local mirror of PokeAPI `double_damage_from`, in chart order. */
-export const WEAKNESS_CHART: WeaknessChart = {
-  grass: ['fire', 'ice', 'poison', 'flying', 'bug'],
-  fire: ['water', 'ground', 'rock'],
-  water: ['electric', 'grass'],
-  electric: ['ground'],
-  psychic: ['bug', 'ghost', 'dark'],
-  poison: ['ground', 'psychic'],
-  normal: ['fighting'],
-  bug: ['fire', 'flying', 'rock'],
-  fighting: ['flying', 'psychic', 'fairy'],
-  ground: ['water', 'grass', 'ice'],
-  rock: ['water', 'grass', 'fighting', 'ground', 'steel'],
-  ice: ['fire', 'fighting', 'rock', 'steel'],
-  fairy: ['poison', 'steel'],
-  ghost: ['ghost', 'dark'],
-  dragon: ['ice', 'fairy', 'dragon'],
-  dark: ['fighting', 'bug', 'fairy'],
-  steel: ['fire', 'fighting', 'ground'],
-  flying: ['electric', 'ice', 'rock'],
-}
+/** Neutral background used when a type has no Figma color (unmapped/unknown). */
+export const FALLBACK_TYPE_COLOR = '#9e9e9e'
 
-/** Lookup helper: TypeMeta by canonical name. */
+/**
+ * Lookup helper: TypeMeta by canonical name.
+ * Returns `undefined` for unmapped types so callers can fall back to the
+ * neutral color and the API-provided Spanish label.
+ */
 export function getTypeMeta(name: TypeName): TypeMeta | undefined {
   return TYPE_META.find((meta) => meta.name === name)
+}
+
+/** Resolve the Spanish label for a type, preferring the API names table. */
+export function resolveEsLabel(name: TypeName, catalog?: TypeCatalogResponse): string {
+  const fromApi = catalog?.names.find((entry) => entry.language.name === 'es')?.name
+  if (fromApi) return fromApi
+  return getTypeMeta(name)?.esLabel ?? name
+}
+
+/** Derive a type's weaknesses from its catalog `double_damage_from` (API truth). */
+export function resolveWeaknesses(
+  name: TypeName,
+  catalog?: TypeCatalogResponse,
+): TypeName[] {
+  const fromApi = catalog?.damage_relations.double_damage_from.map((entry) => entry.name as TypeName) ?? []
+  return fromApi.length > 0 ? fromApi : (getTypeMeta(name) ? [] : [])
 }

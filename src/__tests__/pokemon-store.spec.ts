@@ -32,11 +32,20 @@ function page(offset: number, names: string[], next: string | null): PokemonList
   }
 }
 
-function makeCatalog(names: string[]): TypeCatalogResponse {
+function makeCatalog(names: string[], weaknesses: string[] = []): TypeCatalogResponse {
   return {
-    damage_relations: { double_damage_from: [] },
+    damage_relations: { double_damage_from: weaknesses.map((name) => ({ name })) },
+    names: [{ language: { name: 'es' }, name: names[0] ?? '' }],
     pokemon: names.map((name) => ({ slot: 1, pokemon: { name, url: `${BASE}/pokemon/${name}/` } })),
   }
+}
+
+/** Populate the store's type catalog cache via the preload path (API truth). */
+async function preloadWith(weaknessByType: Record<string, string[]>): Promise<void> {
+  vi.mocked(fetchTypeCatalog).mockImplementation((type: TypeName) =>
+    Promise.resolve(makeCatalog([type], weaknessByType[type] ?? [])),
+  )
+  await usePokemonStore().preloadTypes()
 }
 
 function summaryNames(items: PokemonSummary[]): string[] {
@@ -469,6 +478,7 @@ describe('pokemon store — detail + species slice (2.4)', () => {
   })
 
   it('openDetail fetches the detail and derives the species fields non-blocking', async () => {
+    await preloadWith({ electric: ['ground'] })
     vi.mocked(fetchPokemonDetail).mockResolvedValueOnce(pikachuDetail)
     vi.mocked(fetchPokemonSpecies).mockResolvedValueOnce(pikachuSpecies)
 
@@ -536,6 +546,7 @@ describe('pokemon store — detail + species slice (2.4)', () => {
   })
 
   it('species failure degrades categoria/descripcion/genero to — but keeps detail fields', async () => {
+    await preloadWith({ electric: ['ground'] })
     vi.mocked(fetchPokemonDetail).mockResolvedValueOnce(pikachuDetail)
     vi.mocked(fetchPokemonSpecies).mockRejectedValueOnce(new Error('down'))
 
@@ -551,6 +562,10 @@ describe('pokemon store — detail + species slice (2.4)', () => {
   })
 
   it('renders gendered percentages male first (bulbasaur rate 1 → 87,5% / 12,5%)', async () => {
+    await preloadWith({
+      grass: ['fire', 'ice', 'poison', 'flying', 'bug'],
+      poison: ['ground', 'psychic'],
+    })
     vi.mocked(fetchPokemonDetail).mockResolvedValueOnce(bulbasaurDetail)
     vi.mocked(fetchPokemonSpecies).mockResolvedValueOnce(bulbasaurSpecies)
 

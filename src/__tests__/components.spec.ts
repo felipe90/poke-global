@@ -14,6 +14,7 @@ import ConstructionState from '@/components/ConstructionState.vue'
 import PokeballLoader from '@/components/PokeballLoader.vue'
 import FavoriteButton from '@/components/FavoriteButton.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import { usePokemonStore } from '@/stores/pokemon'
 import type { PokemonDetail } from '@/types/pokemon'
 
 const Stub = { template: '<div />' }
@@ -132,6 +133,10 @@ describe('TabBar (3.2)', () => {
 })
 
 describe('TypeBadge (5.2)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   it('renders the Spanish label for a type from TYPE_META', () => {
     const wrapper = mount(TypeBadge, { props: { type: 'grass' } })
     expect(wrapper.text()).toContain('Planta')
@@ -150,6 +155,19 @@ describe('TypeBadge (5.2)', () => {
     const icon = circle.find('img')
     expect(icon.exists()).toBe(true)
     expect(icon.attributes('aria-hidden')).toBe('true')
+  })
+
+  it('renders the API Spanish label and neutral background for an unmapped type', () => {
+    const store = usePokemonStore()
+    vi.spyOn(store, 'typeCatalog').mockReturnValue({
+      damage_relations: { double_damage_from: [] },
+      names: [{ language: { name: 'es' }, name: 'Stelar' }],
+      pokemon: [],
+    })
+    const wrapper = mount(TypeBadge, { props: { type: 'stellar' as never } })
+    expect(wrapper.text()).toContain('Stelar')
+    expect(wrapper.attributes('style')).toContain('rgb(158, 158, 158)')
+    expect(wrapper.find('img').exists()).toBe(false)
   })
 })
 

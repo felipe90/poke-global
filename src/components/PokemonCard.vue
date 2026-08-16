@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { getTypeMeta } from '@/data/types'
+import { FALLBACK_TYPE_COLOR, getTypeMeta } from '@/data/types'
 import { usePokemonStore } from '@/stores/pokemon'
-import type { PokemonSummary } from '@/types/pokemon'
+import type { FavoritePokemon, PokemonSummary, TypeName } from '@/types/pokemon'
 
 import FavoriteButton from './FavoriteButton.vue'
 import TypeBadge from './TypeBadge.vue'
 
 const props = defineProps<{
-  summary: PokemonSummary
+  /** Catalog source (list view). */
+  summary?: PokemonSummary
+  /** Persisted snapshot source (favorites view). */
+  favorite?: FavoritePokemon
   index?: number
   /** Ordered list captured as the nav context when the card is activated. */
   context?: string[]
@@ -26,6 +29,8 @@ const store = usePokemonStore()
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'
 
 const id = computed(() => {
+  if (props.favorite) return props.favorite.id
+  if (!props.summary) return NaN
   const parsed = new URL(props.summary.url)
   const segments = parsed.pathname.split('/').filter(Boolean)
   return Number(segments[segments.length - 1])
@@ -33,24 +38,34 @@ const id = computed(() => {
 
 const numero = computed(() => `Nº${String(id.value).padStart(3, '0')}`)
 
-const displayName = computed(() => props.summary.name.charAt(0).toUpperCase() + props.summary.name.slice(1))
+const name = computed(() => props.favorite?.name ?? props.summary?.name ?? '')
 
-const types = computed(() => store.nameToTypes.get(props.summary.name) ?? [])
+const displayName = computed(() => name.value.charAt(0).toUpperCase() + name.value.slice(1))
+
+/** Types come from the persisted snapshot (favorites) or the preload map (list). */
+const types = computed<TypeName[]>(() => {
+  if (props.favorite) return props.favorite.types
+  if (!props.summary) return []
+  return store.nameToTypes.get(props.summary.name) ?? []
+})
 
 const background = computed(() => {
   const primary = types.value[0]
   if (!primary) return undefined
-  return getTypeMeta(primary)?.color
+  return getTypeMeta(primary)?.color ?? FALLBACK_TYPE_COLOR
 })
 
-const imageUrl = computed(() => (Number.isFinite(id.value) ? `${SPRITE_BASE}${id.value}.png` : null))
+const imageUrl = computed(() => {
+  if (props.favorite) return props.favorite.imageUrl || null
+  return Number.isFinite(id.value) ? `${SPRITE_BASE}${id.value}.png` : null
+})
 
 function activate(): void {
   if (props.context && props.context.length > 0) {
     store.setNavContext(props.context)
   }
-  emit('navigate', props.summary.name)
-  emit('activate', props.summary.name)
+  emit('navigate', name.value)
+  emit('activate', name.value)
 }
 </script>
 
@@ -79,7 +94,7 @@ function activate(): void {
     </div>
     <FavoriteButton
       class="pokemon-card__favorite"
-      :name="summary.name"
+      :name="name"
       :id="id"
       :image-url="imageUrl ?? ''"
       :types="types"
@@ -89,7 +104,7 @@ function activate(): void {
       v-if="imageUrl"
       class="pokemon-card__image"
       :src="imageUrl"
-      :alt="summary.name"
+      :alt="name"
     />
   </button>
 </template>

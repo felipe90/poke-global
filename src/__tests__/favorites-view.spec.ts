@@ -96,7 +96,7 @@ describe('FavoritesView (4.5)', () => {
       store.favorites = [favorite('pikachu', 25)]
     })
     await flushPromises()
-    await wrapper.get('.favorite-card').trigger('click')
+    await wrapper.get('.pokemon-card').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/pokemon/pikachu')
   })
@@ -108,7 +108,7 @@ describe('FavoritesView (4.5)', () => {
     expect(wrapper.text()).toContain(
       'Haz clic en el ícono de corazón de tus Pokémon favoritos y aparecerán aquí.',
     )
-    expect(wrapper.find('.favorite-card').exists()).toBe(false)
+    expect(wrapper.find('.pokemon-card').exists()).toBe(false)
   })
 
   it('empty state disappears when the first favorite is added', async () => {
@@ -119,7 +119,7 @@ describe('FavoritesView (4.5)', () => {
     store.toggleFavorite({ name: 'pikachu', id: 25, imageUrl: 'x', types: ['electric'] })
     await flushPromises()
     expect(wrapper.text()).not.toContain('No has marcado ningún Pokémon como favorito')
-    expect(wrapper.find('.favorite-card').exists()).toBe(true)
+    expect(wrapper.find('.pokemon-card').exists()).toBe(true)
     expect(wrapper.text()).toContain('Pikachu')
   })
 })

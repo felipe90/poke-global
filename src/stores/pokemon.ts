@@ -7,7 +7,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import { TYPE_META, WEAKNESS_CHART } from '@/data/types'
+import { TYPE_META, resolveWeaknesses } from '@/data/types'
 import {
   fetchPokemonDetail,
   fetchPokemonPage,
@@ -95,20 +95,15 @@ function resolveAbility(detail: PokemonDetail): string {
   return slot1.ability.name.charAt(0).toUpperCase() + slot1.ability.name.slice(1)
 }
 
-function resolveWeaknesses(detail: PokemonDetail): TypeName[] {
-  const weaknesses: TypeName[] = []
-  for (const entry of detail.types) {
-    const chart = WEAKNESS_CHART[entry.type.name] ?? []
-    for (const weakness of chart) {
-      if (!weaknesses.includes(weakness)) weaknesses.push(weakness)
-    }
-  }
-  return weaknesses
-}
-
 /** Derive the rich-panel fields from a detail (+ optional species). Exported so
- *  the presentational detail panel reuses this logic instead of duplicating it. */
-export function deriveSpecies(detail: PokemonDetail, species: PokemonSpecies | null): PokemonDerivedSpecies {
+ *  the presentational detail panel reuses this logic instead of duplicating it.
+ *  `resolveWeaknessesFor` supplies each type's catalog-derived weaknesses; when
+ *  omitted (no preload yet) the panel degrades to an empty list. */
+export function deriveSpecies(
+  detail: PokemonDetail,
+  species: PokemonSpecies | null,
+  resolveWeaknessesFor?: (type: TypeName) => TypeName[],
+): PokemonDerivedSpecies {
   return {
     peso: `${formatDecimal(detail.weight / 10)} kg`,
     altura: `${formatDecimal(detail.height / 10)} m`,
@@ -116,7 +111,9 @@ export function deriveSpecies(detail: PokemonDetail, species: PokemonSpecies | n
     descripcion: species ? resolveDescription(species) : '—',
     genero: species ? resolveGender(species.gender_rate) : '—',
     habilidad: resolveAbility(detail),
-    debilidades: resolveWeaknesses(detail),
+    debilidades: resolveWeaknessesFor
+      ? detail.types.flatMap((entry) => resolveWeaknessesFor(entry.type.name))
+      : [],
   }
 }
 
@@ -368,6 +365,11 @@ export const usePokemonStore = defineStore('pokemon', () => {
     preloading.value = false
   }
 
+  /** Public lookup of a cached type catalog (populated by the preload/apply). */
+  function typeCatalog(type: TypeName): TypeCatalogResponse | undefined {
+    return typeCatalogs.get(type)
+  }
+
   // ------------------------------------------------------ Detail + species
   const selectedDetail = ref<PokemonDetail | null>(null)
   const selectedSpecies = ref<PokemonDerivedSpecies | null>(null)
@@ -381,9 +383,10 @@ export const usePokemonStore = defineStore('pokemon', () => {
 
   /** Non-blocking species load; failure degrades the species-derived fields. */
   function hydrateSpecies(detail: PokemonDetail): void {
+    const weaknessFor = (type: TypeName): TypeName[] => resolveWeaknesses(type, typeCatalogs.get(type))
     const cached = speciesById.get(detail.id)
     if (cached) {
-      selectedSpecies.value = deriveSpecies(detail, cached)
+      selectedSpecies.value = deriveSpecies(detail, cached, weaknessFor)
       return
     }
     void Promise.resolve(fetchPokemonSpecies(detail.id))
@@ -391,12 +394,12 @@ export const usePokemonStore = defineStore('pokemon', () => {
         if (!species) return
         speciesById.set(detail.id, species)
         if (selectedDetail.value?.id === detail.id) {
-          selectedSpecies.value = deriveSpecies(detail, species)
+          selectedSpecies.value = deriveSpecies(detail, species, weaknessFor)
         }
       })
       .catch(() => {
         if (selectedDetail.value?.id === detail.id) {
-          selectedSpecies.value = deriveSpecies(detail, null)
+          selectedSpecies.value = deriveSpecies(detail, null, weaknessFor)
         }
       })
   }
@@ -505,6 +508,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     nameToTypes,
     preloadTypes,
     retryPreload,
+    typeCatalog,
 
     selectedDetail,
     selectedSpecies,

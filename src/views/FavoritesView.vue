@@ -3,17 +3,16 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import EmptyState from '@/components/EmptyState.vue'
+import PokemonCard from '@/components/PokemonCard.vue'
 import { usePokemonStore } from '@/stores/pokemon'
-import type { FavoritePokemon } from '@/types/pokemon'
 
 const router = useRouter()
 const store = usePokemonStore()
 
 const favorites = computed(() => store.favorites)
 
-function displayName(favorite: FavoritePokemon): string {
-  return favorite.name.charAt(0).toUpperCase() + favorite.name.slice(1)
-}
+/** Ordered favorite names captured as the nav context when a card is activated. */
+const navContext = computed(() => favorites.value.map((favorite) => favorite.name))
 
 function goDetail(name: string): void {
   void router.push(`/pokemon/${name}`)
@@ -37,19 +36,12 @@ function remove(name: string): void {
         :key="favorite.name"
         class="favorites-list__item"
       >
-        <button
-          type="button"
-          class="favorite-card"
-          @click="goDetail(favorite.name)"
-        >
-          <img
-            v-if="favorite.imageUrl"
-            class="favorite-card__image"
-            :src="favorite.imageUrl"
-            :alt="favorite.name"
-          />
-          <span class="favorite-card__name">{{ displayName(favorite) }}</span>
-        </button>
+        <PokemonCard
+          :favorite="favorite"
+          :context="navContext"
+          class="favorites-list__card"
+          @navigate="goDetail"
+        />
         <button
           type="button"
           class="favorite-trash"
@@ -91,61 +83,34 @@ function remove(name: string): void {
   gap: var(--space-card);
   margin: 0;
   padding: 0;
+  width: 100%;
   list-style: none;
 }
 
 .favorites-list__item {
   display: flex;
   align-items: center;
-  gap: var(--space-card);
-  padding: var(--space-card);
-  border-radius: var(--radius-card);
-  background: var(--bg);
+  gap: var(--space-info-gap);
+  width: 100%;
 }
 
-.favorite-card {
-  display: flex;
-  align-items: center;
+.favorites-list__card {
   flex: 1;
-  gap: var(--space-card);
-  padding: 0;
-  border: none;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-
-.favorite-card__image {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-}
-
-.favorite-card__name {
-  font-size: var(--font-card-name);
-  font-weight: 600;
-  color: var(--title);
-}
-
-.favorite-card:focus-visible,
-.favorite-trash:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
+  min-width: 0;
 }
 
 .favorite-trash {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-info-gap);
+  padding: var(--space-card);
   border: none;
   background: transparent;
   cursor: pointer;
 }
 
-@media (min-width: 640px) {
-  .favorites-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.favorite-trash:focus-visible {
+  outline: 2px solid var(--title);
+  outline-offset: 2px;
 }
 </style>

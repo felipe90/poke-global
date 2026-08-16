@@ -41,6 +41,7 @@ function mountSheet(props: Record<string, unknown> = {}, options: Record<string,
 function catalogFor(type: TypeName): TypeCatalogResponse {
   return {
     damage_relations: { double_damage_from: [] },
+    names: [{ language: { name: 'es' }, name: type }],
     pokemon: [{ slot: 1, pokemon: { name: `${type}-mon`, url: `https://pokeapi.co/api/v2/pokemon/${type}-mon/` } }],
   }
 }

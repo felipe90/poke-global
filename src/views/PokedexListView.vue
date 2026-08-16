@@ -227,11 +227,17 @@ onMounted(() => {
   gap: var(--space-card);
   margin: 0;
   padding: 0;
+  width: 100%;
   list-style: none;
 }
 
 .pokemon-grid__cell {
   min-width: 0;
+  width: 100%;
+}
+
+.pokemon-grid .pokemon-card {
+  width: 100%;
 }
 
 .list-sentinel {
@@ -253,11 +259,5 @@ onMounted(() => {
   font-size: var(--font-data-value);
   font-weight: 600;
   color: var(--danger);
-}
-
-@media (min-width: 640px) {
-  .pokemon-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 </style>

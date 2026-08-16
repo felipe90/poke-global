@@ -89,6 +89,7 @@ const pikachuSpecies: PokemonSpecies = {
 
 const electricCatalog: TypeCatalogResponse = {
   damage_relations: { double_damage_from: [{ name: 'ground' }] },
+  names: [{ language: { name: 'es' }, name: 'Eléctrico' }],
   pokemon: [
     { slot: 1, pokemon: { name: 'pikachu', url: `${BASE_URL}/pokemon/25/` } },
     { slot: 1, pokemon: { name: 'raichu', url: `${BASE_URL}/pokemon/26/` } },
