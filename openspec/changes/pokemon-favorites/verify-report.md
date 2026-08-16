@@ -158,17 +158,17 @@ Scenario totals below are counted from the retrieved specs (80 scenarios / 43 re
 **CRITICAL**: None. No spec scenario has a failing test; no CRITICAL functional defect found. Known debt (visual tokens pending human sign-off, 18-request preload cost, static weakness chart) is documented in README §Known Debt and does not violate critical functional requirements.
 
 **WARNING**:
-- W-1 (favorites §Toggle, partial): the Pokedex **list card has no favorite control** — toggling works from the detail panel only. `FavoriteButton` is referenced solely by `PokemonDetailPanel.vue`; `PokemonCard.vue` has no heart. Spec requires toggling "from both the list card and the detail view". No covering test for the list-card surface.
-- W-2 (navigation-tabbar §Four-item TabBar, partial): TabBar items are **text-only** — the required "Figma icon" per item is not rendered (`TabBar.vue`), and no test asserts icons.
+- W-1 (favorites §Toggle) — **RESUELTO**: `FavoriteButton` added to `PokemonCard.vue` (top-right heart, `aria-pressed`, `@click.stop` so card activation still navigates, focus-visible outline). `src/__tests__/pokemon-card.spec.ts` covers add/remove/persist on the card surface. Commit `75a0cf7`.
+- W-2 (navigation-tabbar §Four-item TabBar) — **RESUELTO**: TabBar items now render inline SVG icons (house / globe / heart / user) plus labels; `aria-hidden` + `focusable="false"`, `aria-current` preserved. `src/__tests__/components.spec.ts` asserts icons. Commit `75a0cf7`.
 - W-3 (navigation-tabbar §State preservation) — **RESUELTO**: added an integration test `src/__tests__/pokedex-list-view.spec.ts` → "keeps list state across tab switches with no refetch (KeepAlive)". Mounts `App` with the real router, spies `store.loadFirstPage` and counts `fetchPokemonPage`: after `/` → `/favorites` → `/` the list renders 24 cards with `loadFirstPage` called exactly once and `fetchPokemonPage` once total — no refetch, state preserved.
 - W-4 (design coherence) — **RESUELTO**: removed the duplicate view-side `<nav class="detail-nav">` (text `Anterior`/`Próximo`) from `src/views/PokemonDetailView.vue`; the single Figma circular 48×48 nav now lives only in `PokemonDetailPanel.vue`. `pokemon-detail-view.spec.ts` still drives navigation through the panel `.nav-prev`/`.nav-next` (bounds + deep-link disabled) and now asserts `.detail-nav` is absent.
 - W-5 (exact copy deviation) — **RESUELTO**: aligned to the spec copy — `ErrorState.vue` subtitle is now `No pudimos cargar la información...` and `ConstructionState.vue` subtitle `Estamos trabajando para traerte esta sección` (extended suffixes removed). `src/__tests__/components.spec.ts` asserts the exact strings.
 - W-6 (spec/design drift, documented) — **RESUELTO / ACEPTADO**: no code change. The type-catalog preload + `nameToTypes` map replaces the literal `GET /pokemon/{name}` per-card cache — a user-approved design decision (`CHANGELOG.md` "Mejora aprobada y aplicada a design.md + tasks.md", also `design.md`/`tasks.md` updated), outcome-equivalent with zero detail requests per card. `FavoritePokemon.imageUrl` typed `string` (spec `string | null`) with `?? ''` coercion at the panel is specified as-is in `src/types/pokemon.ts` (detail-artwork fallback `front_default` → `''`).
 
 **SUGGESTION**:
-- S-1: add `FavoriteButton` to `PokemonCard` (satisfies the list-card toggle) or amend the spec/Figma note explicitly. — open (W-1)
+- S-1: add `FavoriteButton` to `PokemonCard` (satisfies the list-card toggle) or amend the spec/Figma note explicitly. — **DONE** (W-1 resolved)
 - S-2: pick one source of truth for Error/Construcción subtitles. — **DONE** (W-5: aligned to spec copy, tests assert exact strings)
-- S-3: add Figma tab icons to `TabBar.vue`. — open (W-2)
+- S-3: add Figma tab icons to `TabBar.vue`. — **DONE** (W-2 resolved)
 - S-4: remove the redundant view-side `detail-nav`. — **DONE** (W-4)
 - S-5: fix `vitest.config.ts` `import "./vite.config"` (missing extension) — Vite 8 emits a deprecation warning (also listed as known in CHANGELOG). — open (config, out of scope)
 - S-6: expand `e2e/vue.spec.ts` beyond 3 tests toward the design's full journey (scroll → filter → detail → favorite → trash → share → reload persistence). — open
@@ -176,6 +176,6 @@ Scenario totals below are counted from the retrieved specs (80 scenarios / 43 re
 
 ### Verdict
 
-**PASS WITH WARNINGS** — the implementation satisfies all 8 specs at core-behavior level: 80/80 scenarios verified, 211/211 unit tests, type-check, lint, and (per context) e2e chromium pass; the 4-endpoint rule, data contracts, performance, a11y, and traceability hold. No CRITICAL findings. W-3/W-4/W-5 resolved (integration test, duplicate-nav removal, exact copy) and W-6 accepted (user-approved drift). The remaining WARNINGS — list-card favorite toggle (W-1) and TabBar Figma icons (W-2) — are non-blocking surface gaps stemming from spec-text vs extracted-Figma ambiguities rather than implementation failures.
+**PASS WITH WARNINGS** — the implementation satisfies all 8 specs at core-behavior level: 80/80 scenarios verified, 211/211 unit tests, type-check, lint, and (per context) e2e chromium pass; the 4-endpoint rule, data contracts, performance, a11y, and traceability hold. No CRITICAL findings. All six warnings are resolved/accepted: W-1 (list-card favorite toggle) and W-2 (TabBar Figma icons) implemented in commit `75a0cf7`; W-3 integration test added; W-4 duplicate nav removed; W-5 exact copy aligned; W-6 user-approved drift documented. The only remaining suggestions (S-5 vitest config deprecation, S-6 broader e2e journey) are non-blocking and documented.
 
-**Recommended before archive**: reconcile W-1/W-2 (fix or amend the specs so archive reflects reality) — W-3..W-6 are resolved/accepted; the working tree also carries the uncommitted W-1/W-2 implementation (FavoriteButton in PokemonCard, SVG icons in TabBar). No rework of the core architecture required.
+**Recommended before archive**: none blocking — all warnings resolved/accepted; archive may proceed. Remaining suggestions (S-5/S-6) are optional follow-ups, not archive prerequisites.
