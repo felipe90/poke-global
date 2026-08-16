@@ -7,10 +7,7 @@ const emit = defineEmits<{ retry: [] }>()
 <template>
   <section class="state" role="alert">
     <h2 class="state__title">Algo salió mal...</h2>
-    <p class="state__subtitle">
-      No pudimos cargar la información en este momento. Verifica tu conexión o intenta
-      nuevamente más tarde.
-    </p>
+    <p class="state__subtitle">No pudimos cargar la información...</p>
     <Magikarp class="state__illustration" />
     <button
       type="button"

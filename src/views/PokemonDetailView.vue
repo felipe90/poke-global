@@ -92,28 +92,6 @@ watch(
         {{ displayName }}
       </h2>
 
-      <nav
-        class="detail-nav"
-        aria-label="Navegación entre Pokémon"
-      >
-        <button
-          type="button"
-          class="nav-button nav-prev"
-          :disabled="!prevName"
-          @click="goTo(prevName)"
-        >
-          Anterior
-        </button>
-        <button
-          type="button"
-          class="nav-button nav-next"
-          :disabled="!nextName"
-          @click="goTo(nextName)"
-        >
-          Próximo
-        </button>
-      </nav>
-
       <PokemonDetailPanel
         :detail="store.selectedDetail"
         :derived="store.selectedSpecies"

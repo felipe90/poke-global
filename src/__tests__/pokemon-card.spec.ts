@@ -11,6 +11,7 @@ let pinia: Pinia
 beforeEach(() => {
   pinia = createPinia()
   setActivePinia(pinia)
+  localStorage.clear()
 })
 
 function mountCard(summary: PokemonSummary, context?: string[]) {
@@ -82,9 +83,45 @@ describe('PokemonCard (5.1)', () => {
 
   it('shows the official artwork image derived from the id with a descriptive alt', () => {
     const wrapper = mountCard({ name: 'pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/' })
-    const image = wrapper.get('img')
+    const image = wrapper.get('.pokemon-card__image')
     expect(image.attributes('src')).toContain('/25.png')
     expect(image.attributes('alt')).toBe('pikachu')
+  })
+
+  it('renders a favorite control whose aria-pressed reflects the store state', async () => {
+    const { usePokemonStore } = await import('@/stores/pokemon')
+    const store = usePokemonStore()
+    const wrapper = mountCard({ name: 'pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/' })
+
+    const button = wrapper.get('.favorite-button')
+    expect(button.attributes('aria-pressed')).toBe('false')
+
+    store.toggleFavorite({ name: 'pikachu', id: 25, imageUrl: 'https://example.com/25.png', types: ['electric'] })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('.favorite-button').attributes('aria-pressed')).toBe('true')
+  })
+
+  it('toggles a snapshot favorite from the card without navigating to detail', async () => {
+    const { usePokemonStore } = await import('@/stores/pokemon')
+    const store = usePokemonStore()
+    store.nameToTypes = new Map([['bulbasaur', ['grass', 'poison']]])
+
+    const wrapper = mountCard({ name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/' })
+    await wrapper.get('.favorite-button').trigger('click')
+
+    expect(store.isFavorite('bulbasaur')).toBe(true)
+    const favorite = store.favorites[0]
+    expect(favorite).toMatchObject({
+      name: 'bulbasaur',
+      id: 1,
+      types: ['grass', 'poison'],
+    })
+    expect(favorite?.imageUrl).toContain('/1.png')
+    expect(typeof favorite?.addedAt).toBe('string')
+    expect(wrapper.emitted('navigate')).toBeUndefined()
+
+    await wrapper.get('.favorite-button').trigger('click')
+    expect(store.isFavorite('bulbasaur')).toBe(false)
   })
 
   it('sets the nav context and emits navigate + activate on activation', async () => {

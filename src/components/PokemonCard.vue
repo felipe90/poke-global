@@ -5,6 +5,7 @@ import { getTypeMeta } from '@/data/types'
 import { usePokemonStore } from '@/stores/pokemon'
 import type { PokemonSummary } from '@/types/pokemon'
 
+import FavoriteButton from './FavoriteButton.vue'
 import TypeBadge from './TypeBadge.vue'
 
 const props = defineProps<{
@@ -75,6 +76,14 @@ function activate(): void {
         />
       </div>
     </div>
+    <FavoriteButton
+      class="pokemon-card__favorite"
+      :name="summary.name"
+      :id="id"
+      :image-url="imageUrl ?? ''"
+      :types="types"
+      @click.stop
+    />
     <img
       v-if="imageUrl"
       class="pokemon-card__image"
@@ -86,6 +95,7 @@ function activate(): void {
 
 <style scoped>
 .pokemon-card {
+  position: relative;
   color: #fff;
   border: none;
   text-align: left;
@@ -113,6 +123,18 @@ function activate(): void {
   height: 96px;
   object-fit: contain;
   pointer-events: none;
+}
+
+.pokemon-card__favorite {
+  position: absolute;
+  top: var(--space-info-gap);
+  right: var(--space-info-gap);
+  padding: var(--space-info-gap);
+}
+
+.pokemon-card__favorite:focus-visible {
+  outline: 2px solid var(--bg);
+  outline-offset: 2px;
 }
 
 .pokemon-card:focus-visible {

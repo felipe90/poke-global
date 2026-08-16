@@ -171,6 +171,7 @@ describe('PokemonDetailView (4.4)', () => {
       store.setNavContext(['bulbasaur', 'ivysaur', 'venusaur'])
     })
     await flushPromises()
+    expect(wrapper.find('.detail-nav').exists()).toBe(false)
     expect(wrapper.find('.nav-prev').attributes('disabled')).toBeUndefined()
     expect(wrapper.find('.nav-next').attributes('disabled')).toBeUndefined()
 

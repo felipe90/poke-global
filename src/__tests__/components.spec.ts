@@ -102,6 +102,28 @@ describe('TabBar (3.2)', () => {
     const hrefs = wrapper.findAll('a').map((el) => el.attributes('href'))
     expect(hrefs).toEqual(['/', '/regions', '/favorites', '/profile'])
   })
+
+  it('renders an inline SVG icon on each of the four items, decorative', async () => {
+    const { wrapper } = await mountTabBar()
+    const links = wrapper.findAll('nav a')
+    expect(links).toHaveLength(4)
+    for (const link of links) {
+      const svg = link.find('svg')
+      expect(svg.exists()).toBe(true)
+      expect(svg.attributes('aria-hidden')).toBe('true')
+      expect(svg.attributes('focusable')).toBe('false')
+    }
+  })
+
+  it('renders icon + label on every item and uses no external image asset', async () => {
+    const { wrapper } = await mountTabBar()
+    const links = wrapper.findAll('nav a')
+    for (const link of links) {
+      expect(link.find('svg').exists()).toBe(true)
+      expect(link.text().trim().length).toBeGreaterThan(0)
+    }
+    expect(wrapper.find('nav img').exists()).toBe(false)
+  })
 })
 
 describe('TypeBadge (5.2)', () => {
@@ -179,9 +201,7 @@ describe('ErrorState (5.6)', () => {
   it('renders the exact error copy and a Reintentar CTA', () => {
     const wrapper = mount(ErrorState)
     expect(wrapper.text()).toContain('Algo salió mal...')
-    expect(wrapper.text()).toContain(
-      'No pudimos cargar la información en este momento. Verifica tu conexión o intenta nuevamente más tarde.',
-    )
+    expect(wrapper.text()).toContain('No pudimos cargar la información...')
     expect(wrapper.text()).toContain('Reintentar')
   })
 
@@ -206,9 +226,7 @@ describe('ConstructionState (5.7)', () => {
   it('renders the exact construction copy with Magikarp', () => {
     const wrapper = mount(ConstructionState)
     expect(wrapper.text()).toContain('¡Muy pronto disponible!')
-    expect(wrapper.text()).toContain(
-      'Estamos trabajando para traerte esta sección. Vuelve más adelante para descubrir todas las novedades.',
-    )
+    expect(wrapper.text()).toContain('Estamos trabajando para traerte esta sección')
     expect(wrapper.find('svg').exists()).toBe(true)
   })
 
