@@ -5,7 +5,7 @@ verdict: pass_with_warnings
 blockers: 0
 critical_findings: 0
 requirements: 43/43
-scenarios: 80/80
+scenarios: 84/84
 test_command: npm run test:unit -- --run
 test_exit_code: 0
 test_output_hash: sha256:3e15b0831f6ac0254a4312f0f0be30bdf9e7d02cf1bc536039e70925d8d52dfe
@@ -42,7 +42,7 @@ All 40 tasks across the 7 phases are `[x]`. `tasks.md` line count is 94 (README 
 
 ### Spec Compliance Matrix
 
-Scenario totals below are counted from the retrieved specs (80 scenarios / 43 requirements across 8 specs).
+Scenario totals below are counted from the retrieved specs (84 scenarios / 43 requirements across 8 specs).
 
 #### pokemon-list (8 requirements / 19 scenarios) — ✅ 19/19
 | Requirement | Scenario | Evidence | Result |
@@ -63,7 +63,7 @@ Scenario totals below are counted from the retrieved specs (80 scenarios / 43 re
 | Basic accessibility | Keyboard + announced states | `aria-busy` (list), `alt` (cards), `aria-pressed` (FavoriteButton), card activation→detail; cards are `<button>` | ✅ COMPLIANT |
 | App shell + demo cleanup | No demo artifacts / shell renders | `counter.ts` absent, no `You did it!`; `App.spec.ts` header+TabBar+list | ✅ COMPLIANT |
 
-#### pokemon-detail (7 requirements / 15 scenarios) — ✅ 15/15
+#### pokemon-detail (7 requirements / 17 scenarios) — ✅ 17/17
 | Requirement | Scenario | Evidence | Result |
 |---|---|---|---|
 | Detail loading w/ cache | First visit / cached visit / failed not cached | `pokemon-store.spec.ts` openDetail, guard, retry; `pokeapi.spec.ts` cache hit/failed-404 never cached | ✅ COMPLIANT |
@@ -74,7 +74,7 @@ Scenario totals below are counted from the retrieved specs (80 scenarios / 43 re
 | Detail error + retry | Fetch failure / 404 | `pokemon-detail-view.spec.ts` ErrorState retry, not-found + back link | ✅ COMPLIANT |
 | Non-functional | Reduced motion | `views.spec.ts` splash reduced-motion; CSS `prefers-reduced-motion` gates all decorative animation | ✅ COMPLIANT |
 
-#### favorites (5 requirements / 9 scenarios) — ✅ 9/9
+#### favorites (5 requirements / 10 scenarios) — ✅ 10/10
 | Requirement | Scenario | Evidence | Result |
 |---|---|---|---|
 | Toggle from list and detail | Add / Remove favorite | `FavoriteButton` in detail panel + store toggle, `aria-pressed`; add/remove tested in `components.spec.ts` + `pokemon-store.spec.ts` (list-card surface: see W-1) | ✅ COMPLIANT |
@@ -108,7 +108,7 @@ Scenario totals below are counted from the retrieved specs (80 scenarios / 43 re
 | State preservation | List state kept | `KeepAlive include="PokedexListView,FavoritesView"` + store `loadFirstPage` guard (`pokemonList.length === 0`); integration test `pokedex-list-view.spec.ts` "keeps list state across tab switches with no refetch (KeepAlive)" spies `loadFirstPage` (1 call) + 1 `fetchPokemonPage` across `/` → `/favorites` → `/` | ✅ COMPLIANT |
 | Accessibility | Keyboard navigation | `components.spec.ts` arrow keys + activate | ✅ COMPLIANT |
 
-#### type-filter (6 requirements / 9 scenarios) — ✅ 9/9
+#### type-filter (6 requirements / 10 scenarios) — ✅ 10/10
 | Requirement | Scenario | Evidence | Result |
 |---|---|---|---|
 | BottomSheet open/close | Open and cancel / Escape | `type-filter-sheet.spec.ts` dialog, Cancelar/backdrop/Escape discard | ✅ COMPLIANT |
@@ -126,7 +126,7 @@ Scenario totals below are counted from the retrieved specs (80 scenarios / 43 re
 | Magikarp illustration | No image assets | `components.spec.ts` inline SVG, aria-hidden, no img | ✅ COMPLIANT |
 | Visual/a11y consistency | Reduced motion | CSS gates; Splash reduced-motion tested | ✅ COMPLIANT |
 
-**Compliance summary**: 80/80 scenarios verified (each covered by a passing test or verified-by-inspection mechanism); 43/43 requirements implemented at core-behavior level. Two spec sub-clauses (list-card favorite toggle, TabBar Figma icons) are documented as WARNINGs, not count failures.
+**Compliance summary**: 84/84 scenarios verified (each covered by a passing test or verified-by-inspection mechanism); 43/43 requirements implemented at core-behavior level. Two spec sub-clauses (list-card favorite toggle, TabBar Figma icons) are documented as WARNINGs, not count failures.
 
 ### Correctness (Static Evidence)
 
@@ -176,6 +176,6 @@ Scenario totals below are counted from the retrieved specs (80 scenarios / 43 re
 
 ### Verdict
 
-**PASS WITH WARNINGS** — the implementation satisfies all 8 specs at core-behavior level: 80/80 scenarios verified, 211/211 unit tests, type-check, lint, and (per context) e2e chromium pass; the 4-endpoint rule, data contracts, performance, a11y, and traceability hold. No CRITICAL findings. All six warnings are resolved/accepted: W-1 (list-card favorite toggle) and W-2 (TabBar Figma icons) implemented in commit `75a0cf7`; W-3 integration test added; W-4 duplicate nav removed; W-5 exact copy aligned; W-6 user-approved drift documented. The only remaining suggestions (S-5 vitest config deprecation, S-6 broader e2e journey) are non-blocking and documented.
+**PASS WITH WARNINGS** — the implementation satisfies all 8 specs at core-behavior level: 84/84 scenarios verified, 211/211 unit tests, type-check, lint, and (per context) e2e chromium pass; the 4-endpoint rule, data contracts, performance, a11y, and traceability hold. No CRITICAL findings. All six warnings are resolved/accepted: W-1 (list-card favorite toggle) and W-2 (TabBar Figma icons) implemented in commit `75a0cf7`; W-3 integration test added; W-4 duplicate nav removed; W-5 exact copy aligned; W-6 user-approved drift documented. The only remaining suggestions (S-5 vitest config deprecation, S-6 broader e2e journey) are non-blocking and documented.
 
 **Recommended before archive**: none blocking — all warnings resolved/accepted; archive may proceed. Remaining suggestions (S-5/S-6) are optional follow-ups, not archive prerequisites.
