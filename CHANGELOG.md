@@ -393,6 +393,20 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Gates**: lint PASS (54 errores de tests de PRs previos corregidos), type-check PASS, unit **206/206**, e2e **3/3 chromium PASS** (flujo completo). Firefox/webkit no probados localmente (browsers no instalados — documentado).
 - **Archivos afectados**: `README.md`, `e2e/vue.spec.ts`, `src/stores/counter.ts` (eliminado), tests, `tasks.md` (7.1–7.3).
 
+### [verify] Fase verify — PASS WITH WARNINGS
+
+- **Descripción**: Fase `sdd-verify` ejecutada vía agente general (el canal sdd-* sigue roto por transporte). Verificación independiente: **43 requerimientos / 80 escenarios, 0 CRITICAL, 0 blockers**.
+- **PASS confirmados**: regla de endpoints (solo 4 whitelisted en `pokeapi.ts`, artwork = CDN estático), contratos de datos, preload 18 tipos (≤6 en vuelo, cero red por card), atomicidad del filtro, caches de sesión (fallidos/404 nunca cacheados), favoritos + sync cross-tab, trazabilidad (tasks 40/40, CHANGELOG 6 PRs).
+- **WARNINGS (6)**:
+  - W-1: sin control de favorito en la card de la lista (solo en detalle) — gap vs spec "from both list card and detail".
+  - W-2: TabBar sin iconos Figma (solo texto).
+  - W-3: estado de lista sin test dedicado (KeepAlive implementado, verificado por inspección).
+  - W-4: `<nav class="detail-nav">` duplicado en PokemonDetailView (la tarea 4.4 ordenaba eliminarlo; redundante con el nav circular del panel).
+  - W-5: copy drift en subtítulos de ErrorState/ConstructionState (tests asertan el texto desviado).
+  - W-6: drift spec/design documentado (preload vs mecanismo literal; imageUrl `string|null`).
+- **Artefacto**: `openspec/changes/pokemon-favorites/verify-report.md` (181 líneas).
+- **Recomendación del orquestador**: corregir W-4 y W-5 (rápidos y claros), decidir W-1/W-2 (fix o enmendar specs), tests W-3. Ninguno exige rework de arquitectura.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
