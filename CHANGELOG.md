@@ -407,6 +407,17 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Artefacto**: `openspec/changes/pokemon-favorites/verify-report.md` (181 líneas).
 - **Recomendación del orquestador**: corregir W-4 y W-5 (rápidos y claros), decidir W-1/W-2 (fix o enmendar specs), tests W-3. Ninguno exige rework de arquitectura.
 
+### [fix] Warnings verify RESUELTOS — commit `75a0cf7`
+
+- **Descripción**: los 6 warnings del verify quedaron resueltos; gates **211/211 tests, type-check y lint PASS**.
+- **W-1** ✅ FavoriteButton añadido a `PokemonCard.vue` (heart superior derecha, `aria-pressed`, stopPropagation para no navegar al tocar, focus-visible).
+- **W-2** ✅ TabBar con iconos SVG inline por item (Pokedex=house, Regiones=globe, Favoritos=heart, Perfil=user) + texto; se mantiene `aria-current`.
+- **W-3** ✅ Test de integración "keeps list state across tab switches (KeepAlive)": espía `loadFirstPage`/`fetchPokemonPage` — 1 sola llamada tras `/`→`/favorites`→`/`, 24 cards preservadas.
+- **W-4** ✅ Eliminado `<nav class="detail-nav">` duplicado de `PokemonDetailView.vue`; queda solo el nav circular 48×48 del panel. El test aserta `.detail-nav` ausente.
+- **W-5** ✅ Copy alineado al EXACTO de la spec: ErrorState `No pudimos cargar la información...`, ConstructionState `Estamos trabajando para traerte esta sección` (sufijos extendidos eliminados); tests actualizados.
+- **W-6** ✅ Marcado RESUELTO/ACEPTADO (preload `nameToTypes` decisión aprobada; `imageUrl: string` con coerción `?? ''`).
+- **Lección**: el lote inicial abortado dejó W-1/W-2 implementados sin commitear; la verificación independiente confirmó 210→211 tests con el cierre completo.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
