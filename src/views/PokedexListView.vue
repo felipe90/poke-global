@@ -81,6 +81,7 @@ onMounted(() => {
   if (store.pokemonList.length === 0) {
     void store.loadFirstPage()
   }
+  void store.preloadTypes()
 })
 </script>
 
