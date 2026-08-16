@@ -352,6 +352,14 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Lote B** (`c60034d`): 3 componentes complejos — PokemonCard (Nº padded, tipos desde `nameToTypes`, fondo por tipo), TypeFilterSheet (dialog multi-checkbox, focus trap, apply atómico, retry solo tipos fallidos), PokemonDetailPanel (todos los campos Figma, tipos por slot, hosts FavoriteButton+ShareButton). Export menor `deriveSpecies` añadido al store (reutilizado por el panel). 30 tests nuevos → **161/161**, type-check limpio.
 - **Archivos afectados**: `src/styles/{tokens,main}.css`, `src/components/*` (13), `src/stores/pokemon.ts` (export deriveSpecies), `src/__tests__/*`, `tasks.md` (5.1–5.12, 6.1–6.2).
 
+### [feature] PR 5 — Vistas reales (app funcional) + verificación visual
+
+- **Descripción**: Implementado en 2 lotes vía agente general. Reemplazo de los stubs por vistas funcionales completas.
+- **Lote A** (`4824013`): SplashView (pokebola CSS, auto-avance 1500ms, reduced-motion), OnboardingView (copy exacto Figma, dots accesibles, Transition, sin skip/localStorage), ConstructionView (thin wrapper). 12 tests → 173/173.
+- **Lote B** (`fb281cd`): PokedexListView (loadFirstPage, infinite scroll catálogo/filtro, SearchBar + contador, TypeFilterSheet, Borrar filtro, ErrorState + sentinel error, grid 2-col), PokemonDetailView (openDetail por param, species degrada a —, Próximo/Anterior indexado, 404, focus heading), FavoritesView (snapshots sin red, trash, empty state exacto). Cambios menores: flag `detailNotFound` en store, `TabBar.isActive` marca Pokedex en `/pokemon/*`. 24 tests → **197/197**, type-check limpio.
+- **Verificación visual (Playwright headless)**: journey completo sin errores — splash → onboarding 01/02 → lista (120 cards cargadas, 5 páginas) → detalle `/pokemon/bulbasaur` → back. Input de búsqueda con placeholder correcto, TabBar 4 items exactos. Capturas `design-reference/journey-*.png`.
+- **Archivos afectados**: `src/views/*` (6 reales), `src/stores/pokemon.ts` (detailNotFound), `src/components/TabBar.vue` (isActive), `src/__tests__/*`, `tasks.md` (4.1–4.6).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
