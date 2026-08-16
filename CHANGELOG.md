@@ -504,3 +504,9 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - [ ] **Cargar la fuente Poppins** (token `--font-family` ya apunta a ella; falta `@fontsource/poppins` o Google Fonts) para la tipografía real del Figma.
 - [ ] **README** AI-First: qué es, cómo se desarrolla, cómo se prueba, decisiones.
 - [ ] Fix del nit de `vitest.config.ts` (extensión en el import).
+
+---
+
+## Entregado — commit `b94df6f` (push a `origin/main`)
+
+Trabajo de la sesión del 2026-08-16 commiteado y pusheado. `public/favicon.ico` y `.engram/config.json` ya estaban resueltos en commits previos (no aparecieron como modificados).
