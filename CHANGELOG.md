@@ -369,6 +369,22 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Lección**: la verificación visual contra el Figma no es opcional — atrapó un bug de integración que los unit tests no cubrían (ningún test montaba la vista y disparaba el preload real).
 - **Archivos afectados**: `src/views/PokedexListView.vue`, `design-reference/journey-04-pokedex-list.png` (captura corregida).
 
+### [bugfix] Verificación Figma completa — toolbar sticky + pointer-events + layout detalle
+
+- **Descripción**: Revisión exhaustiva del layout contra el Figma a petición del usuario (que detectó UI superpuesta y desalineada). Dos bugs de UI reales encontrados por verificación programática:
+  1. **Toolbar no clickeable**: las imágenes de las cards interceptaban los clicks sobre el botón "Filtrar" (toolbar era `position: static` sin fondo). Fix: toolbar `sticky top:0`, `z-index:2`, `background: var(--bg)`.
+  2. **Clicks en cards bloqueados**: los `<img>` decorativos (type badge icon y artwork) interceptaban el click sin propagarlo limpio. Fix: `pointer-events: none` en `.type-badge__icon` (main.css) y `.pokemon-card__image` (PokemonCard.vue).
+- **Verificación**: audit completo del journey (splash→onboarding→lista→filtro→detalle→favoritos→construcción) → **18/18 PASS** + error state. Suite 197/197, type-check limpio.
+- **Archivos afectados**: `src/views/PokedexListView.vue` (toolbar sticky), `src/styles/main.css` (pointer-events badge), `src/components/PokemonCard.vue` (pointer-events image).
+
+### [architecture] Reconstrucción del detalle — geometría real del Figma (API)
+
+- **Descripción**: El usuario reportó que la UI no seguía el Figma. El orquestador reconoció que NO puede ver imágenes y que la verificación previa midió tokens aislados, no composición. Se conectó a la API de Figma y extrajo la **geometría exacta** del detalle (node 10:6948): header 307px con círculo 498×498 del color del tipo, artwork 142×155, nav circular 48×48, chips junto al nombre, línea separadora, características en 2 columnas.
+- **Reconstrucción** (commit `39727bf`): `PokemonDetailPanel.vue` reescrito con la estructura Figma exacta (círculo de color, artwork centrado, back + heart, nav circular, elementos, descripción + divider, 2 columnas, debilidades); `PokemonDetailView.vue` conecta emits (back→goBack, prev/next→goTo). `PokemonCard.vue` verificado y sin cambios (ya cumplía). **206/206 tests**, type-check limpio.
+- **Verificación geométrica**: DOM medido contra el Figma — círculo 498×498 bg `#8bc34a`, artwork 142×155, back 38×38, nav 48×48 radius 50%, divider 1px, 2 columnas. Captura `design-reference/verify-detalle-rebuilt.png`.
+- **Lección de proceso**: el orquestador no puede previsualizar imágenes; la verificación fiel requiere extraer geometría de la API de Figma y medir el DOM contra ella, y el USUARIO valida visualmente las capturas.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`, `src/views/PokemonDetailView.vue`, tests, `figma-design-notes.md` (geometría añadida), `tasks.md`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
