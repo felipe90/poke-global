@@ -106,7 +106,7 @@ describe('pokeapi service', () => {
   let fetchMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    fetchMock = vi.fn()
+    fetchMock = vi.fn<typeof fetch>()
     vi.stubGlobal('fetch', fetchMock)
   })
 
@@ -159,7 +159,7 @@ describe('pokeapi service', () => {
     it('never caches a 404 detail', async () => {
       fetchMock.mockResolvedValueOnce(jsonResponse({}, 404))
 
-      await expect(fetchPokemonDetail('missing')).rejects.toThrow()
+      await expect(fetchPokemonDetail('missing')).rejects.toThrow(/PokeAPI request failed/)
 
       fetchMock.mockResolvedValueOnce(jsonResponse(pikachuDetail))
       const retry = await fetchPokemonDetail('missing')

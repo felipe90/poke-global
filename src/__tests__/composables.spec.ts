@@ -57,7 +57,7 @@ function stubClipboard(clipboard: unknown): void {
 }
 
 function stubExecCommand(impl: () => boolean): ReturnType<typeof vi.fn> {
-  const exec = vi.fn(impl)
+  const exec = vi.fn<() => boolean>(impl)
   Object.defineProperty(document, 'execCommand', {
     configurable: true,
     writable: true,
@@ -74,7 +74,7 @@ describe('useInfiniteScroll (2.6)', () => {
 
   it('calls onLoadMore exactly once when the sentinel intersects with all guards open', () => {
     stubIntersectionObserver()
-    const onLoadMore = vi.fn()
+    const onLoadMore = vi.fn<() => void>()
     const { sentinel, observe } = useInfiniteScroll({
       enabled: true,
       loadingMore: false,
@@ -94,7 +94,7 @@ describe('useInfiniteScroll (2.6)', () => {
   it('does not trigger again while loadingMore is true, then resumes once it flips back', () => {
     stubIntersectionObserver()
     const loadingMore = ref(false)
-    const onLoadMore = vi.fn(() => {
+    const onLoadMore = vi.fn<() => void>(() => {
       loadingMore.value = true
     })
     const { sentinel, observe } = useInfiniteScroll({
@@ -122,7 +122,7 @@ describe('useInfiniteScroll (2.6)', () => {
 
   it('never triggers when the catalog is exhausted (hasMore false)', () => {
     stubIntersectionObserver()
-    const onLoadMore = vi.fn()
+    const onLoadMore = vi.fn<() => void>()
     const { sentinel, observe } = useInfiniteScroll({
       enabled: true,
       loadingMore: false,
@@ -141,7 +141,7 @@ describe('useInfiniteScroll (2.6)', () => {
 
   it('never triggers when disabled even while intersecting', () => {
     stubIntersectionObserver()
-    const onLoadMore = vi.fn()
+    const onLoadMore = vi.fn<() => void>()
     const { sentinel, observe } = useInfiniteScroll({
       enabled: false,
       loadingMore: false,
@@ -160,7 +160,7 @@ describe('useInfiniteScroll (2.6)', () => {
   it('reacts to a hasMore ref turning true after observation starts', () => {
     stubIntersectionObserver()
     const hasMore = ref(false)
-    const onLoadMore = vi.fn()
+    const onLoadMore = vi.fn<() => void>()
     const { sentinel, observe } = useInfiniteScroll({
       enabled: true,
       loadingMore: false,
@@ -181,7 +181,7 @@ describe('useInfiniteScroll (2.6)', () => {
 
   it('is a no-op when IntersectionObserver is missing (no crash, no trigger)', () => {
     vi.stubGlobal('IntersectionObserver', undefined)
-    const onLoadMore = vi.fn()
+    const onLoadMore = vi.fn<() => void>()
     const { sentinel, observe, disconnect } = useInfiniteScroll({
       enabled: true,
       loadingMore: false,
@@ -202,7 +202,7 @@ describe('useInfiniteScroll (2.6)', () => {
 
   it('disconnect stops the active observer from firing further callbacks', () => {
     stubIntersectionObserver()
-    const onLoadMore = vi.fn()
+    const onLoadMore = vi.fn<() => void>()
     const { sentinel, observe, disconnect } = useInfiniteScroll({
       enabled: true,
       loadingMore: false,
@@ -225,7 +225,7 @@ describe('useInfiniteScroll (2.6)', () => {
 
   it('observe never triggers while the sentinel has no element yet', () => {
     stubIntersectionObserver()
-    const onLoadMore = vi.fn()
+    const onLoadMore = vi.fn<() => void>()
     const { observe } = useInfiniteScroll({
       enabled: true,
       loadingMore: false,
@@ -297,7 +297,7 @@ describe('useClipboard (2.8)', () => {
   let writeText: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    writeText = vi.fn().mockResolvedValue(undefined)
+    writeText = vi.fn<(data: string) => Promise<void>>().mockResolvedValue(undefined)
     stubClipboard({ writeText })
   })
 
@@ -364,7 +364,7 @@ describe('useClipboard (2.8)', () => {
   })
 
   it('performs no network request while copying', async () => {
-    const fetchSpy = vi.fn()
+    const fetchSpy = vi.fn<typeof fetch>()
     vi.stubGlobal('fetch', fetchSpy)
     const { copy } = useClipboard()
 

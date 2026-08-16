@@ -8,10 +8,10 @@ vi.mock('@/services/pokeapi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/services/pokeapi')>()
   return {
     ...actual,
-    fetchPokemonPage: vi.fn(),
-    fetchTypeCatalog: vi.fn(),
-    fetchPokemonDetail: vi.fn(),
-    fetchPokemonSpecies: vi.fn(),
+    fetchPokemonPage: vi.fn<typeof actual.fetchPokemonPage>(),
+    fetchTypeCatalog: vi.fn<typeof actual.fetchTypeCatalog>(),
+    fetchPokemonDetail: vi.fn<typeof actual.fetchPokemonDetail>(),
+    fetchPokemonSpecies: vi.fn<typeof actual.fetchPokemonSpecies>(),
   }
 })
 
@@ -70,16 +70,16 @@ describe('SplashView (4.1)', () => {
 
   it('honors prefers-reduced-motion but keeps the 1500 ms auto-advance', async () => {
     vi.useFakeTimers()
-    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    window.matchMedia = vi.fn<(query: string) => MediaQueryList>((query: string) => ({
       matches: query.includes('prefers-reduced-motion: reduce'),
       media: query,
       onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })) as unknown as typeof window.matchMedia
+      addListener: vi.fn<() => void>(),
+      removeListener: vi.fn<() => void>(),
+      addEventListener: vi.fn<() => void>(),
+      removeEventListener: vi.fn<() => void>(),
+      dispatchEvent: vi.fn<(event: Event) => boolean>(),
+    }) as MediaQueryList)
     const router = await fresh()
     const { default: SplashView } = await import('@/views/SplashView.vue')
     const wrapper = mount(SplashView, { global: { plugins: [router] } })

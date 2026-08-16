@@ -13,7 +13,7 @@ vi.mock('@/services/pokeapi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/services/pokeapi')>()
   return {
     ...actual,
-    fetchTypeCatalog: vi.fn(),
+    fetchTypeCatalog: vi.fn<typeof actual.fetchTypeCatalog>(),
   }
 })
 

@@ -10,10 +10,10 @@ vi.mock('@/services/pokeapi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/services/pokeapi')>()
   return {
     ...actual,
-    fetchPokemonPage: vi.fn(),
-    fetchTypeCatalog: vi.fn(),
-    fetchPokemonDetail: vi.fn(),
-    fetchPokemonSpecies: vi.fn(),
+    fetchPokemonPage: vi.fn<typeof actual.fetchPokemonPage>(),
+    fetchTypeCatalog: vi.fn<typeof actual.fetchTypeCatalog>(),
+    fetchPokemonDetail: vi.fn<typeof actual.fetchPokemonDetail>(),
+    fetchPokemonSpecies: vi.fn<typeof actual.fetchPokemonSpecies>(),
   }
 })
 
@@ -52,7 +52,7 @@ function makeDetail(name: string, id: number): PokemonDetail {
   }
 }
 
-function makeSpecies(id: number): PokemonSpecies {
+function makeSpecies(_id: number): PokemonSpecies {
   return {
     flavor_text_entries: [{ flavor_text: 'Texto ES', language: { name: 'es' }, version: { name: 'red' } }],
     genera: [{ genus: 'Pokémon Semilla', language: { name: 'es' } }],
@@ -163,7 +163,7 @@ describe('PokemonDetailView (4.4)', () => {
   })
 
   it('Próximo/Anterior navigate within the nav context, disabled at bounds', async () => {
-    const { wrapper, mod, router } = await mountDetail('ivysaur', ({ mod, store }) => {
+    const { wrapper, router } = await mountDetail('ivysaur', ({ mod, store }) => {
       mod.fetchPokemonDetail.mockImplementation((name: string) =>
         Promise.resolve(makeDetail(name, { bulbasaur: 1, ivysaur: 2, venusaur: 3 }[name] ?? 2)),
       )

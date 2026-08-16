@@ -10,10 +10,10 @@ vi.mock('@/services/pokeapi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/services/pokeapi')>()
   return {
     ...actual,
-    fetchPokemonPage: vi.fn(),
-    fetchTypeCatalog: vi.fn(),
-    fetchPokemonDetail: vi.fn(),
-    fetchPokemonSpecies: vi.fn(),
+    fetchPokemonPage: vi.fn<typeof actual.fetchPokemonPage>(),
+    fetchTypeCatalog: vi.fn<typeof actual.fetchTypeCatalog>(),
+    fetchPokemonDetail: vi.fn<typeof actual.fetchPokemonDetail>(),
+    fetchPokemonSpecies: vi.fn<typeof actual.fetchPokemonSpecies>(),
   }
 })
 
@@ -170,7 +170,7 @@ describe('PokedexListView (4.3)', () => {
   })
 
   it('shows the joined-size count when a filter is active', async () => {
-    const { wrapper, store } = await mountList(({ mod, store }) => {
+    const { wrapper } = await mountList(({ mod, store }) => {
       mod.fetchPokemonPage.mockResolvedValue(page(0, ['bulbasaur'], null))
       store.pokemonList = summaries(['bulbasaur'])
       store.appliedTypes = ['grass']

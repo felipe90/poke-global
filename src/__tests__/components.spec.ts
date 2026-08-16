@@ -19,7 +19,7 @@ import type { PokemonDetail } from '@/types/pokemon'
 
 const Stub = { template: '<div />' }
 
-function makeRouter(initialPath: string): Router {
+function makeRouter(): Router {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -34,7 +34,7 @@ function makeRouter(initialPath: string): Router {
 }
 
 async function mountTabBar(initialPath = '/') {
-  const router = makeRouter(initialPath)
+  const router = makeRouter()
   await router.push(initialPath)
   await router.isReady()
   const wrapper = mount(TabBar, { global: { plugins: [router] } })
@@ -68,9 +68,10 @@ describe('TabBar (3.2)', () => {
     const { wrapper } = await mountTabBar('/favorites')
     const items = wrapper.findAll('a')
     expect(items[2]?.attributes('style')).toContain('rgb(13, 71, 161)')
-    items.forEach((item, index) => {
-      if (index !== 2) expect(item.attributes('style')).toContain('rgb(66, 66, 66)')
-    })
+    const inactive = items.filter((_, index) => index !== 2)
+    for (const item of inactive) {
+      expect(item.attributes('style')).toContain('rgb(66, 66, 66)')
+    }
   })
 
   it('rounds the top corners 16px and applies the top shadow', async () => {
@@ -81,7 +82,7 @@ describe('TabBar (3.2)', () => {
   })
 
   it('moves focus with arrow keys and activates the route', async () => {
-    const router = makeRouter('/')
+    const router = makeRouter()
     await router.push('/')
     await router.isReady()
     const wrapper = mount(TabBar, { attachTo: document.body, global: { plugins: [router] } })
@@ -265,7 +266,7 @@ describe('FavoriteButton (5.11)', () => {
   it('reflects the store favorite state in aria-pressed', async () => {
     const { usePokemonStore } = await import('@/stores/pokemon')
     const store = usePokemonStore()
-    let wrapper = mountFavorite()
+    const wrapper = mountFavorite()
     expect(wrapper.attributes('aria-pressed')).toBe('false')
 
     store.toggleFavorite({ name: 'pikachu', id: 25, imageUrl: 'https://example.com/pikachu.png', types: ['electric'] })
@@ -324,7 +325,7 @@ describe('ShareButton (5.12)', () => {
   })
 
   it('copies the exact fixed share text and shows success feedback', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
+    const writeText = vi.fn<(data: string) => Promise<void>>().mockResolvedValue(undefined)
     Object.assign(navigator, { clipboard: { writeText } })
     const wrapper = mount(ShareButton, { props: { detail: pikachuDetail } })
     await wrapper.get('button').trigger('click')
@@ -334,8 +335,10 @@ describe('ShareButton (5.12)', () => {
   })
 
   it('shows a visible error when both copy strategies fail', async () => {
-    Object.assign(navigator, { clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } })
-    document.execCommand = vi.fn(() => false)
+    Object.assign(navigator, {
+      clipboard: { writeText: vi.fn<(data: string) => Promise<void>>().mockRejectedValue(new Error('denied')) },
+    })
+    document.execCommand = vi.fn<() => boolean>(() => false)
     const wrapper = mount(ShareButton, { props: { detail: pikachuDetail } })
     await wrapper.get('button').trigger('click')
     await flushPromises()
@@ -344,7 +347,7 @@ describe('ShareButton (5.12)', () => {
   })
 
   it('never includes species-derived fields in the copied text', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
+    const writeText = vi.fn<(data: string) => Promise<void>>().mockResolvedValue(undefined)
     Object.assign(navigator, { clipboard: { writeText } })
     const wrapper = mount(ShareButton, { props: { detail: pikachuDetail } })
     await wrapper.get('button').trigger('click')

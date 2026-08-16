@@ -15,10 +15,10 @@ import type {
 } from '@/types/pokemon'
 
 vi.mock('@/services/pokeapi', () => ({
-  fetchPokemonPage: vi.fn(),
-  fetchTypeCatalog: vi.fn(),
-  fetchPokemonDetail: vi.fn(),
-  fetchPokemonSpecies: vi.fn(),
+  fetchPokemonPage: vi.fn<(offset: number) => Promise<PokemonListResponse>>(),
+  fetchTypeCatalog: vi.fn<(type: TypeName) => Promise<TypeCatalogResponse>>(),
+  fetchPokemonDetail: vi.fn<(name: string) => Promise<PokemonDetail>>(),
+  fetchPokemonSpecies: vi.fn<(id: number) => Promise<PokemonSpecies>>(),
 }))
 
 const BASE = 'https://pokeapi.co/api/v2'
@@ -764,7 +764,7 @@ describe('pokemon store — type preload slice (2.9)', () => {
 
     let safety = 0
     while (inFlight.count > 0 && safety < 30) {
-      for (const gate of [...gates.values()]) gate.resolve(makeCatalog([]))
+      for (const gate of gates.values()) gate.resolve(makeCatalog([]))
       await flushPromises(5)
       safety++
     }
