@@ -385,6 +385,14 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Lección de proceso**: el orquestador no puede previsualizar imágenes; la verificación fiel requiere extraer geometría de la API de Figma y medir el DOM contra ella, y el USUARIO valida visualmente las capturas.
 - **Archivos afectados**: `src/components/PokemonDetailPanel.vue`, `src/views/PokemonDetailView.vue`, tests, `figma-design-notes.md` (geometría añadida), `tasks.md`.
 
+### [feature] PR 6 (final) — limpieza demo, README AI-First, gates
+
+- **Descripción**: Commit `ceeef2e` — los 6 PRs del plan están completos.
+- **Limpieza**: `src/stores/counter.ts` eliminado (sin referencias); test demo e2e "You did it!" reemplazado por 3 tests del flujo real (cold-load → onboarding → lista; deep-link `/favorites`).
+- **README.md** reescrito (187 líneas, AI-First): stack con justificación, arquitectura por capas, 7 decisiones clave (4 endpoints + caches, preload `nameToTypes`, snapshot favoritos + cross-tab, flujo fijo sin flag, share exacto, animaciones CSS puras), scripts, estructura, trazabilidad SDD + Gentle-AI, y **Known Debt** (incluida la deuda visual pendiente de validación).
+- **Gates**: lint PASS (54 errores de tests de PRs previos corregidos), type-check PASS, unit **206/206**, e2e **3/3 chromium PASS** (flujo completo). Firefox/webkit no probados localmente (browsers no instalados — documentado).
+- **Archivos afectados**: `README.md`, `e2e/vue.spec.ts`, `src/stores/counter.ts` (eliminado), tests, `tasks.md` (7.1–7.3).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
