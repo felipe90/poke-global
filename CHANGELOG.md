@@ -309,6 +309,20 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Pendiente**: PR 2 (Core state: store slices + composables) tras reiniciar opencode con MCP Playwright activo.
 - **Archivos afectados**: `src/types/`, `src/data/`, `src/services/`, `src/assets/icons/`, `src/__tests__/`, `openspec/changes/pokemon-favorites/tasks.md` (1.1–1.5 marcadas).
 
+### [decision] Reinicio opencode + registro Engram
+
+- **Descripción**: Reinicio de opencode por el usuario (activa MCP Playwright + Engram). Proyecto registrado en Engram vía `.engram/config.json` (`{"project": "poke-global"}`, formato igual a rallytap); el MCP no auto-detecta por cwd (sesión corre desde `repos/`), se usa `project="poke-global"` explícito en las llamadas. Guardado verificado (#968, #969).
+- **Archivos afectados**: `.engram/config.json` (commit `46f9c54`).
+
+### [blocked] PR 2 (Core state) — fallo de transporte en sdd-apply
+
+- **Descripción**: Intento de implementar la Fase 2 (store slices + 3 composables, tareas 2.1–2.9). El sub-agente `sdd-apply` devolvió `GENTLE_AI_SDD_FAILURE` con código `sdd_task_result_empty` **dos veces consecutivas** (resultado vacío de transporte, no fallo de implementación).
+- **Contrato seguido**: no se reintentó automáticamente; se ejecutó la continuación (`gentle-ai sdd-status --json`) una vez; se verificó que el repo quedó intacto (árbol limpio, `src/stores/` solo con `counter.ts` demo, `composables/` inexistente, tasks 2.x sin marcar).
+- **Causa probable**: el resultado del lanzamiento (9 tareas con evidencia TDD extensa) excede el límite del canal de transporte del sub-agente — el PR1 con 5 tareas pasó, este con 9 no.
+- **Decisión del usuario**: **Parar** el apply. Pendiente decidir cómo implementar el PR2 (dividir en 3 lotes con sdd-apply, usar agente general, o revisar el harness).
+- **Estado del repo**: `feature/pokemon-favorites` con 5 commits, 31/31 tests de Fase 1 pasando, type-check limpio.
+- **Archivos afectados**: ninguno (sin cambios; pausa).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
