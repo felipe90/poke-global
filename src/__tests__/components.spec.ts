@@ -1,9 +1,21 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import type { Router } from 'vue-router'
 import { flushPromises, mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 
 import TabBar from '@/components/TabBar.vue'
+import TypeBadge from '@/components/TypeBadge.vue'
+import SearchBar from '@/components/SearchBar.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import ConstructionState from '@/components/ConstructionState.vue'
+import Magikarp from '@/components/Magikarp.vue'
+import PokeballLoader from '@/components/PokeballLoader.vue'
+import FavoriteButton from '@/components/FavoriteButton.vue'
+import ShareButton from '@/components/ShareButton.vue'
+import type { PokemonDetail } from '@/types/pokemon'
 
 const Stub = { template: '<div />' }
 
@@ -88,5 +100,257 @@ describe('TabBar (3.2)', () => {
     const { wrapper } = await mountTabBar()
     const hrefs = wrapper.findAll('a').map((el) => el.attributes('href'))
     expect(hrefs).toEqual(['/', '/regions', '/favorites', '/profile'])
+  })
+})
+
+describe('TypeBadge (5.2)', () => {
+  it('renders the Spanish label for a type from TYPE_META', () => {
+    const wrapper = mount(TypeBadge, { props: { type: 'grass' } })
+    expect(wrapper.text()).toContain('Planta')
+  })
+
+  it('applies the type color as the chip background', () => {
+    const wrapper = mount(TypeBadge, { props: { type: 'fire' } })
+    expect(wrapper.attributes('style')).toContain('rgb(255, 152, 0)')
+  })
+
+  it('shows the type icon in a white circle, decorative', () => {
+    const wrapper = mount(TypeBadge, { props: { type: 'electric' } })
+    const circle = wrapper.find('.type-badge__icon')
+    expect(circle.exists()).toBe(true)
+    expect(circle.attributes('style')).toContain('rgb(250, 250, 250)')
+    const icon = circle.find('img')
+    expect(icon.exists()).toBe(true)
+    expect(icon.attributes('aria-hidden')).toBe('true')
+  })
+})
+
+describe('SearchBar (5.4)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('renders a labeled input with the exact placeholder', () => {
+    const wrapper = mount(SearchBar)
+    const input = wrapper.get('input')
+    expect(input.attributes('placeholder')).toBe('Buscar Pokémon...')
+    expect(wrapper.get('label').text()).toContain('Buscar')
+  })
+
+  it('emits the query to store.searchFilter after the 300 ms debounce', async () => {
+    const { usePokemonStore } = await import('@/stores/pokemon')
+    const store = usePokemonStore()
+    const wrapper = mount(SearchBar)
+    await wrapper.get('input').setValue('pika')
+    expect(store.searchFilter).toBe('')
+    await vi.advanceTimersByTime(300)
+    await nextTick()
+    expect(store.searchFilter).toBe('pika')
+  })
+
+  it('issues no API calls while searching', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const wrapper = mount(SearchBar)
+    await wrapper.get('input').setValue('bulbasaur')
+    await vi.advanceTimersByTime(300)
+    await nextTick()
+    expect(fetchSpy).not.toHaveBeenCalled()
+    fetchSpy.mockRestore()
+  })
+})
+
+describe('EmptyState (5.5)', () => {
+  it('renders the exact Figma empty copy', () => {
+    const wrapper = mount(EmptyState)
+    expect(wrapper.text()).toContain('No has marcado ningún Pokémon como favorito')
+    expect(wrapper.text()).toContain(
+      'Haz clic en el ícono de corazón de tus Pokémon favoritos y aparecerán aquí.',
+    )
+  })
+})
+
+describe('ErrorState (5.6)', () => {
+  it('renders the exact error copy and a Reintentar CTA', () => {
+    const wrapper = mount(ErrorState)
+    expect(wrapper.text()).toContain('Algo salió mal...')
+    expect(wrapper.text()).toContain(
+      'No pudimos cargar la información en este momento. Verifica tu conexión o intenta nuevamente más tarde.',
+    )
+    expect(wrapper.text()).toContain('Reintentar')
+  })
+
+  it('is announced as an alert role', () => {
+    const wrapper = mount(ErrorState)
+    expect(wrapper.attributes('role')).toBe('alert')
+  })
+
+  it('renders the Magikarp illustration as decorative', () => {
+    const wrapper = mount(ErrorState)
+    expect(wrapper.find('svg[aria-hidden="true"]').exists()).toBe(true)
+  })
+
+  it('emits retry when Reintentar is activated', async () => {
+    const wrapper = mount(ErrorState)
+    await wrapper.get('button').trigger('click')
+    expect(wrapper.emitted('retry')).toHaveLength(1)
+  })
+})
+
+describe('ConstructionState (5.7)', () => {
+  it('renders the exact construction copy with Magikarp', () => {
+    const wrapper = mount(ConstructionState)
+    expect(wrapper.text()).toContain('¡Muy pronto disponible!')
+    expect(wrapper.text()).toContain(
+      'Estamos trabajando para traerte esta sección. Vuelve más adelante para descubrir todas las novedades.',
+    )
+    expect(wrapper.find('svg').exists()).toBe(true)
+  })
+
+  it('issues no network requests', () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    mount(ConstructionState)
+    expect(fetchSpy).not.toHaveBeenCalled()
+    fetchSpy.mockRestore()
+  })
+})
+
+describe('Magikarp (5.8)', () => {
+  it('renders an inline SVG only — no external image file', () => {
+    const wrapper = mount(Magikarp)
+    expect(wrapper.find('svg').exists()).toBe(true)
+    expect(wrapper.find('img').exists()).toBe(false)
+  })
+
+  it('is decorative with aria-hidden and no alt requirement', () => {
+    const wrapper = mount(Magikarp)
+    expect(wrapper.attributes('aria-hidden')).toBe('true')
+  })
+})
+
+describe('PokeballLoader (5.9)', () => {
+  it('renders a pure-CSS loader with no image asset', () => {
+    const wrapper = mount(PokeballLoader)
+    expect(wrapper.find('.pokeball-loader').exists()).toBe(true)
+    expect(wrapper.find('img').exists()).toBe(false)
+  })
+
+  it('is decorative (aria-hidden)', () => {
+    const wrapper = mount(PokeballLoader)
+    expect(wrapper.attributes('aria-hidden')).toBe('true')
+  })
+})
+
+describe('FavoriteButton (5.11)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+  })
+
+  function mountFavorite() {
+    return mount(FavoriteButton, {
+      props: {
+        name: 'pikachu',
+        id: 25,
+        imageUrl: 'https://example.com/pikachu.png',
+        types: ['electric'],
+      },
+    })
+  }
+
+  it('reflects the store favorite state in aria-pressed', async () => {
+    const { usePokemonStore } = await import('@/stores/pokemon')
+    const store = usePokemonStore()
+    let wrapper = mountFavorite()
+    expect(wrapper.attributes('aria-pressed')).toBe('false')
+
+    store.toggleFavorite({ name: 'pikachu', id: 25, imageUrl: 'https://example.com/pikachu.png', types: ['electric'] })
+    await nextTick()
+    expect(wrapper.attributes('aria-pressed')).toBe('true')
+    wrapper.unmount()
+  })
+
+  it('toggles favorites on activation', async () => {
+    const { usePokemonStore } = await import('@/stores/pokemon')
+    const store = usePokemonStore()
+    const wrapper = mountFavorite()
+    await wrapper.trigger('click')
+    expect(store.isFavorite('pikachu')).toBe(true)
+    expect(wrapper.attributes('aria-pressed')).toBe('true')
+    await wrapper.trigger('click')
+    expect(store.isFavorite('pikachu')).toBe(false)
+    expect(wrapper.attributes('aria-pressed')).toBe('false')
+  })
+
+  it('swaps the heart image when favorited', async () => {
+    const wrapper = mountFavorite()
+    const outline = wrapper.find('img').attributes('src') ?? ''
+    const { usePokemonStore } = await import('@/stores/pokemon')
+    const store = usePokemonStore()
+    await store.toggleFavorite({ name: 'pikachu', id: 25, imageUrl: 'https://example.com/pikachu.png', types: ['electric'] })
+    await nextTick()
+    const solid = wrapper.find('img').attributes('src') ?? ''
+    expect(solid).not.toBe(outline)
+    expect(solid).toMatch(/^data:image\/svg\+xml/)
+  })
+})
+
+describe('ShareButton (5.12)', () => {
+  const pikachuDetail: PokemonDetail = {
+    id: 25,
+    name: 'pikachu',
+    height: 4,
+    weight: 60,
+    types: [{ slot: 1, type: { name: 'electric' } }],
+    stats: [
+      { base_stat: 35, stat: { name: 'hp' } },
+      { base_stat: 55, stat: { name: 'attack' } },
+      { base_stat: 40, stat: { name: 'defense' } },
+      { base_stat: 50, stat: { name: 'special-attack' } },
+      { base_stat: 50, stat: { name: 'special-defense' } },
+      { base_stat: 90, stat: { name: 'speed' } },
+    ],
+    abilities: [{ slot: 1, ability: { name: 'static' } }],
+    sprites: { front_default: null, other: { 'official-artwork': { front_default: null } } },
+    species: { url: 'https://pokeapi.co/api/v2/pokemon-species/25' },
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('copies the exact fixed share text and shows success feedback', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+    const wrapper = mount(ShareButton, { props: { detail: pikachuDetail } })
+    await wrapper.get('button').trigger('click')
+    await flushPromises()
+    expect(writeText).toHaveBeenCalledWith('pikachu, electric, HP 35, Attack 55, Defense 40, Speed 90')
+    expect(wrapper.text()).toContain('Copiado')
+  })
+
+  it('shows a visible error when both copy strategies fail', async () => {
+    Object.assign(navigator, { clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } })
+    document.execCommand = vi.fn(() => false)
+    const wrapper = mount(ShareButton, { props: { detail: pikachuDetail } })
+    await wrapper.get('button').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('No se pudo copiar')
+    expect(wrapper.text()).not.toContain('Copiado')
+  })
+
+  it('never includes species-derived fields in the copied text', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+    const wrapper = mount(ShareButton, { props: { detail: pikachuDetail } })
+    await wrapper.get('button').trigger('click')
+    await flushPromises()
+    const copied = writeText.mock.calls[0]?.[0] as string
+    expect(copied).not.toMatch(/descripcion|categoria|genero|debilidades/i)
+    expect(copied).toBe('pikachu, electric, HP 35, Attack 55, Defense 40, Speed 90')
   })
 })
