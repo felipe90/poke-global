@@ -293,6 +293,139 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Veredicto**: 8/10 antes → mejora aplicada; diseño más escalable y más simple a la vez.
 - **Archivos afectados**: `openspec/changes/pokemon-favorites/design.md`, `openspec/changes/pokemon-favorites/tasks.md`.
 
+### [config] MCP de Playwright — verificación visual del navegador
+
+- **Descripción**: Se agrega el MCP de Playwright al `opencode.json` del proyecto para que el orquestador pueda abrir el navegador y verificar visualmente la app durante/después de la implementación (capturas, navegación real), no solo tests unitarios.
+- **Config**: `@playwright/mcp` (v0.0.79) local con `--allowed-hosts localhost,127.0.0.1` (restringido al dev server local). Browsers de Playwright ya instalados (chromium/firefox/webkit en cache).
+- **Verificado**: el config resuelve (5 MCP servers: codegraph, context7, engram, figma, playwright) y el server arranca activo.
+- **Uso previsto**: en las fases de apply, `npm run dev` + MCP Playwright para capturar pantallas del flujo (splash → onboarding → lista → detalle → favoritos) y validar el Figma visualmente.
+- **Archivos afectados**: `opencode.json`.
+
+### [feature] PR 1 implementado y commiteado — Foundation
+
+- **Descripción**: Fase 1 (Foundation) implementada por `sdd-apply` en la rama `feature/pokemon-favorites`, commit `05d3432` (30 archivos, 847 líneas). Strict TDD: RED → GREEN, **31/31 tests pasan**, type-check limpio.
+- **Contenido**: `src/types/pokemon.ts` (10 contratos + PAGE_SIZE=24 + STORAGE_KEY), `src/data/types.ts` (TYPE_META 18 tipos + WEAKNESS_CHART), `src/services/pokeapi.ts` (4 endpoints + 3 caches + buildShareText exacto), `src/services/storage.ts` (favoritos con fallback), 20 assets en `src/assets/icons/`.
+- **Notas técnicas**: caches module-level del servicio requieren claves únicas por test; `fetchPokemonPage(offset)` recibe el offset directo (no índice de página); assets importados estáticamente para URLs resolubles de Vite.
+- **Pendiente**: PR 2 (Core state: store slices + composables) tras reiniciar opencode con MCP Playwright activo.
+- **Archivos afectados**: `src/types/`, `src/data/`, `src/services/`, `src/assets/icons/`, `src/__tests__/`, `openspec/changes/pokemon-favorites/tasks.md` (1.1–1.5 marcadas).
+
+### [decision] Reinicio opencode + registro Engram
+
+- **Descripción**: Reinicio de opencode por el usuario (activa MCP Playwright + Engram). Proyecto registrado en Engram vía `.engram/config.json` (`{"project": "poke-global"}`, formato igual a rallytap); el MCP no auto-detecta por cwd (sesión corre desde `repos/`), se usa `project="poke-global"` explícito en las llamadas. Guardado verificado (#968, #969).
+- **Archivos afectados**: `.engram/config.json` (commit `46f9c54`).
+
+### [blocked] PR 2 (Core state) — fallo de transporte en sdd-apply
+
+- **Descripción**: Intento de implementar la Fase 2 (store slices + 3 composables, tareas 2.1–2.9). El sub-agente `sdd-apply` devolvió `GENTLE_AI_SDD_FAILURE` con código `sdd_task_result_empty` **dos veces consecutivas** (resultado vacío de transporte, no fallo de implementación).
+- **Contrato seguido**: no se reintentó automáticamente; se ejecutó la continuación (`gentle-ai sdd-status --json`) una vez; se verificó que el repo quedó intacto (árbol limpio, `src/stores/` solo con `counter.ts` demo, `composables/` inexistente, tasks 2.x sin marcar).
+- **Causa probable**: el resultado del lanzamiento (9 tareas con evidencia TDD extensa) excede el límite del canal de transporte del sub-agente — el PR1 con 5 tareas pasó, este con 9 no.
+- **Decisión del usuario**: **Parar** el apply. Pendiente decidir cómo implementar el PR2 (dividir en 3 lotes con sdd-apply, usar agente general, o revisar el harness).
+- **Estado del repo**: `feature/pokemon-favorites` con 5 commits, 31/31 tests de Fase 1 pasando, type-check limpio.
+- **Archivos afectados**: ninguno (sin cambios; pausa).
+
+### [decision] Diagnóstico del fallo de transporte + cambio de canal
+
+- **Descripción**: Tras 3 fallos consecutivos de `sdd-apply` con `sdd_task_result_empty` (incluido un lote reducido de 3 tareas), se descartó la hipótesis de tamaño del resultado. El problema es sistémico del canal de transporte del agente `sdd-apply` en esta sesión.
+- **Decisión técnica**: mantener intactos los artefactos SDD (verificados sanos: proposal 137 líneas, 8 specs, design 231 líneas, tasks 94 líneas) y **cambiar de canal de implementación al agente `general`** (misma ruta SDD/openspec, delegación directa, canal distinto) — sin reiniciar el SDD.
+- **Resultado**: Lote A (tasks 2.1–2.3: store catalog + filter + search + nav) implementado con TDD estricto vía agente general: `src/stores/pokemon.ts` + `src/__tests__/pokemon-store.spec.ts` (22 tests nuevos). Suite completa **53/53**, type-check limpio. Commit `a3c06b4`.
+- **Archivos afectados**: `src/stores/pokemon.ts`, `src/__tests__/pokemon-store.spec.ts`, `openspec/changes/pokemon-favorites/tasks.md` (2.1–2.3 marcadas).
+
+### [feature] PR 2 completado — Core state (store + composables)
+
+- **Descripción**: Fase 2 implementada en 3 lotes vía agente `general` (canal que sí funciona; `sdd-apply` falló 3 veces por transporte y quedó descartado para esta sesión).
+- **Lote A** (`a3c06b4`): store slices catalog/filter/search/nav — 22 tests nuevos, suite 53/53.
+- **Lote B** (`c7d2339`): store slices detail+species/favorites/type-preload — `nameToTypes` compartido con `applyTypeFilter` (cero red al aplicar), preload ≤6 en vuelo; 22 tests nuevos, suite 75/75.
+- **Lote C** (`97e3a0e`): composables `useInfiniteScroll`, `useDebouncedRef`, `useClipboard` — 17 tests nuevos, suite **92/92**, type-check limpio.
+- **Riesgo anotado**: la spec de pokemon-detail lista 4 chips de debilidades para Bulbasaur pero la cláusula normativa exige union WEAKNESS_CHART (7 para grass+poison) — se siguió la normativa.
+- **Archivos afectados**: `src/stores/pokemon.ts`, `src/composables/{useInfiniteScroll,useDebouncedRef,useClipboard}.ts`, `src/__tests__/{pokemon-store,composables}.spec.ts`, `tasks.md` (2.1–2.9 marcadas).
+
+### [feature] PR 3 — Shell y navegación
+
+- **Descripción**: Router con guard cold-load `flowComplete` (Splash→Onboarding→shell, deep-link preservado), TabBar 4 items con a11y completa, App shell con header + TabBar + `<KeepAlive>` (Pokedex/Favoritos). Views como stubs mínimos (las reales en PR5). 17 tests nuevos → **108/108**, type-check limpio. Commit `42c4346`.
+- **Verificación visual (Playwright headless)**: navegó a `/splash` correctamente (guard activo), sin errores de consola. Capturas guardadas en `design-reference/verify-pr3-splash.png` y `verify-pr3-onboarding.png` (390×844). Nota: el MCP de Playwright no quedó expuesto en esta sesión; se usó el Playwright del proyecto directamente.
+- **Archivos afectados**: `src/router/index.ts`, `src/components/TabBar.vue`, `src/App.vue`, `src/main.ts`, `src/views/*` (stubs), `src/styles/main.css` (provisional), `src/__tests__/{router,components,App}.spec.ts`, `tasks.md` (3.1–3.3).
+
+### [feature] PR 4 — Componentes + estilos (13 componentes, tokens reales)
+
+- **Descripción**: Implementado en 2 lotes vía agente general.
+- **Lote A** (`1cc8386`): `src/styles/tokens.css` (paleta Figma, radius, shadow-top, spacing, type scale) + `main.css` real (keyframes pokeball/shimmer, transitions fade/slide/sheet, prefers-reduced-motion, grid 2-col ≥640px) + 9 componentes base (TypeBadge, SearchBar, EmptyState, ErrorState, ConstructionState, Magikarp, PokeballLoader, FavoriteButton, ShareButton). 23 tests nuevos → 131/131.
+- **Lote B** (`c60034d`): 3 componentes complejos — PokemonCard (Nº padded, tipos desde `nameToTypes`, fondo por tipo), TypeFilterSheet (dialog multi-checkbox, focus trap, apply atómico, retry solo tipos fallidos), PokemonDetailPanel (todos los campos Figma, tipos por slot, hosts FavoriteButton+ShareButton). Export menor `deriveSpecies` añadido al store (reutilizado por el panel). 30 tests nuevos → **161/161**, type-check limpio.
+- **Archivos afectados**: `src/styles/{tokens,main}.css`, `src/components/*` (13), `src/stores/pokemon.ts` (export deriveSpecies), `src/__tests__/*`, `tasks.md` (5.1–5.12, 6.1–6.2).
+
+### [feature] PR 5 — Vistas reales (app funcional) + verificación visual
+
+- **Descripción**: Implementado en 2 lotes vía agente general. Reemplazo de los stubs por vistas funcionales completas.
+- **Lote A** (`4824013`): SplashView (pokebola CSS, auto-avance 1500ms, reduced-motion), OnboardingView (copy exacto Figma, dots accesibles, Transition, sin skip/localStorage), ConstructionView (thin wrapper). 12 tests → 173/173.
+- **Lote B** (`fb281cd`): PokedexListView (loadFirstPage, infinite scroll catálogo/filtro, SearchBar + contador, TypeFilterSheet, Borrar filtro, ErrorState + sentinel error, grid 2-col), PokemonDetailView (openDetail por param, species degrada a —, Próximo/Anterior indexado, 404, focus heading), FavoritesView (snapshots sin red, trash, empty state exacto). Cambios menores: flag `detailNotFound` en store, `TabBar.isActive` marca Pokedex en `/pokemon/*`. 24 tests → **197/197**, type-check limpio.
+- **Verificación visual (Playwright headless)**: journey completo sin errores — splash → onboarding 01/02 → lista (120 cards cargadas, 5 páginas) → detalle `/pokemon/bulbasaur` → back. Input de búsqueda con placeholder correcto, TabBar 4 items exactos. Capturas `design-reference/journey-*.png`.
+- **Archivos afectados**: `src/views/*` (6 reales), `src/stores/pokemon.ts` (detailNotFound), `src/components/TabBar.vue` (isActive), `src/__tests__/*`, `tasks.md` (4.1–4.6).
+
+### [bugfix] Verificación Figma vs implementación — preload de tipos huérfano
+
+- **Descripción**: Al medir la implementación contra los valores exactos del Figma (colores/radios/sombras/tipografías), se detectó que **6 de 7 mediciones coincidían** pero las cards NO pintaban el fondo por tipo (Bulbasaur salía `#fafafa` en vez de `#8bc34a` grass) y no mostraban chips de tipo.
+- **Causa raíz**: `preloadTypes()` existía en el store (bien implementado, ≤6 en vuelo, cache compartido) pero **nadie lo llamaba** — ni la vista, ni el router, ni App. La función estaba huérfana.
+- **Fix**: `PokedexListView.onMounted` ahora dispara `store.preloadTypes()` en paralelo con `loadFirstPage()`. Commit `9644d2c`.
+- **Verificado en browser**: card 1 = Bulbasaur con fondo `rgb(139,195,74)` (`#8bc34a` grass), chips `Planta | Veneno`, radius 16, zero errores. Suite 197/197 + type-check limpio.
+- **Lección**: la verificación visual contra el Figma no es opcional — atrapó un bug de integración que los unit tests no cubrían (ningún test montaba la vista y disparaba el preload real).
+- **Archivos afectados**: `src/views/PokedexListView.vue`, `design-reference/journey-04-pokedex-list.png` (captura corregida).
+
+### [bugfix] Verificación Figma completa — toolbar sticky + pointer-events + layout detalle
+
+- **Descripción**: Revisión exhaustiva del layout contra el Figma a petición del usuario (que detectó UI superpuesta y desalineada). Dos bugs de UI reales encontrados por verificación programática:
+  1. **Toolbar no clickeable**: las imágenes de las cards interceptaban los clicks sobre el botón "Filtrar" (toolbar era `position: static` sin fondo). Fix: toolbar `sticky top:0`, `z-index:2`, `background: var(--bg)`.
+  2. **Clicks en cards bloqueados**: los `<img>` decorativos (type badge icon y artwork) interceptaban el click sin propagarlo limpio. Fix: `pointer-events: none` en `.type-badge__icon` (main.css) y `.pokemon-card__image` (PokemonCard.vue).
+- **Verificación**: audit completo del journey (splash→onboarding→lista→filtro→detalle→favoritos→construcción) → **18/18 PASS** + error state. Suite 197/197, type-check limpio.
+- **Archivos afectados**: `src/views/PokedexListView.vue` (toolbar sticky), `src/styles/main.css` (pointer-events badge), `src/components/PokemonCard.vue` (pointer-events image).
+
+### [architecture] Reconstrucción del detalle — geometría real del Figma (API)
+
+- **Descripción**: El usuario reportó que la UI no seguía el Figma. El orquestador reconoció que NO puede ver imágenes y que la verificación previa midió tokens aislados, no composición. Se conectó a la API de Figma y extrajo la **geometría exacta** del detalle (node 10:6948): header 307px con círculo 498×498 del color del tipo, artwork 142×155, nav circular 48×48, chips junto al nombre, línea separadora, características en 2 columnas.
+- **Reconstrucción** (commit `39727bf`): `PokemonDetailPanel.vue` reescrito con la estructura Figma exacta (círculo de color, artwork centrado, back + heart, nav circular, elementos, descripción + divider, 2 columnas, debilidades); `PokemonDetailView.vue` conecta emits (back→goBack, prev/next→goTo). `PokemonCard.vue` verificado y sin cambios (ya cumplía). **206/206 tests**, type-check limpio.
+- **Verificación geométrica**: DOM medido contra el Figma — círculo 498×498 bg `#8bc34a`, artwork 142×155, back 38×38, nav 48×48 radius 50%, divider 1px, 2 columnas. Captura `design-reference/verify-detalle-rebuilt.png`.
+- **Lección de proceso**: el orquestador no puede previsualizar imágenes; la verificación fiel requiere extraer geometría de la API de Figma y medir el DOM contra ella, y el USUARIO valida visualmente las capturas.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`, `src/views/PokemonDetailView.vue`, tests, `figma-design-notes.md` (geometría añadida), `tasks.md`.
+
+### [feature] PR 6 (final) — limpieza demo, README AI-First, gates
+
+- **Descripción**: Commit `ceeef2e` — los 6 PRs del plan están completos.
+- **Limpieza**: `src/stores/counter.ts` eliminado (sin referencias); test demo e2e "You did it!" reemplazado por 3 tests del flujo real (cold-load → onboarding → lista; deep-link `/favorites`).
+- **README.md** reescrito (187 líneas, AI-First): stack con justificación, arquitectura por capas, 7 decisiones clave (4 endpoints + caches, preload `nameToTypes`, snapshot favoritos + cross-tab, flujo fijo sin flag, share exacto, animaciones CSS puras), scripts, estructura, trazabilidad SDD + Gentle-AI, y **Known Debt** (incluida la deuda visual pendiente de validación).
+- **Gates**: lint PASS (54 errores de tests de PRs previos corregidos), type-check PASS, unit **206/206**, e2e **3/3 chromium PASS** (flujo completo). Firefox/webkit no probados localmente (browsers no instalados — documentado).
+- **Archivos afectados**: `README.md`, `e2e/vue.spec.ts`, `src/stores/counter.ts` (eliminado), tests, `tasks.md` (7.1–7.3).
+
+### [verify] Fase verify — PASS WITH WARNINGS
+
+- **Descripción**: Fase `sdd-verify` ejecutada vía agente general (el canal sdd-* sigue roto por transporte). Verificación independiente: **43 requerimientos / 80 escenarios, 0 CRITICAL, 0 blockers**.
+- **PASS confirmados**: regla de endpoints (solo 4 whitelisted en `pokeapi.ts`, artwork = CDN estático), contratos de datos, preload 18 tipos (≤6 en vuelo, cero red por card), atomicidad del filtro, caches de sesión (fallidos/404 nunca cacheados), favoritos + sync cross-tab, trazabilidad (tasks 40/40, CHANGELOG 6 PRs).
+- **WARNINGS (6)**:
+  - W-1: sin control de favorito en la card de la lista (solo en detalle) — gap vs spec "from both list card and detail".
+  - W-2: TabBar sin iconos Figma (solo texto).
+  - W-3: estado de lista sin test dedicado (KeepAlive implementado, verificado por inspección).
+  - W-4: `<nav class="detail-nav">` duplicado en PokemonDetailView (la tarea 4.4 ordenaba eliminarlo; redundante con el nav circular del panel).
+  - W-5: copy drift en subtítulos de ErrorState/ConstructionState (tests asertan el texto desviado).
+  - W-6: drift spec/design documentado (preload vs mecanismo literal; imageUrl `string|null`).
+- **Artefacto**: `openspec/changes/pokemon-favorites/verify-report.md` (181 líneas).
+- **Recomendación del orquestador**: corregir W-4 y W-5 (rápidos y claros), decidir W-1/W-2 (fix o enmendar specs), tests W-3. Ninguno exige rework de arquitectura.
+
+### [fix] Warnings verify RESUELTOS — commit `75a0cf7`
+
+- **Descripción**: los 6 warnings del verify quedaron resueltos; gates **211/211 tests, type-check y lint PASS**.
+- **W-1** ✅ FavoriteButton añadido a `PokemonCard.vue` (heart superior derecha, `aria-pressed`, stopPropagation para no navegar al tocar, focus-visible).
+- **W-2** ✅ TabBar con iconos SVG inline por item (Pokedex=house, Regiones=globe, Favoritos=heart, Perfil=user) + texto; se mantiene `aria-current`.
+- **W-3** ✅ Test de integración "keeps list state across tab switches (KeepAlive)": espía `loadFirstPage`/`fetchPokemonPage` — 1 sola llamada tras `/`→`/favorites`→`/`, 24 cards preservadas.
+- **W-4** ✅ Eliminado `<nav class="detail-nav">` duplicado de `PokemonDetailView.vue`; queda solo el nav circular 48×48 del panel. El test aserta `.detail-nav` ausente.
+- **W-5** ✅ Copy alineado al EXACTO de la spec: ErrorState `No pudimos cargar la información...`, ConstructionState `Estamos trabajando para traerte esta sección` (sufijos extendidos eliminados); tests actualizados.
+- **W-6** ✅ Marcado RESUELTO/ACEPTADO (preload `nameToTypes` decisión aprobada; `imageUrl: string` con coerción `?? ''`).
+- **Lección**: el lote inicial abortado dejó W-1/W-2 implementados sin commitear; la verificación independiente confirmó 210→211 tests con el cierre completo.
+
+### [archive] Cambio pokemon-favorites ARCHIVADO — commit `d732d4b`
+
+- **Descripción**: ciclo SDD completo cerrado. El dispatcher nativo pasó a `verify: all_done` / `archive: ready` tras corregir el total de escenarios del verify-report de 80 → **84** (las specs reales tienen 84 escenarios; el dispatcher compara los totales con las specs).
+- **Sync de specs**: las 8 specs delta copiadas byte-idénticas a `openspec/specs/{pokemon-list,pokemon-detail,favorites,share,onboarding-flow,navigation-tabbar,type-filter,feedback-states}/spec.md` (verificado con diff).
+- **Archive report**: `openspec/changes/pokemon-favorites/archive-report.md` — estado final, decisiones de diseño, Known Debt, trazabilidad (commits + CHANGELOG). El directorio del change se conservó por instrucción del usuario (trail de evaluación), desviación documentada.
+- **Assets**: PNG/SVG sueltos de Figma en la raíz movidos a `design-reference/root-figures/`.
+- **Lección de proceso**: el dispatcher nativo rechaza verify si los totales de requirements/scenarios del envelope no coinciden con el conteo real de las specs; el envelope debe usar los conteos AUTORITATIVOS (grep de `### Requirement` / `#### Scenario`).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
