@@ -1,0 +1,17 @@
+/* Provisional PR3 shell styles — superseded by tokens.css + full main.css in PR6. */
+:root {
+  --bg: #fafafa;
+  --title: #121212;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--title);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.app-main {
+  max-width: 640px;
+  margin: 0 auto;
+}
