@@ -339,6 +339,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Riesgo anotado**: la spec de pokemon-detail lista 4 chips de debilidades para Bulbasaur pero la cláusula normativa exige union WEAKNESS_CHART (7 para grass+poison) — se siguió la normativa.
 - **Archivos afectados**: `src/stores/pokemon.ts`, `src/composables/{useInfiniteScroll,useDebouncedRef,useClipboard}.ts`, `src/__tests__/{pokemon-store,composables}.spec.ts`, `tasks.md` (2.1–2.9 marcadas).
 
+### [feature] PR 3 — Shell y navegación
+
+- **Descripción**: Router con guard cold-load `flowComplete` (Splash→Onboarding→shell, deep-link preservado), TabBar 4 items con a11y completa, App shell con header + TabBar + `<KeepAlive>` (Pokedex/Favoritos). Views como stubs mínimos (las reales en PR5). 17 tests nuevos → **108/108**, type-check limpio. Commit `42c4346`.
+- **Verificación visual (Playwright headless)**: navegó a `/splash` correctamente (guard activo), sin errores de consola. Capturas guardadas en `design-reference/verify-pr3-splash.png` y `verify-pr3-onboarding.png` (390×844). Nota: el MCP de Playwright no quedó expuesto en esta sesión; se usó el Playwright del proyecto directamente.
+- **Archivos afectados**: `src/router/index.ts`, `src/components/TabBar.vue`, `src/App.vue`, `src/main.ts`, `src/views/*` (stubs), `src/styles/main.css` (provisional), `src/__tests__/{router,components,App}.spec.ts`, `tasks.md` (3.1–3.3).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
