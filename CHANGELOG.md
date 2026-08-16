@@ -301,6 +301,14 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Uso previsto**: en las fases de apply, `npm run dev` + MCP Playwright para capturar pantallas del flujo (splash → onboarding → lista → detalle → favoritos) y validar el Figma visualmente.
 - **Archivos afectados**: `opencode.json`.
 
+### [feature] PR 1 implementado y commiteado — Foundation
+
+- **Descripción**: Fase 1 (Foundation) implementada por `sdd-apply` en la rama `feature/pokemon-favorites`, commit `05d3432` (30 archivos, 847 líneas). Strict TDD: RED → GREEN, **31/31 tests pasan**, type-check limpio.
+- **Contenido**: `src/types/pokemon.ts` (10 contratos + PAGE_SIZE=24 + STORAGE_KEY), `src/data/types.ts` (TYPE_META 18 tipos + WEAKNESS_CHART), `src/services/pokeapi.ts` (4 endpoints + 3 caches + buildShareText exacto), `src/services/storage.ts` (favoritos con fallback), 20 assets en `src/assets/icons/`.
+- **Notas técnicas**: caches module-level del servicio requieren claves únicas por test; `fetchPokemonPage(offset)` recibe el offset directo (no índice de página); assets importados estáticamente para URLs resolubles de Vite.
+- **Pendiente**: PR 2 (Core state: store slices + composables) tras reiniciar opencode con MCP Playwright activo.
+- **Archivos afectados**: `src/types/`, `src/data/`, `src/services/`, `src/assets/icons/`, `src/__tests__/`, `openspec/changes/pokemon-favorites/tasks.md` (1.1–1.5 marcadas).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
