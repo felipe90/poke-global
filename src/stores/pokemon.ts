@@ -7,9 +7,34 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import { fetchPokemonPage, fetchTypeCatalog } from '@/services/pokeapi'
-import { PAGE_SIZE } from '@/types/pokemon'
-import type { PokemonSummary, TypeCatalogResponse, TypeName } from '@/types/pokemon'
+import { TYPE_META, WEAKNESS_CHART } from '@/data/types'
+import {
+  fetchPokemonDetail,
+  fetchPokemonPage,
+  fetchPokemonSpecies,
+  fetchTypeCatalog,
+} from '@/services/pokeapi'
+import { loadFavorites, saveFavorites } from '@/services/storage'
+import { PAGE_SIZE, STORAGE_KEY } from '@/types/pokemon'
+import type {
+  FavoritePokemon,
+  PokemonDetail,
+  PokemonSpecies,
+  PokemonSummary,
+  TypeCatalogResponse,
+  TypeName,
+} from '@/types/pokemon'
+
+/** Derived species fields shown in the rich detail panel; degrade to `—`. */
+export interface PokemonDerivedSpecies {
+  peso: string
+  altura: string
+  categoria: string
+  descripcion: string
+  genero: string
+  habilidad: string
+  debilidades: TypeName[]
+}
 
 /** Merge two summary lists deduplicated by name, preserving order. */
 function mergeByName(base: PokemonSummary[], incoming: PokemonSummary[]): PokemonSummary[] {
@@ -97,7 +122,8 @@ export const usePokemonStore = defineStore('pokemon', () => {
   const applyingFilter = ref(false)
 
   const pendingTypes = ref<TypeName[]>([])
-  const pendingCatalogs = new Map<TypeName, TypeCatalogResponse>()
+  /** Session cache of full type catalogs — populated by the preload and by apply fetches. */
+  const typeCatalogs = new Map<TypeName, TypeCatalogResponse>()
 
   /** Visible window of the filtered set: 24 items per client-side slice. */
   const visibleFiltered = computed(() =>
@@ -107,7 +133,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
   async function applyTypeFilter(types: TypeName[]): Promise<void> {
     if (types.length === 0) return
     pendingTypes.value = [...types]
-    pendingCatalogs.clear()
     filterError.value = null
     await resolveFilter()
   }
@@ -122,27 +147,25 @@ export const usePokemonStore = defineStore('pokemon', () => {
   /** Atomic union: any failure leaves the applied filter untouched. */
   async function resolveFilter(): Promise<void> {
     applyingFilter.value = true
-    const missing = pendingTypes.value.filter((type) => !pendingCatalogs.has(type))
-    const attempts = await Promise.all(
+    const missing = pendingTypes.value.filter((type) => !typeCatalogs.has(type))
+    await Promise.all(
       missing.map(async (type) => {
         try {
-          return { type, catalog: await fetchTypeCatalog(type) }
+          const catalog = await fetchTypeCatalog(type)
+          if (catalog) typeCatalogs.set(type, catalog)
         } catch {
-          return { type, catalog: undefined }
+          // keep missing so the union below stays atomic
         }
       }),
     )
-    for (const attempt of attempts) {
-      if (attempt.catalog) pendingCatalogs.set(attempt.type, attempt.catalog)
-    }
 
-    const failed = pendingTypes.value.filter((type) => !pendingCatalogs.has(type))
+    const failed = pendingTypes.value.filter((type) => !typeCatalogs.has(type))
     if (failed.length > 0) {
       filterError.value = { failedTypes: failed }
     } else {
       const union = new Map<string, PokemonSummary>()
       for (const type of pendingTypes.value) {
-        const catalog = pendingCatalogs.get(type)
+        const catalog = typeCatalogs.get(type)
         if (!catalog) continue
         for (const entry of catalog.pokemon) {
           if (!union.has(entry.pokemon.name)) union.set(entry.pokemon.name, entry.pokemon)
@@ -170,7 +193,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
     filterSliceIndex.value = 0
     filterError.value = null
     pendingTypes.value = []
-    pendingCatalogs.clear()
     searchFilter.value = ''
   }
 
@@ -214,6 +236,231 @@ export const usePokemonStore = defineStore('pokemon', () => {
     return index < contextNames.value.length - 1 ? contextNames.value[index + 1] : undefined
   }
 
+  // ---------------------------------------------------------- Type preload
+  const typePreloaded = ref(false)
+  const typePreloadError = ref<TypeName[] | null>(null)
+  const preloading = ref(false)
+  const nameToTypes = ref(new Map<string, TypeName[]>())
+
+  const PRELOAD_CONCURRENCY = 6
+
+  function rebuildNameToTypes(): void {
+    const map = new Map<string, TypeName[]>()
+    for (const meta of TYPE_META) {
+      const catalog = typeCatalogs.get(meta.name)
+      if (!catalog) continue
+      for (const entry of catalog.pokemon) {
+        const list = map.get(entry.pokemon.name) ?? []
+        if (!list.includes(meta.name)) list.push(meta.name)
+        map.set(entry.pokemon.name, list)
+      }
+    }
+    nameToTypes.value = map
+  }
+
+  /** Bounded fan-out over a list of types; resolves after every type settles. */
+  async function fetchTypesBounded(types: TypeName[], failed: TypeName[]): Promise<void> {
+    let index = 0
+    const workers = Array.from({ length: Math.min(PRELOAD_CONCURRENCY, types.length) }, async () => {
+      while (index < types.length) {
+        const type = types[index]!
+        index++
+        try {
+          const catalog = await fetchTypeCatalog(type)
+          if (catalog) typeCatalogs.set(type, catalog)
+          else failed.push(type)
+        } catch {
+          failed.push(type)
+        }
+      }
+    })
+    await Promise.all(workers)
+  }
+
+  /** Prefetch all 18 type catalogs once (shared cache, bounded fan-out). */
+  async function preloadTypes(): Promise<void> {
+    if (preloading.value || typePreloaded.value) return
+    preloading.value = true
+    typePreloadError.value = null
+    const failed: TypeName[] = []
+    const allTypes = TYPE_META.map((meta) => meta.name)
+    await fetchTypesBounded(allTypes, failed)
+    rebuildNameToTypes()
+    typePreloaded.value = true
+    if (failed.length > 0) typePreloadError.value = failed
+    preloading.value = false
+  }
+
+  /** Re-issue only the types that failed the previous preload. */
+  async function retryPreload(): Promise<void> {
+    const failed = typePreloadError.value
+    if (!failed || failed.length === 0 || preloading.value) return
+    preloading.value = true
+    typePreloadError.value = null
+    const stillFailed: TypeName[] = []
+    await fetchTypesBounded([...failed], stillFailed)
+    rebuildNameToTypes()
+    if (stillFailed.length > 0) typePreloadError.value = stillFailed
+    preloading.value = false
+  }
+
+  // ------------------------------------------------------ Detail + species
+  const selectedDetail = ref<PokemonDetail | null>(null)
+  const selectedSpecies = ref<PokemonDerivedSpecies | null>(null)
+  const detailError = ref<string | null>(null)
+  const detailLoading = ref(false)
+  const detailLoadingName = ref<string | null>(null)
+  /** Store-level mirror of loaded entities so cached visits skip re-requests. */
+  const detailByName = new Map<string, PokemonDetail>()
+  const speciesById = new Map<number, PokemonSpecies>()
+
+  function formatDecimal(value: number): string {
+    return value.toFixed(1).replace('.', ',')
+  }
+
+  function formatPercent(value: number): string {
+    const fixed = value.toFixed(1).replace('.', ',')
+    return fixed.endsWith(',0') ? fixed.slice(0, -2) : fixed
+  }
+
+  function resolveCategory(species: PokemonSpecies): string {
+    const es = species.genera.find((genus) => genus.language.name === 'es')
+    if (es) return es.genus
+    const en = species.genera.find((genus) => genus.language.name === 'en')
+    return en ? en.genus : '—'
+  }
+
+  function resolveDescription(species: PokemonSpecies): string {
+    const es = species.flavor_text_entries.filter((entry) => entry.language.name === 'es')
+    const chosen =
+      es.length > 0 ? es[es.length - 1] : species.flavor_text_entries.find((entry) => entry.language.name === 'en')
+    if (!chosen) return '—'
+    return chosen.flavor_text.replace(/[\n\f]+/g, ' ').replace(/\s+/g, ' ').trim()
+  }
+
+  function resolveGender(rate: number): string {
+    if (rate === -1) return 'Sin género'
+    const male = ((8 - rate) / 8) * 100
+    const female = (rate / 8) * 100
+    return `${formatPercent(male)}% / ${formatPercent(female)}%`
+  }
+
+  function resolveAbility(detail: PokemonDetail): string {
+    const slot1 = detail.abilities.find((ability) => ability.slot === 1)
+    if (!slot1) return '—'
+    return slot1.ability.name.charAt(0).toUpperCase() + slot1.ability.name.slice(1)
+  }
+
+  function resolveWeaknesses(detail: PokemonDetail): TypeName[] {
+    const weaknesses: TypeName[] = []
+    for (const entry of detail.types) {
+      const chart = WEAKNESS_CHART[entry.type.name] ?? []
+      for (const weakness of chart) {
+        if (!weaknesses.includes(weakness)) weaknesses.push(weakness)
+      }
+    }
+    return weaknesses
+  }
+
+  function deriveSpecies(detail: PokemonDetail, species: PokemonSpecies | null): PokemonDerivedSpecies {
+    return {
+      peso: `${formatDecimal(detail.weight / 10)} kg`,
+      altura: `${formatDecimal(detail.height / 10)} m`,
+      categoria: species ? resolveCategory(species) : '—',
+      descripcion: species ? resolveDescription(species) : '—',
+      genero: species ? resolveGender(species.gender_rate) : '—',
+      habilidad: resolveAbility(detail),
+      debilidades: resolveWeaknesses(detail),
+    }
+  }
+
+  /** Non-blocking species load; failure degrades the species-derived fields. */
+  function hydrateSpecies(detail: PokemonDetail): void {
+    const cached = speciesById.get(detail.id)
+    if (cached) {
+      selectedSpecies.value = deriveSpecies(detail, cached)
+      return
+    }
+    void Promise.resolve(fetchPokemonSpecies(detail.id))
+      .then((species) => {
+        if (!species) return
+        speciesById.set(detail.id, species)
+        if (selectedDetail.value?.id === detail.id) {
+          selectedSpecies.value = deriveSpecies(detail, species)
+        }
+      })
+      .catch(() => {
+        if (selectedDetail.value?.id === detail.id) {
+          selectedSpecies.value = deriveSpecies(detail, null)
+        }
+      })
+  }
+
+  async function openDetail(name: string): Promise<void> {
+    if (detailLoadingName.value === name) return
+    const cached = detailByName.get(name)
+    if (cached) {
+      selectedDetail.value = cached
+      detailError.value = null
+      hydrateSpecies(cached)
+      return
+    }
+
+    detailLoadingName.value = name
+    detailLoading.value = true
+    detailError.value = null
+    selectedDetail.value = null
+    selectedSpecies.value = null
+    try {
+      const detail = await fetchPokemonDetail(name)
+      detailByName.set(name, detail)
+      selectedDetail.value = detail
+      hydrateSpecies(detail)
+    } catch {
+      detailError.value = name
+    } finally {
+      detailLoading.value = false
+      detailLoadingName.value = null
+    }
+  }
+
+  // -------------------------------------------------------------- Favorites
+  const favorites = ref<FavoritePokemon[]>(loadFavorites())
+
+  function isFavorite(name: string): boolean {
+    return favorites.value.some((favorite) => favorite.name === name)
+  }
+
+  function toggleFavorite(pokemon: { name: string; id: number; imageUrl: string; types: TypeName[] }): void {
+    if (isFavorite(pokemon.name)) {
+      favorites.value = favorites.value.filter((favorite) => favorite.name !== pokemon.name)
+    } else {
+      favorites.value = [
+        ...favorites.value,
+        { name: pokemon.name, id: pokemon.id, imageUrl: pokemon.imageUrl, types: [...pokemon.types], addedAt: new Date().toISOString() },
+      ]
+    }
+    saveFavorites(favorites.value)
+  }
+
+  function removeFavorite(name: string): void {
+    favorites.value = favorites.value.filter((favorite) => favorite.name !== name)
+    saveFavorites(favorites.value)
+  }
+
+  window.addEventListener('storage', (event: StorageEvent) => {
+    if (event.key !== STORAGE_KEY) return
+    if (event.newValue === null) {
+      favorites.value = []
+      return
+    }
+    try {
+      favorites.value = JSON.parse(event.newValue) as FavoritePokemon[]
+    } catch {
+      // corrupt cross-tab payload: keep the current list
+    }
+  })
+
   return {
     pokemonList,
     nextUrl,
@@ -243,5 +490,23 @@ export const usePokemonStore = defineStore('pokemon', () => {
     navIndexOf,
     prevName,
     nextName,
+
+    typePreloaded,
+    typePreloadError,
+    preloading,
+    nameToTypes,
+    preloadTypes,
+    retryPreload,
+
+    selectedDetail,
+    selectedSpecies,
+    detailError,
+    detailLoading,
+    openDetail,
+
+    favorites,
+    isFavorite,
+    toggleFavorite,
+    removeFavorite,
   }
 })
