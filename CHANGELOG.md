@@ -323,6 +323,13 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Estado del repo**: `feature/pokemon-favorites` con 5 commits, 31/31 tests de Fase 1 pasando, type-check limpio.
 - **Archivos afectados**: ninguno (sin cambios; pausa).
 
+### [decision] Diagnóstico del fallo de transporte + cambio de canal
+
+- **Descripción**: Tras 3 fallos consecutivos de `sdd-apply` con `sdd_task_result_empty` (incluido un lote reducido de 3 tareas), se descartó la hipótesis de tamaño del resultado. El problema es sistémico del canal de transporte del agente `sdd-apply` en esta sesión.
+- **Decisión técnica**: mantener intactos los artefactos SDD (verificados sanos: proposal 137 líneas, 8 specs, design 231 líneas, tasks 94 líneas) y **cambiar de canal de implementación al agente `general`** (misma ruta SDD/openspec, delegación directa, canal distinto) — sin reiniciar el SDD.
+- **Resultado**: Lote A (tasks 2.1–2.3: store catalog + filter + search + nav) implementado con TDD estricto vía agente general: `src/stores/pokemon.ts` + `src/__tests__/pokemon-store.spec.ts` (22 tests nuevos). Suite completa **53/53**, type-check limpio. Commit `a3c06b4`.
+- **Archivos afectados**: `src/stores/pokemon.ts`, `src/__tests__/pokemon-store.spec.ts`, `openspec/changes/pokemon-favorites/tasks.md` (2.1–2.3 marcadas).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
