@@ -1,5 +1,9 @@
-<template>
-  <div class="construction-view">Construction</div>
-</template>
+<script setup lang="ts">
+import ConstructionState from '@/components/ConstructionState.vue'
+</script>
 
-<script setup lang="ts"></script>
+<template>
+  <div class="construction-view">
+    <ConstructionState />
+  </div>
+</template>
