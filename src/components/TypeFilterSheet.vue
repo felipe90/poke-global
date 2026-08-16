@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
+import AppButton from '@/components/AppButton.vue'
 import { TYPE_META } from '@/data/types'
 import { usePokemonStore } from '@/stores/pokemon'
 import type { TypeName } from '@/types/pokemon'
@@ -174,29 +175,24 @@ function onKeydown(event: KeyboardEvent): void {
         </p>
 
         <div class="sheet__actions">
-          <button
-            type="button"
-            class="sheet__cta sheet__cta--secondary"
+          <AppButton
+            variant="secondary"
             @click="discard"
           >
             Cancelar
-          </button>
-          <button
+          </AppButton>
+          <AppButton
             v-if="applyFailed"
-            type="button"
-            class="sheet__cta"
             @click="retry"
           >
             Reintentar
-          </button>
-          <button
-            type="button"
-            class="sheet__cta"
+          </AppButton>
+          <AppButton
             :disabled="applyDisabled"
             @click="apply"
           >
             Aplicar
-          </button>
+          </AppButton>
         </div>
       </section>
     </div>
@@ -271,29 +267,8 @@ function onKeydown(event: KeyboardEvent): void {
   gap: var(--space-sheet-gap);
 }
 
-.sheet__cta {
+.sheet__actions :deep(.app-button) {
   flex: 1;
-  padding: var(--space-card) var(--space-card);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--bg);
-  font-size: var(--font-cta);
-  font-weight: 600;
-}
-
-.sheet__cta:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.sheet__cta--secondary {
-  background: var(--progress-track);
-  color: var(--title);
-}
-
-.sheet__cta:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
+  max-width: none;
 }
 </style>

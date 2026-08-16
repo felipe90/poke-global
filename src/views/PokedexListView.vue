@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import AppButton from '@/components/AppButton.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import PokeballLoader from '@/components/PokeballLoader.vue'
 import PokemonCard from '@/components/PokemonCard.vue'
@@ -157,13 +158,9 @@ onMounted(() => {
         role="alert"
       >
         <p class="sentinel-error__text">Algo salió mal...</p>
-        <button
-          type="button"
-          class="sentinel-error__retry"
-          @click="retryMore"
-        >
+        <AppButton @click="retryMore">
           Reintentar
-        </button>
+        </AppButton>
       </div>
     </template>
 
@@ -256,21 +253,6 @@ onMounted(() => {
   font-size: var(--font-data-value);
   font-weight: 600;
   color: var(--danger);
-}
-
-.sentinel-error__retry {
-  padding: var(--space-info-gap) var(--space-card);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--bg);
-  font-size: var(--font-data-value);
-  font-weight: 600;
-}
-
-.sentinel-error__retry:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
 }
 
 @media (min-width: 640px) {

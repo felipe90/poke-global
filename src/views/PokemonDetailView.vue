@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import AppButton from '@/components/AppButton.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import PokeballLoader from '@/components/PokeballLoader.vue'
 import PokemonDetailPanel from '@/components/PokemonDetailPanel.vue'
@@ -69,13 +70,9 @@ watch(
     >
       <h2 class="not-found__title">Pokémon no encontrado</h2>
       <p class="not-found__text">No existe un Pokémon con ese nombre.</p>
-      <button
-        type="button"
-        class="not-found__link"
-        @click="router.push('/')"
-      >
+      <AppButton @click="router.push('/')">
         Volver a la Pokédex
-      </button>
+      </AppButton>
     </section>
 
     <ErrorState
@@ -152,20 +149,5 @@ watch(
   margin: 0;
   font-size: var(--font-data-value);
   color: var(--subtitle);
-}
-
-.not-found__link {
-  padding: var(--space-info-gap) var(--space-card);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--bg);
-  font-size: var(--font-data-value);
-  font-weight: 600;
-}
-
-.not-found__link:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
 }
 </style>

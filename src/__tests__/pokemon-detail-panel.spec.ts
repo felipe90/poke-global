@@ -95,12 +95,12 @@ function statValue(wrapper: ReturnType<typeof mount>, label: string): string {
 }
 
 describe('PokemonDetailPanel (5.10)', () => {
-  it('renders Nº padded, name, and the official artwork', () => {
+  it('renders Nº padded, name, and the front_default sprite', () => {
     const wrapper = mountPanel(bulbasaurDetail)
     expect(wrapper.text()).toContain('Nº001')
     expect(wrapper.text()).toContain('Bulbasaur')
     const image = wrapper.get('img[alt="bulbasaur"]')
-    expect(image.attributes('src')).toBe('https://example.com/bulbasaur-art.png')
+    expect(image.attributes('src')).toBe('https://example.com/bulbasaur.png')
   })
 
   it('renders all derived fields: description, Peso, Altura, Categoría, Habilidad, Género', () => {
@@ -167,13 +167,13 @@ describe('PokemonDetailPanel (5.10)', () => {
   it('hosts FavoriteButton and ShareButton', () => {
     const wrapper = mountPanel(bulbasaurDetail)
     expect(wrapper.find('.favorite-button').exists()).toBe(true)
-    expect(wrapper.find('.share-button__cta').exists()).toBe(true)
+    expect(wrapper.find('.share-button .app-button').exists()).toBe(true)
   })
 
   it('emits toggleFavorite and share when those buttons are activated', async () => {
     const wrapper = mountPanel(bulbasaurDetail)
     await wrapper.find('.favorite-button').trigger('click')
-    await wrapper.find('.share-button__cta').trigger('click')
+    await wrapper.find('.share-button .app-button').trigger('click')
     await flushPromises()
     expect(wrapper.emitted('toggleFavorite')).toHaveLength(1)
     expect(wrapper.emitted('share')).toHaveLength(1)
@@ -191,13 +191,13 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect((circle.element as HTMLElement).style.backgroundColor).toBe('rgb(247, 208, 44)')
   })
 
-  it('renders the artwork inside the header, on top of the circle', () => {
+  it('renders the sprite inside the header, on top of the circle', () => {
     const wrapper = mountPanel(bulbasaurDetail)
     const header = wrapper.find('.detail-header')
     expect(header.exists()).toBe(true)
     const artwork = header.find('.detail-header__artwork')
     expect(artwork.exists()).toBe(true)
-    expect(artwork.attributes('src')).toBe('https://example.com/bulbasaur-art.png')
+    expect(artwork.attributes('src')).toBe('https://example.com/bulbasaur.png')
     expect(header.find('.detail-header__circle').exists()).toBe(true)
   })
 

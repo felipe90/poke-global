@@ -252,10 +252,11 @@ describe('Magikarp (5.8)', () => {
 })
 
 describe('PokeballLoader (5.9)', () => {
-  it('renders a pure-CSS loader with no image asset', () => {
+  it('renders the Loader.svg inlined as a data URI (no extra request)', () => {
     const wrapper = mount(PokeballLoader)
-    expect(wrapper.find('.pokeball-loader').exists()).toBe(true)
-    expect(wrapper.find('img').exists()).toBe(false)
+    const img = wrapper.get('img.pokeball-loader')
+    expect(img.attributes('src')).toMatch(/^data:image\/svg\+xml/)
+    expect(img.attributes('src')).toContain('viewBox')
   })
 
   it('is decorative (aria-hidden)', () => {

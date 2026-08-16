@@ -219,7 +219,7 @@ describe('PokedexListView (4.3)', () => {
     await flushPromises()
     expect(wrapper.text()).toContain('Algo salió mal...')
     expect(wrapper.text()).toContain('No pudimos cargar la información')
-    await wrapper.get('.state__cta').trigger('click')
+    await wrapper.get('.state .app-button').trigger('click')
     await flushPromises()
     expect(mod.fetchPokemonPage).toHaveBeenNthCalledWith(2, 0)
     expect(wrapper.text()).toContain('Bulbasaur')

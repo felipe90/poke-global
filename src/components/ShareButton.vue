@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+import AppButton from '@/components/AppButton.vue'
 import { useClipboard } from '@/composables/useClipboard'
 import type { CopyStatus } from '@/composables/useClipboard'
 import { buildShareText } from '@/services/pokeapi'
@@ -19,13 +20,9 @@ async function share(): Promise<void> {
 
 <template>
   <div class="share-button">
-    <button
-      type="button"
-      class="share-button__cta"
-      @click="share"
-    >
+    <AppButton @click="share">
       Compartir
-    </button>
+    </AppButton>
     <p
       v-if="feedback === 'success'"
       class="share-button__feedback"

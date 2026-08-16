@@ -22,7 +22,8 @@ const emit = defineEmits<{
 
 const store = usePokemonStore()
 
-const ARTWORK_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/'
+/** Standard sprite base — the same URL that the API exposes as `sprites.front_default`. */
+const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'
 
 const id = computed(() => {
   const parsed = new URL(props.summary.url)
@@ -42,7 +43,7 @@ const background = computed(() => {
   return getTypeMeta(primary)?.color
 })
 
-const imageUrl = computed(() => (Number.isFinite(id.value) ? `${ARTWORK_BASE}${id.value}.png` : null))
+const imageUrl = computed(() => (Number.isFinite(id.value) ? `${SPRITE_BASE}${id.value}.png` : null))
 
 function activate(): void {
   if (props.context && props.context.length > 0) {

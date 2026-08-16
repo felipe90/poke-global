@@ -426,6 +426,34 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Assets**: PNG/SVG sueltos de Figma en la raíz movidos a `design-reference/root-figures/`.
 - **Lección de proceso**: el dispatcher nativo rechaza verify si los totales de requirements/scenarios del envelope no coinciden con el conteo real de las specs; el envelope debe usar los conteos AUTORITATIVOS (grep de `### Requirement` / `#### Scenario`).
 
+### [fix] Alineación Figma del onboarding — imágenes, orden, botón y dots
+
+- **Descripción**: Onboarding ajustado a los valores exactos del Figma en la sesión de pulido visual.
+  1. **Imágenes por paso**: cada paso carga su ilustración (`Group 28.png` paso 1, `Frame 1000002626.png` paso 2), centrada y antes de los textos. Movidas de `design-reference/root-figures/` a `src/assets/images/` (los assets de la app deben vivir en `src/assets`, no en la raíz de referencia).
+  2. **Orden vertical corregido**: imagen → título → subtítulo → dot indicator → botón (los dots estaban después del botón).
+  3. **Botón a ancho completo**: el CTA llena el ancho del paso (override del `max-width: 328px` del componente vía `:deep`).
+  4. **Dots con specs Figma**: seleccionado 28×9px `#173EA5` opacity 1; no seleccionado 9×9px `#4565B7` opacity 0.25; `border-radius: 11px` en ambos.
+- **Verificación**: navegador midiendo el DOM — orden de los 5 elementos correcto en ambos pasos, botón 420px (ancho del paso), dots con las dimensiones exactas y cambio de estado al avanzar. Suite 211/211, type-check y lint PASS.
+- **Archivos afectados**: `src/views/OnboardingView.vue`, `src/assets/images/*` (nuevos), `design-reference/root-figures/*` (movidos).
+
+### [architecture] Componente reutilizable AppButton — variantes primary/secondary
+
+- **Descripción**: Creado `src/components/AppButton.vue` con las especificaciones del CTA del Figma: ancho 100% (max 328px), alto 58px, `border-radius: 100px`, `gap: 8px`, padding 16px 24px (`--space-xl`), tipografía 18px/600.
+- **Variantes**: `primary` (`var(--button-primary-default-bg, #1E88E5)`, texto blanco) y `secondary` (`var(--button-secondary-default-bg, #EEEEEE)`, texto oscuro); soporta `disabled` y `type`.
+- **Tokens nuevos**: `--button-primary-default-bg`, `--button-secondary-default-bg`, `--space-xl` en `tokens.css`.
+- **Reemplazo en toda la app** (9 CTA píldora): OnboardingView (Continuar/Empecemos), ErrorState (Reintentar), ShareButton (Compartir), TypeFilterSheet (Cancelar=secondary, Aplicar/Reintentar=primary con `flex:1` vía `:deep`), PokemonDetailView (Volver a la Pokédex), PokedexListView (Reintentar del sentinel). Eliminado el CSS duplicado muerto (`.onboarding__cta`, `.state__cta`, `.share-button__cta`, `.sheet__cta`, `.not-found__link`, `.sentinel-error__retry`).
+- **Verificación**: navegador — primary `#1E88E5`/blanco, secondary `#EEEEEE`/oscuro, ambos 58px radius 100px; tests actualizados a los selectores nuevos. 211/211 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/AppButton.vue` (nuevo), 6 componentes/vistas, `tokens.css`, `main.css`, 4 archivos de tests.
+
+### [fix] Pokeball loader a 155×155px + header global eliminado
+
+- **Descripción**: Dos ajustes de la sesión de pulido.
+  1. **Loader 155×155**: `.pokeball-loader` pasa de 64px a **155×155px** según la indicación del usuario (verificado midiendo el elemento en el navegador).
+  2. **Header de App.vue eliminado**: el usuario había borrado `<header class="app-header">Pokédex</header>` y un test lo restauró por error en una iteración; se eliminó definitivamente junto con el CSS huérfano `.app-title`, y el test de shell (`App.spec.ts`) se actualizó para validar `nav` + `.pokedex-list-view` sin header.
+- **Lección**: cuando un test falla porque el usuario eliminó UI a propósito, se actualiza el test al diseño real — nunca se restaura UI para satisfacer un test obsoleto.
+- **Verificación**: 211/211 + type-check + lint PASS.
+- **Archivos afectados**: `src/styles/main.css`, `src/App.vue`, `src/__tests__/App.spec.ts`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).

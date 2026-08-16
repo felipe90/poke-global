@@ -36,7 +36,7 @@ const typesBySlot = computed(() => [...props.detail.types].sort((a, b) => a.slot
 
 const fields = computed(() => props.derived ?? deriveSpecies(props.detail, props.species ?? null))
 
-const artwork = computed(() => getOfficialArtwork(props.detail) ?? props.detail.sprites.front_default)
+const artwork = computed(() => props.detail.sprites.front_default ?? getOfficialArtwork(props.detail))
 
 const favoriteTypes = computed(() => props.detail.types.map((entry) => entry.type.name))
 

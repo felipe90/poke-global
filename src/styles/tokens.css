@@ -14,6 +14,10 @@
   --progress-fill: #1f49b6;
   --progress-track: #eff0f2;
 
+  /* Button (Figma: button variants) */
+  --button-primary-default-bg: #1e88e5;
+  --button-secondary-default-bg: #eeeeee;
+
   /* Card background per type (grass / fire / psychic+poison from Figma; rest mirror TYPE_META) */
   --type-grass: #8bc34a;
   --type-fire: #ff9800;
@@ -46,6 +50,7 @@
 
   /* Spacing — 4px scale */
   --space-card: 16px;
+  --space-xl: 24px;
   --space-info-gap: 4px;
   --space-card-inner: 29px;
   --space-sheet-tb: 16px;

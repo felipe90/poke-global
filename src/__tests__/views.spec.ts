@@ -43,7 +43,7 @@ async function fresh() {
 }
 
 describe('SplashView (4.1)', () => {
-  it('renders the shared pure-CSS PokeballLoader, decorative and image-free', async () => {
+  it('renders the shared PokeballLoader image, decorative and aria-hidden', async () => {
     vi.useFakeTimers()
     const router = await fresh()
     const { default: SplashView } = await import('@/views/SplashView.vue')
@@ -51,7 +51,7 @@ describe('SplashView (4.1)', () => {
     await router.isReady()
     expect(wrapper.find('.pokeball-loader').exists()).toBe(true)
     expect(wrapper.find('.pokeball-loader').attributes('aria-hidden')).toBe('true')
-    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.find('img.pokeball-loader').exists()).toBe(true)
   })
 
   it('auto-advances to /onboarding after exactly 1500 ms without interaction', async () => {

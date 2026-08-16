@@ -28,13 +28,12 @@ describe('App shell (3.3)', () => {
     return { wrapper, router, completeOnboarding }
   }
 
-  it('renders the shell: header + TabBar + list at / after the flow completes', async () => {
+  it('renders the shell: TabBar + list at / after the flow completes', async () => {
     const { wrapper, router, completeOnboarding } = await mountShell()
     expect(router.currentRoute.value.path).toBe('/splash')
     await completeOnboarding()
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/')
-    expect(wrapper.find('header').exists()).toBe(true)
     expect(wrapper.find('nav').exists()).toBe(true)
     expect(wrapper.find('.pokedex-list-view').exists()).toBe(true)
   })

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppButton from '@/components/AppButton.vue'
 import Magikarp from '@/components/Magikarp.vue'
 
 const emit = defineEmits<{ retry: [] }>()
@@ -9,12 +10,8 @@ const emit = defineEmits<{ retry: [] }>()
     <h2 class="state__title">Algo salió mal...</h2>
     <p class="state__subtitle">No pudimos cargar la información...</p>
     <Magikarp class="state__illustration" />
-    <button
-      type="button"
-      class="state__cta"
-      @click="emit('retry')"
-    >
+    <AppButton @click="emit('retry')">
       Reintentar
-    </button>
+    </AppButton>
   </section>
 </template>

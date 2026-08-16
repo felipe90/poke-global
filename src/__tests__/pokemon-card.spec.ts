@@ -81,7 +81,7 @@ describe('PokemonCard (5.1)', () => {
     fetchSpy.mockRestore()
   })
 
-  it('shows the official artwork image derived from the id with a descriptive alt', () => {
+  it('shows the front_default sprite image derived from the id with a descriptive alt', () => {
     const wrapper = mountCard({ name: 'pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/' })
     const image = wrapper.get('.pokemon-card__image')
     expect(image.attributes('src')).toContain('/25.png')

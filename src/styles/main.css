@@ -18,6 +18,8 @@ body {
 
 #app {
   min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 button {
@@ -27,20 +29,8 @@ button {
 
 /* ---------------------------------------------------------------- Shell layout */
 
-.app-header {
-  padding: var(--space-card) var(--space-card);
-  max-width: 640px;
-  margin: 0 auto;
-}
-
-.app-title {
-  margin: 0;
-  font-size: var(--font-screen-title);
-  font-weight: 500;
-  color: var(--title);
-}
-
 .app-main {
+  flex: 1 0 auto;
   max-width: 640px;
   margin: 0 auto;
   padding: 0 var(--space-card) 120px;
@@ -188,22 +178,6 @@ button {
   max-width: 420px;
 }
 
-.state__cta {
-  padding: var(--space-card) var(--space-card) var(--space-card);
-  min-width: 200px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--bg);
-  font-size: var(--font-cta);
-  font-weight: 600;
-}
-
-.state__cta:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
-}
-
 /* ---------------------------------------------------------------- Search */
 
 .search-bar {
@@ -263,25 +237,6 @@ button {
   gap: var(--space-info-gap);
 }
 
-.share-button__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-info-gap);
-  padding: var(--space-card) var(--space-card);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--bg);
-  font-size: var(--font-cta);
-  font-weight: 600;
-}
-
-.share-button__cta:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
-}
-
 .share-button__feedback {
   margin: 0;
   font-size: var(--font-data-label);
@@ -298,47 +253,17 @@ button {
 .pokeball-loader {
   display: inline-block;
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 155px;
+  height: 155px;
+  /* Pivota desde la base, no desde el centro — balanceo orgánico */
+  transform-origin: bottom center;
 }
 
-.pokeball-loader__half {
-  position: absolute;
-  left: 4px;
-  width: 56px;
-  height: 28px;
-}
-
-.pokeball-loader__half--top {
-  top: 0;
-  background: var(--danger);
-  border-radius: 32px 32px 0 0;
-}
-
-.pokeball-loader__half--bottom {
-  bottom: 0;
-  background: #fff;
-  border-radius: 0 0 32px 32px;
-}
-
-.pokeball-loader__band {
-  position: absolute;
-  top: 29px;
-  left: 0;
-  width: 64px;
-  height: 6px;
-  background: var(--title);
-}
-
-.pokeball-loader__button {
-  position: absolute;
-  top: 22px;
-  left: 22px;
-  width: 20px;
-  height: 20px;
-  border: 4px solid var(--title);
-  border-radius: 50%;
-  background: #fff;
+.pokeball-loader__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 /* ------------------------------------------------------------------ BottomSheet */
@@ -359,6 +284,10 @@ button {
 .sheet-overlay {
   position: fixed;
   inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   background: rgba(0, 0, 0, 0.4);
 }
 
@@ -404,22 +333,31 @@ button {
 
 /* ------------------------------------------------------------- Keyframes */
 
-@keyframes pokeball-spin {
-  from {
-    transform: rotate(0deg);
+/* Caída/Bote + Balanceo de suspenso (3 shakes) + asentamiento del clic final.
+   Pivota desde la base (transform-origin: bottom center) para un wobble orgánico. */
+@keyframes pokeball-wobble {
+  0% {
+    transform: translateY(0) rotate(0deg);
   }
-  to {
-    transform: rotate(360deg);
+  /* Inclinación Izquierda */
+  15% {
+    transform: translateY(-4px) rotate(-22deg);
   }
-}
-
-@keyframes pokeball-bounce {
-  0%,
+  /* Regreso al centro */
+  30% {
+    transform: translateY(0) rotate(0deg);
+  }
+  /* Inclinación Derecha */
+  45% {
+    transform: translateY(-4px) rotate(22deg);
+  }
+  /* Regreso al centro */
+  60% {
+    transform: translateY(0) rotate(0deg);
+  }
+  /* Pausa de suspenso en el suelo */
   100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-12px);
+    transform: translateY(0) rotate(0deg);
   }
 }
 
@@ -432,12 +370,7 @@ button {
 /* ----------------------------------------------------- Decorative motion */
 
 .pokeball-loader {
-  animation: pokeball-bounce 1s ease-in-out infinite;
-}
-
-.pokeball-loader__half {
-  animation: pokeball-spin 1.4s linear infinite;
-  transform-origin: 50% 32px;
+  animation: pokeball-wobble 1.2s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
 }
 
 .magikarp {
@@ -464,7 +397,6 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   .pokeball-loader,
-  .pokeball-loader__half,
   .magikarp,
   .pokemon-card--loading::after,
   .sheet-enter-active,

@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 
 import TabBar from '@/components/TabBar.vue'
+
+const route = useRoute()
+
+/** Public cold-load views (splash, onboarding) don't show the tab bar. */
+const showTabBar = computed(() => !route.meta.public)
 </script>
 
 <template>
-  <header class="app-header">
-    <h1 class="app-title">Pokédex</h1>
-  </header>
   <main class="app-main">
     <RouterView v-slot="{ Component }">
       <KeepAlive include="PokedexListView,FavoritesView">
@@ -15,5 +18,8 @@ import TabBar from '@/components/TabBar.vue'
       </KeepAlive>
     </RouterView>
   </main>
-  <TabBar class="app-tab-bar" />
+  <TabBar
+    v-if="showTabBar"
+    class="app-tab-bar"
+  />
 </template>
