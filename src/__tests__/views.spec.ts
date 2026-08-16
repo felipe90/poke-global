@@ -183,8 +183,10 @@ describe('ConstructionView (4.6)', () => {
     await router.isReady()
     expect(wrapper.findComponent({ name: 'ConstructionState' }).exists()).toBe(true)
     expect(wrapper.text()).toContain('¡Muy pronto disponible!')
-    expect(wrapper.text()).toContain('Estamos trabajando para traerte esta sección')
-    expect(wrapper.find('svg[aria-hidden="true"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain(
+      'Estamos trabajando para traerte esta sección. Vuelve más adelante para descubrir todas las novedades.',
+    )
+    expect(wrapper.find('img.state__illustration[aria-hidden="true"]').exists()).toBe(true)
     wrapper.unmount()
   })
 
@@ -206,8 +208,10 @@ describe('ConstructionView (4.6)', () => {
     expect(router.currentRoute.value.path).toBe('/regions')
     expect(wrapper.find('nav').exists()).toBe(true)
     expect(wrapper.text()).toContain('¡Muy pronto disponible!')
-    expect(wrapper.text()).toContain('Estamos trabajando para traerte esta sección')
-    expect(wrapper.find('svg[aria-hidden="true"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain(
+      'Estamos trabajando para traerte esta sección. Vuelve más adelante para descubrir todas las novedades.',
+    )
+    expect(wrapper.find('img.state__illustration[aria-hidden="true"]').exists()).toBe(true)
     expect(fetchSpy).not.toHaveBeenCalled()
     fetchSpy.mockRestore()
     wrapper.unmount()
@@ -221,7 +225,9 @@ describe('ConstructionView (4.6)', () => {
     expect(router.currentRoute.value.path).toBe('/profile')
     expect(wrapper.find('nav').exists()).toBe(true)
     expect(wrapper.text()).toContain('¡Muy pronto disponible!')
-    expect(wrapper.text()).toContain('Estamos trabajando para traerte esta sección')
+    expect(wrapper.text()).toContain(
+      'Estamos trabajando para traerte esta sección. Vuelve más adelante para descubrir todas las novedades.',
+    )
     expect(fetchSpy).not.toHaveBeenCalled()
     fetchSpy.mockRestore()
     wrapper.unmount()

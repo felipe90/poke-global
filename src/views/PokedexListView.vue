@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 
 import AppButton from '@/components/AppButton.vue'
 import ErrorState from '@/components/ErrorState.vue'
-import PokeballLoader from '@/components/PokeballLoader.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import PokemonCard from '@/components/PokemonCard.vue'
 import SearchBar from '@/components/SearchBar.vue'
 import TypeFilterSheet from '@/components/TypeFilterSheet.vue'
@@ -120,7 +120,7 @@ onMounted(() => {
       {{ countText }}
     </p>
 
-    <PokeballLoader
+    <LoadingSpinner
       v-if="store.loadingFirst"
       class="list-loader"
     />

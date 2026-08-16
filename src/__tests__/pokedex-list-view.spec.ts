@@ -109,18 +109,18 @@ async function mountList(setup?: (ctx: ListCtx) => void) {
 }
 
 describe('PokedexListView (4.3)', () => {
-  it('mount triggers loadFirstPage with aria-busy + PokeballLoader while fetching', async () => {
+  it('mount triggers loadFirstPage with aria-busy + LoadingSpinner while fetching', async () => {
     const pending = deferred<PokemonListResponse>()
     const { wrapper, mod } = await mountList(({ mod }) => mod.fetchPokemonPage.mockReturnValue(pending.promise))
     await nextTick()
     expect(mod.fetchPokemonPage).toHaveBeenCalledWith(0)
     expect(wrapper.attributes('aria-busy')).toBe('true')
-    expect(wrapper.find('.pokeball-loader').exists()).toBe(true)
+    expect(wrapper.find('.loading-spinner').exists()).toBe(true)
 
     pending.resolve(page(0, ['bulbasaur', 'ivysaur'], null))
     await flushPromises()
     expect(wrapper.attributes('aria-busy')).toBe('false')
-    expect(wrapper.find('.pokeball-loader').exists()).toBe(false)
+    expect(wrapper.find('.loading-spinner').exists()).toBe(false)
     expect(wrapper.text()).toContain('Bulbasaur')
   })
 

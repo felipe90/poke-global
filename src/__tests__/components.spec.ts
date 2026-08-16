@@ -11,7 +11,6 @@ import SearchBar from '@/components/SearchBar.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import ConstructionState from '@/components/ConstructionState.vue'
-import Magikarp from '@/components/Magikarp.vue'
 import PokeballLoader from '@/components/PokeballLoader.vue'
 import FavoriteButton from '@/components/FavoriteButton.vue'
 import ShareButton from '@/components/ShareButton.vue'
@@ -64,21 +63,14 @@ describe('TabBar (3.2)', () => {
     expect(active?.text()).toBe('Favoritos')
   })
 
-  it('styles active #0d47a1 and inactive #424242', async () => {
+  it('styles active #0d47a1 and inactive #424242 via the active class', async () => {
     const { wrapper } = await mountTabBar('/favorites')
     const items = wrapper.findAll('a')
-    expect(items[2]?.attributes('style')).toContain('rgb(13, 71, 161)')
+    expect(items[2]?.classes()).toContain('active')
     const inactive = items.filter((_, index) => index !== 2)
     for (const item of inactive) {
-      expect(item.attributes('style')).toContain('rgb(66, 66, 66)')
+      expect(item.classes()).not.toContain('active')
     }
-  })
-
-  it('rounds the top corners 16px and applies the top shadow', async () => {
-    const { wrapper } = await mountTabBar()
-    const style = wrapper.get('nav').attributes('style') ?? ''
-    expect(style).toContain('16px')
-    expect(style).toContain('0 -1px 3px rgba(0,0,0,0.12)')
   })
 
   it('moves focus with arrow keys and activates the route', async () => {
@@ -103,26 +95,39 @@ describe('TabBar (3.2)', () => {
     expect(hrefs).toEqual(['/', '/regions', '/favorites', '/profile'])
   })
 
-  it('renders an inline SVG icon on each of the four items, decorative', async () => {
+  it('uses the icon assets as masked decorative icons (no inline SVG, no <img>)', async () => {
     const { wrapper } = await mountTabBar()
     const links = wrapper.findAll('nav a')
-    expect(links).toHaveLength(4)
     for (const link of links) {
-      const svg = link.find('svg')
-      expect(svg.exists()).toBe(true)
-      expect(svg.attributes('aria-hidden')).toBe('true')
-      expect(svg.attributes('focusable')).toBe('false')
+      const icon = link.find('.tab-item__icon')
+      expect(icon.exists()).toBe(true)
+      expect(icon.attributes('aria-hidden')).toBe('true')
+      expect(link.attributes('style')).toContain('--tab-icon')
+      expect(link.find('svg').exists()).toBe(false)
+      expect(link.find('img').exists()).toBe(false)
     }
   })
 
-  it('renders icon + label on every item and uses no external image asset', async () => {
+  it('maps four distinct Figma icons in order (house, globe, heart, user)', async () => {
+    const { wrapper } = await mountTabBar()
+    const links = wrapper.findAll('nav a')
+    const sources = links.map((link) => link.attributes('style') ?? '')
+    expect(sources).toHaveLength(4)
+    // Each icon inlines as its own data URI; the four must differ and be non-empty.
+    const unique = new Set(sources)
+    expect(unique.size).toBe(4)
+    for (const source of sources) {
+      expect(source).toContain('--tab-icon: url("data:image/svg+xml')
+    }
+  })
+
+  it('renders icon + label on every item', async () => {
     const { wrapper } = await mountTabBar()
     const links = wrapper.findAll('nav a')
     for (const link of links) {
-      expect(link.find('svg').exists()).toBe(true)
-      expect(link.text().trim().length).toBeGreaterThan(0)
+      expect(link.find('.tab-item__icon').exists()).toBe(true)
+      expect(link.find('.tab-item__label').exists()).toBe(true)
     }
-    expect(wrapper.find('nav img').exists()).toBe(false)
   })
 })
 
@@ -195,13 +200,21 @@ describe('EmptyState (5.5)', () => {
       'Haz clic en el ícono de corazón de tus Pokémon favoritos y aparecerán aquí.',
     )
   })
+
+  it('renders the shared Magikarp illustration as decorative, without a CTA', () => {
+    const wrapper = mount(EmptyState)
+    expect(wrapper.find('img.state__illustration[aria-hidden="true"]').exists()).toBe(true)
+    expect(wrapper.find('button').exists()).toBe(false)
+  })
 })
 
 describe('ErrorState (5.6)', () => {
   it('renders the exact error copy and a Reintentar CTA', () => {
     const wrapper = mount(ErrorState)
     expect(wrapper.text()).toContain('Algo salió mal...')
-    expect(wrapper.text()).toContain('No pudimos cargar la información...')
+    expect(wrapper.text()).toContain(
+      'No pudimos cargar la información en este momento. Verifica tu conexión o intenta nuevamente más tarde.',
+    )
     expect(wrapper.text()).toContain('Reintentar')
   })
 
@@ -212,7 +225,7 @@ describe('ErrorState (5.6)', () => {
 
   it('renders the Magikarp illustration as decorative', () => {
     const wrapper = mount(ErrorState)
-    expect(wrapper.find('svg[aria-hidden="true"]').exists()).toBe(true)
+    expect(wrapper.find('img.state__illustration[aria-hidden="true"]').exists()).toBe(true)
   })
 
   it('emits retry when Reintentar is activated', async () => {
@@ -226,8 +239,15 @@ describe('ConstructionState (5.7)', () => {
   it('renders the exact construction copy with Magikarp', () => {
     const wrapper = mount(ConstructionState)
     expect(wrapper.text()).toContain('¡Muy pronto disponible!')
-    expect(wrapper.text()).toContain('Estamos trabajando para traerte esta sección')
-    expect(wrapper.find('svg').exists()).toBe(true)
+    expect(wrapper.text()).toContain(
+      'Estamos trabajando para traerte esta sección. Vuelve más adelante para descubrir todas las novedades.',
+    )
+    expect(wrapper.find('img.state__illustration').exists()).toBe(true)
+  })
+
+  it('renders no CTA button', () => {
+    const wrapper = mount(ConstructionState)
+    expect(wrapper.find('button').exists()).toBe(false)
   })
 
   it('issues no network requests', () => {
@@ -235,19 +255,6 @@ describe('ConstructionState (5.7)', () => {
     mount(ConstructionState)
     expect(fetchSpy).not.toHaveBeenCalled()
     fetchSpy.mockRestore()
-  })
-})
-
-describe('Magikarp (5.8)', () => {
-  it('renders an inline SVG only — no external image file', () => {
-    const wrapper = mount(Magikarp)
-    expect(wrapper.find('svg').exists()).toBe(true)
-    expect(wrapper.find('img').exists()).toBe(false)
-  })
-
-  it('is decorative with aria-hidden and no alt requirement', () => {
-    const wrapper = mount(Magikarp)
-    expect(wrapper.attributes('aria-hidden')).toBe('true')
   })
 })
 

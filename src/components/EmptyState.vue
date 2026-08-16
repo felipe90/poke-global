@@ -1,8 +1,12 @@
+<script setup lang="ts">
+import FeedbackState from '@/components/FeedbackState.vue'
+import emptyImage from '@/assets/images/Magikarp_Jump_Pattern_01 1.png'
+</script>
+
 <template>
-  <section class="state">
-    <h2 class="state__title">No has marcado ningún Pokémon como favorito</h2>
-    <p class="state__subtitle">
-      Haz clic en el ícono de corazón de tus Pokémon favoritos y aparecerán aquí.
-    </p>
-  </section>
+  <FeedbackState
+    :image="emptyImage"
+    title="No has marcado ningún Pokémon como favorito"
+    subtitle="Haz clic en el ícono de corazón de tus Pokémon favoritos y aparecerán aquí."
+  />
 </template>

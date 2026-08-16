@@ -454,12 +454,53 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: 211/211 + type-check + lint PASS.
 - **Archivos afectados**: `src/styles/main.css`, `src/App.vue`, `src/__tests__/App.spec.ts`.
 
+## 2026-08-16
+
+### [fix] Animación wobble de la pokebola del splash
+
+- **Descripción**: El loader de la pantalla inicial ahora **oscila como una pokebola real** en lugar de girar: keyframes `pokeball-wobble` (desplazamiento vertical + rotación −22°/22° con asentamiento), `animation: pokeball-wobble 1.2s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite` y `transform-origin: bottom center` (pivota desde la base, no desde el centro).
+- **Limpieza**: eliminados los keyframes muertos `pokeball-spin`/`pokeball-bounce` y la regla muerta `.pokeball-loader__img` (el componente renderiza un único `<img class="pokeball-loader">`).
+- **Verificación**: navegador — animación `pokeball-wobble 1.2s` activa, `transform-origin` resuelto a 77.5px 155px (base centrada). Suite 211/211 + type-check + lint PASS.
+- **Archivos afectados**: `src/styles/main.css`.
+
+### [feature] Precarga en el splash — la pokebola solo en la pantalla inicial
+
+- **Descripción**: La pokebola deja de aparecer duplicada (splash + lista) y ahora es el **preloader real de los primeros pokémon**: `SplashView.onMounted` dispara `store.loadFirstPage()` + `store.preloadTypes()` en paralelo con el timer de 1.5s, sin bloquear la navegación. Cuando el usuario llega a la lista, los datos ya están cargados (el onboarding da margen adicional de red).
+- **Nuevo componente `LoadingSpinner.vue`**: spinner genérico (aro CSS giratorio, sin pokebola) que reemplaza a la pokebola en la lista (caso límite de red lenta mientras `loadingFirst`) y en el detalle (`detailLoading`). Es decorativo (`aria-hidden`); los contenedores conservan `aria-busy`.
+- **Robustez**: `loadFirstPage()` y `preloadTypes()` ya eran idempotentes (`if length > 0 || loadingFirst return`), así que el `onMounted` de la lista queda como fallback sin duplicar requests; un fallo de precarga muestra el `ErrorState` existente con Reintentar.
+- **Verificación**: navegador — la lista llega con 24 cards ya cargadas tras el flujo splash→onboarding; con la API bloqueada el error se muestra en la lista y en el detalle. Suite 211/211 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/LoadingSpinner.vue` (nuevo), `src/views/SplashView.vue`, `src/views/PokedexListView.vue`, `src/views/PokemonDetailView.vue`, `src/styles/main.css`, 2 archivos de tests.
+
+### [architecture] FeedbackState.vue — estados compartidos DRY (error / favoritos vacío / construcción)
+
+- **Descripción**: Las tres pantallas de estado tenían la misma estructura (imagen, título, subtítulo, botón opcional) y solo cambiaban textos; se creó un **único componente `FeedbackState.vue`** con props `image`, `title`, `subtitle`, `buttonLabel?` (renderiza `AppButton` y emite `retry`) y `alert?` (activa `role="alert"`). Orden Figma: **imagen → título → subtítulo → botón**.
+- **Wrappers** que delegan en `FeedbackState`:
+  - `ErrorState` — `Magikarp_Jump_Pattern_01 1.png`, "Algo salió mal...", subtítulo NUEVO ("No pudimos cargar la información en este momento. Verifica tu conexión o intenta nuevamente más tarde."), botón `Reintentar` primary, `role="alert"`.
+  - `EmptyState` (favoritos vacío) — misma imagen, título/subtítulo de favoritos, sin botón.
+  - `ConstructionState` — `Magikarp_Jump_Pattern_01 1-2.png`, "¡Muy pronto disponible!", subtítulo NUEVO ("Estamos trabajando para traerte esta sección. Vuelve más adelante para descubrir todas las novedades."), sin botón.
+- **Limpieza**: eliminado `Magikarp.vue` (SVG inline) y su CSS muerto (`.magikarp`, keyframes `magikarp-bob`, entrada en `prefers-reduced-motion`); los PNG del Figma reemplazan al SVG.
+- **Centrado**: `.state` ahora centra vertical y horizontalmente como el onboarding (`min-height: 100dvh` + `justify-content: center`, padding 16px). Ilustración a 160px de ancho con proporción automática.
+- **Verificación**: navegador midiendo el DOM en `/` (error forzado), `/regions` y `/favorites` — orden imagen→título→subtítulo→botón en las tres, textos nuevos, botón solo en error, contenedor centrado (`centered: 0`). Suite 211/211 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/FeedbackState.vue` (nuevo), `ErrorState.vue`, `EmptyState.vue`, `ConstructionState.vue`, `src/styles/main.css`, `src/assets/images/Magikarp_Jump_Pattern_01 1.png` + `1-2.png`, 2 archivos de tests.
+
+### [architecture] TabBar refinado al Figma + frame móvil 360px — todo en tokens
+
+- **Descripción**: Menú inferior ajustado a las medidas exactas del Figma y la app enmarcada como dispositivo móvil, con todos los valores como tokens (estándar del proyecto).
+- **TabBar**: height 77px (1 borde + 16 + 44 + 16), `justify-content: space-between`, radius superior 16px, `border-top: 1px solid var(--tapbar-border-top, #E0E0E0)`, padding 16px 12px, fondo `var(--tapbar-bg, #FAFAFA)`, `box-shadow: 0 -1px 3px rgba(0,0,0,0.12)`, ancho completo (sin `max-width`).
+- **Items**: 62×44px, gap 4, contenedor de icono 62×24px radius 16 padding 4, label Poppins 12px/500/line-height 16px centrado; activo `#0d47a1`, inactivo `#424242`.
+- **Iconos**: los 4 SVG del Figma (`house.svg`, `globe.svg`, `heart.svg`, `user.svg` — Pokedex, Regiones, Favoritos, Perfil) se renderizan como **CSS mask** (`--tab-icon` data URI por item sobre `currentColor`), lo que permite el tintado por estado usando los archivos reales, sin paths inline ni `<img>`.
+- **Frame móvil**: `#app` → `width: 360px`, `min-height: 100dvh`, fondo `var(--surface-default, #FAFAFA)`, centrado con borde sutil; el body queda neutro. Las medidas del Figma (360×800) aplican a todas las pantallas a través del contenedor.
+- **Tokens nuevos**: `--surface-default`, `--tapbar-bg`, `--tapbar-border-top`, escala **Spacing** (`none/xxs/xs/sm/md/lg/xl/2xl` — lg=16px fija el TabBar a 77), `--radius-lg`, `--font-size-xs`, `--line-height-xs`, `--font-family` (Poppins con fallback).
+- **Gotchas resueltos**: (1) los imports de SVG resuelven a **data URI** en Vite, no al path — los tests verifican unicidad de iconos en lugar del nombre de archivo; (2) `url("...")` inline en el template attribute rompe el compiler de Vue (`Attribute name cannot contain U+0022`) → el style con custom property se construye en una función JS (`tabStyle`); (3) los data URI con comillas simples internas (`width='24'`) exigen comillas dobles en `url()` para que el navegador aplique la máscara (`maskImage` "none" sin ellas).
+- **Verificación**: navegador midiendo computed styles — TabBar 77px full width, items 62×44, iconos con `mask-image` activo (fondo `#0d47a1` en el activo), `#app` 360px. Suite 211/211 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/TabBar.vue`, `src/styles/tokens.css`, `src/styles/main.css`, `src/assets/icons/house.svg` + `globe.svg` + `heart.svg` + `user.svg`, `src/__tests__/components.spec.ts`.
+
 ## Pendiente / Próximos pasos
 
-- [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
-- [ ] **Decidir entrega**: PRs encadenados (5 work units) vs. size:exception (~1300 líneas, riesgo High).
-- [ ] **Aplicar** tareas de implementación (22 tareas en 6 fases TDD-first) — `openspec/changes/pokemon-favorites/tasks.md`.
-- [ ] **Verificar** contra specs (unit + type-check + lint; e2e si hay browsers).
-- [ ] **Archivar** el cambio y sincronizar specs delta al nivel superior.
+- [ ] **Commit + push pendiente**: todo el trabajo de la sesión está sin commitear (CHANGELOG actualizado aquí; wobble, precarga, FeedbackState, TabBar). Consultar con el usuario si incluir `public/favicon.ico` (modificado, sospechoso de build artifact) y `.engram/config.json` (config local del MCP).
+- [ ] **Lista de pokémon (`/`)**: revisar alineación al Figma — cards, search bar, resultado de búsqueda/filtro, sentinel de infinite scroll.
+- [ ] **Detalle de pokémon (`/pokemon/:name`)**: revisar alineación al Figma — header con círculo del tipo + imagen, chips junto al nombre, campos 2 columnas, Debilidades, Próximo/Anterior, estados de carga con `LoadingSpinner`.
+- [ ] **Favoritos con datos**: pantalla con cards + trash + snapshot localStorage + sync cross-tab (el estado vacío ya quedó cubierto por `FeedbackState`).
+- [ ] **Cargar la fuente Poppins** (token `--font-family` ya apunta a ella; falta `@fontsource/poppins` o Google Fonts) para la tipografía real del Figma.
 - [ ] **README** AI-First: qué es, cómo se desarrolla, cómo se prueba, decisiones.
 - [ ] Fix del nit de `vitest.config.ts` (extensión en el import).

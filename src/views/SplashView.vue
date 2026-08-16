@@ -3,11 +3,13 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import PokeballLoader from '@/components/PokeballLoader.vue'
+import { usePokemonStore } from '@/stores/pokemon'
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 const SPLASH_DURATION_MS = 1500
 
 const router = useRouter()
+const store = usePokemonStore()
 
 const reducedMotion = ref(
   typeof window.matchMedia === 'function'
@@ -18,6 +20,11 @@ const reducedMotion = ref(
 let timer: ReturnType<typeof setTimeout> | undefined
 
 onMounted(() => {
+  // Preload the first catalog page + type catalogs behind the splash so the
+  // list is already populated when the user arrives. Both are idempotent.
+  void store.loadFirstPage()
+  void store.preloadTypes()
+
   timer = setTimeout(() => {
     void router.push('/onboarding')
   }, SPLASH_DURATION_MS)

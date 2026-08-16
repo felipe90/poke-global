@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import AppButton from '@/components/AppButton.vue'
 import ErrorState from '@/components/ErrorState.vue'
-import PokeballLoader from '@/components/PokeballLoader.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import PokemonDetailPanel from '@/components/PokemonDetailPanel.vue'
 import { usePokemonStore } from '@/stores/pokemon'
 
@@ -61,7 +61,7 @@ watch(
       v-if="store.detailLoading"
       class="pokemon-detail-view__loading"
     >
-      <PokeballLoader />
+      <LoadingSpinner />
     </div>
 
     <section

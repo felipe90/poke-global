@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import AppButton from '@/components/AppButton.vue'
-import Magikarp from '@/components/Magikarp.vue'
+import FeedbackState from '@/components/FeedbackState.vue'
+import errorImage from '@/assets/images/Magikarp_Jump_Pattern_01 1.png'
 
 const emit = defineEmits<{ retry: [] }>()
 </script>
 
 <template>
-  <section class="state" role="alert">
-    <h2 class="state__title">Algo salió mal...</h2>
-    <p class="state__subtitle">No pudimos cargar la información...</p>
-    <Magikarp class="state__illustration" />
-    <AppButton @click="emit('retry')">
-      Reintentar
-    </AppButton>
-  </section>
+  <FeedbackState
+    :image="errorImage"
+    title="Algo salió mal..."
+    subtitle="No pudimos cargar la información en este momento. Verifica tu conexión o intenta nuevamente más tarde."
+    button-label="Reintentar"
+    alert
+    @retry="emit('retry')"
+  />
 </template>

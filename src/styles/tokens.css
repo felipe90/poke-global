@@ -3,6 +3,7 @@
 
 :root {
   /* Palette */
+  --surface-default: #fafafa;
   --bg: #fafafa;
   --primary: #1e88e5;
   --tab-active: #0d47a1;
@@ -13,6 +14,10 @@
   --onboarding-dot-inactive: #4565b7;
   --progress-fill: #1f49b6;
   --progress-track: #eff0f2;
+
+  /* TabBar (Figma: tapBar) */
+  --tapbar-bg: #fafafa;
+  --tapbar-border-top: #e0e0e0;
 
   /* Button (Figma: button variants) */
   --button-primary-default-bg: #1e88e5;
@@ -40,6 +45,7 @@
 
   /* Radius */
   --radius-card: 16px;
+  --radius-lg: 16px;
   --radius-pill: 100px;
   --radius-sheet-top: 24px;
   --radius-tabbar-top: 16px;
@@ -48,9 +54,17 @@
   /* Shadow (shared by TabBar and BottomSheet) */
   --shadow-top: 0 -1px 3px rgba(0, 0, 0, 0.12);
 
-  /* Spacing — 4px scale */
-  --space-card: 16px;
+  /* Spacing — Figma scale (Spacing/none…Spacing/2xl), 4px base.
+   lg = 16px fixes TabBar height: 1(border) + 16 + 44(item) + 16 = 77. */
+  --space-none: 0px;
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 12px;
+  --space-lg: 16px;
   --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-card: 16px;
   --space-info-gap: 4px;
   --space-card-inner: 29px;
   --space-sheet-tb: 16px;
@@ -71,4 +85,7 @@
   --font-data-value: 18px;
   --font-cta: 18px;
   --font-search: 14px;
+  --font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 12px;
+  --line-height-xs: 16px;
 }
