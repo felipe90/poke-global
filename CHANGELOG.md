@@ -293,6 +293,14 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Veredicto**: 8/10 antes → mejora aplicada; diseño más escalable y más simple a la vez.
 - **Archivos afectados**: `openspec/changes/pokemon-favorites/design.md`, `openspec/changes/pokemon-favorites/tasks.md`.
 
+### [config] MCP de Playwright — verificación visual del navegador
+
+- **Descripción**: Se agrega el MCP de Playwright al `opencode.json` del proyecto para que el orquestador pueda abrir el navegador y verificar visualmente la app durante/después de la implementación (capturas, navegación real), no solo tests unitarios.
+- **Config**: `@playwright/mcp` (v0.0.79) local con `--allowed-hosts localhost,127.0.0.1` (restringido al dev server local). Browsers de Playwright ya instalados (chromium/firefox/webkit en cache).
+- **Verificado**: el config resuelve (5 MCP servers: codegraph, context7, engram, figma, playwright) y el server arranca activo.
+- **Uso previsto**: en las fases de apply, `npm run dev` + MCP Playwright para capturar pantallas del flujo (splash → onboarding → lista → detalle → favoritos) y validar el Figma visualmente.
+- **Archivos afectados**: `opencode.json`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Reanudar SDD**: incorporar diseño Figma oficial a la spec/design (fuente de verdad visual).
