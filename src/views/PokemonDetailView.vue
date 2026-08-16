@@ -28,6 +28,15 @@ function goTo(pokemon: string | null | undefined): void {
   void router.push(`/pokemon/${pokemon}`)
 }
 
+/** Back to the previous route within the app; fall back to the list. */
+function goBack(): void {
+  if (router.options.history.state.back) {
+    router.back()
+  } else {
+    void router.push('/')
+  }
+}
+
 function retry(): void {
   if (name.value) void store.openDetail(name.value)
 }
@@ -108,6 +117,11 @@ watch(
       <PokemonDetailPanel
         :detail="store.selectedDetail"
         :derived="store.selectedSpecies"
+        :prev-name="prevName"
+        :next-name="nextName"
+        @back="goBack"
+        @prev="goTo(prevName)"
+        @next="goTo(nextName)"
       />
     </template>
   </div>
@@ -137,32 +151,6 @@ watch(
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
-}
-
-.detail-nav {
-  display: flex;
-  gap: var(--space-card);
-}
-
-.nav-button {
-  flex: 1;
-  padding: var(--space-info-gap) var(--space-card);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--bg);
-  font-size: var(--font-data-value);
-  font-weight: 600;
-}
-
-.nav-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.nav-button:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
 }
 
 .not-found {

@@ -75,6 +75,57 @@
 - **Card**: variantes por tipo de pokémon (18 tipos) — fondo según tipo
 - **Icon/Heart** y **Icon/HeartSolid**: favorito / no favorito
 
+## Geometría exacta del DETALLE (extraída de la API 2026-08-15, node 10:6948)
+
+Estructura jerárquica real del Figma para `/pokemon/:name` (frame 360×1041, mobile):
+
+```
+Pokedex (FRAME 360×1041, bg #fafafa)
+├── Header (FRAME 360×307)
+│   ├── Ellipse 419 (fondo circular) — 498×498, color del tipo (#8bc34a grass)
+│   │   └── Elemento Outline — 204×204 (silueta)
+│   ├── RECTANGLE bulbasaur 1 — imagen pokémon 142×155, centrada sobre el círculo
+│   ├── "Icones" (FRAME HORIZONTAL, gap 246): flecha-back 38×38 + PokeHeart 28×28
+│   └── "Próximo e Anterior" (FRAME HORIZONTAL, gap 231, y=768): 
+│       └── 2 botones circulares blancos 48×48 con flechas (anterior/next)
+├── Dados (FRAME VERTICAL 337×586, gap 24, padding lateral)
+│   ├── "Nome, Nº" (VERTICAL, gap −5): Bulbasaur (48px, #121212) + Nº001 (22px, #424242)
+│   ├── "Elementos" (HORIZONTAL, gap 7): chips tipo — Planta (#8bc34a) + Veneno (#9c27b0)
+│   │   └── chip = [Icon Container 20×20 círculo blanco #fafafa] + [texto "Planta" #fafafa 17px]
+│   └── Frame 1000002618 (VERTICAL, gap 40)
+│       ├── "Geral" (VERTICAL, gap 16)
+│       │   ├── Descrição (VERTICAL, gap 20): texto 40px alto #424242 + LINE separadora
+│       │   └── Características (VERTICAL, gap 20): 
+│       │       ├── Peso, Altura (HORIZONTAL 328×63, gap 20) — 2 columnas
+│       │       ├── Categoria, Habilidade (HORIZONTAL 328×63, gap 20) — 2 columnas
+│       │       └── Gênero (328×59)
+│       └── Fraquezas (VERTICAL 337×107, gap 12): título "Debilidades" (27px #121212) + chips debilidad
+│           └── colores debilidad: fire #ff9800, psychic #673ab7, ground #3d8bff, ice #00bcd4
+└── TabBar (360×77, sticky bottom)
+```
+
+Puntos de layout críticos que la implementación actual NO cumplía:
+- El **círculo de color del tipo** (Ellipse 498×498) detrás de la imagen del pokémon — el color del tipo como fondo del header.
+- La **imagen dentro del header** (no flotante abajo del nombre).
+- Los chips de tipo junto al nombre (en "Elementos", tras Nome/Nº), no dispersos.
+- La línea separadora bajo la descripción.
+- **Características en 2 columnas** (Peso|Altura, Categoría|Habilidad), Género aparte.
+- Botones circulares blancos 48×48 para Próximo/Anterior con flechas.
+- Debilidades con chips de colores específicos por tipo.
+
+## Geometría del LISTADO (extraída de la API, node 10:2805 — lista sin filtro)
+
+```
+Pokedex (FRAME 360×~800, bg #fafafa)
+├── Frame 1000002708 (cards grid) — Cards apiladas verticalmente (1 columna en 360px)
+│   └── Card (INSTANCE por tipo): fondo color del tipo, radius 16
+├── TabBar (360×77, sticky bottom)
+├── "Barra de pesquisa" ×2 + INSTANCE search — input de búsqueda arriba
+└── (con filtros) "Se han encontrado N resultados" + "Borrar filtro" (#1e88e5)
+```
+
+Card (COMPONENT_SET, nodo Components): estructura horizontal — `Info` (gap 4) + `Image Container` (radius 16, padding 16/16/4/4, gap 10, bg tipo). Textos: Nº (12px 600), nombre (21px 600), chips tipo (11px 500).
+
 ## Notas de implementación (derivadas)
 
 - **Splash + Onboarding** existen en el diseño oficial → el routing `/` como lista directa (decisión previa) contradice el diseño; hay que decidir si se implementan onboarding/splash como pantallas iniciales o se omiten (el enunciado no los pide explícitamente; el diseño sí los incluye).

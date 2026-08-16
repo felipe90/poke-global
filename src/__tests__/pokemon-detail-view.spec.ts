@@ -200,6 +200,18 @@ describe('PokemonDetailView (4.4)', () => {
     expect(wrapper.find('.nav-next').attributes('disabled')).toBeDefined()
   })
 
+  it('the header back arrow returns to the previous route', async () => {
+    const { wrapper, router } = await mountDetail('bulbasaur', ({ mod }) => {
+      mod.fetchPokemonDetail.mockResolvedValue(makeDetail('bulbasaur', 1))
+      mod.fetchPokemonSpecies.mockResolvedValue(makeSpecies(1))
+    })
+    await flushPromises()
+    await wrapper.get('.detail-header__back').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe('/')
+    wrapper.unmount()
+  })
+
   it('fetch failure renders ErrorState and Reintentar re-issues the request', async () => {
     const { wrapper, mod } = await mountDetail('pikachu', ({ mod }) => {
       mod.fetchPokemonDetail

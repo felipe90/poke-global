@@ -75,9 +75,13 @@ const pikachuDetail: PokemonDetail = {
   species: { url: 'https://pokeapi.co/api/v2/pokemon-species/25' },
 }
 
-function mountPanel(detail: PokemonDetail, species: PokemonSpecies | null = bulbasaurSpecies) {
+function mountPanel(
+  detail: PokemonDetail,
+  species: PokemonSpecies | null = bulbasaurSpecies,
+  nav: { prevName?: string | null; nextName?: string | null } = {},
+) {
   return mount(PokemonDetailPanel, {
-    props: { detail, species },
+    props: { detail, species, ...nav },
     global: { plugins: [pinia] },
   })
 }
@@ -173,5 +177,75 @@ describe('PokemonDetailPanel (5.10)', () => {
     await flushPromises()
     expect(wrapper.emitted('toggleFavorite')).toHaveLength(1)
     expect(wrapper.emitted('share')).toHaveLength(1)
+  })
+
+  it('renders the header circle in the first type color (grass #8bc34a)', () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    const circle = wrapper.get('.detail-header__circle')
+    expect((circle.element as HTMLElement).style.backgroundColor).toBe('rgb(139, 195, 74)')
+  })
+
+  it('renders the header circle in the first type color for a different type (electric #f7d02c)', () => {
+    const wrapper = mountPanel(pikachuDetail, null)
+    const circle = wrapper.get('.detail-header__circle')
+    expect((circle.element as HTMLElement).style.backgroundColor).toBe('rgb(247, 208, 44)')
+  })
+
+  it('renders the artwork inside the header, on top of the circle', () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    const header = wrapper.find('.detail-header')
+    expect(header.exists()).toBe(true)
+    const artwork = header.find('.detail-header__artwork')
+    expect(artwork.exists()).toBe(true)
+    expect(artwork.attributes('src')).toBe('https://example.com/bulbasaur-art.png')
+    expect(header.find('.detail-header__circle').exists()).toBe(true)
+  })
+
+  it('emits back when the header back arrow is activated', async () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    const back = wrapper.get('.detail-header__back')
+    expect(back.attributes('aria-label')).toBe('Volver')
+    await back.trigger('click')
+    expect(wrapper.emitted('back')).toHaveLength(1)
+  })
+
+  it('renders circular Próximo/Anterior nav buttons that emit prev and next', async () => {
+    const wrapper = mountPanel(bulbasaurDetail, bulbasaurSpecies, { prevName: 'charmander', nextName: 'ivysaur' })
+    const prev = wrapper.get('.nav-prev')
+    const next = wrapper.get('.nav-next')
+    expect(prev.attributes('disabled')).toBeUndefined()
+    expect(next.attributes('disabled')).toBeUndefined()
+    await prev.trigger('click')
+    await next.trigger('click')
+    expect(wrapper.emitted('prev')).toHaveLength(1)
+    expect(wrapper.emitted('next')).toHaveLength(1)
+  })
+
+  it('disables the nav buttons at the bounds (no prev / no next)', () => {
+    const atStart = mountPanel(bulbasaurDetail, bulbasaurSpecies, { prevName: null, nextName: 'ivysaur' })
+    expect(atStart.get('.nav-prev').attributes('disabled')).toBeDefined()
+    expect(atStart.get('.nav-next').attributes('disabled')).toBeUndefined()
+
+    const atEnd = mountPanel(bulbasaurDetail, bulbasaurSpecies, { prevName: 'charmander', nextName: null })
+    expect(atEnd.get('.nav-prev').attributes('disabled')).toBeUndefined()
+    expect(atEnd.get('.nav-next').attributes('disabled')).toBeDefined()
+  })
+
+  it('groups characteristics in the Figma 2-column rows (Peso|Altura, Categoría|Habilidad, Género)', () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    const rows = wrapper.findAll('.detail-characteristics__row')
+    expect(rows.map((row) => row.findAll('dt').map((el) => el.text()))).toEqual([
+      ['Peso', 'Altura'],
+      ['Categoría', 'Habilidad'],
+      ['Género'],
+    ])
+  })
+
+  it('renders the description above a separator line', () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    expect(wrapper.find('.detail-description').text()).toContain(
+      'Una semilla está plantada en su espalda desde que nace.',
+    )
+    expect(wrapper.find('.detail-divider').exists()).toBe(true)
   })
 })
