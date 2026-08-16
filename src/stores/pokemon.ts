@@ -56,6 +56,70 @@ function offsetFromUrl(url: string): number {
   return offset === null ? 0 : Number(offset)
 }
 
+// ---- Pure derivation helpers (shared by the store and the detail panel) ----
+
+function formatDecimal(value: number): string {
+  return value.toFixed(1).replace('.', ',')
+}
+
+function formatPercent(value: number): string {
+  const fixed = value.toFixed(1).replace('.', ',')
+  return fixed.endsWith(',0') ? fixed.slice(0, -2) : fixed
+}
+
+function resolveCategory(species: PokemonSpecies): string {
+  const es = species.genera.find((genus) => genus.language.name === 'es')
+  if (es) return es.genus
+  const en = species.genera.find((genus) => genus.language.name === 'en')
+  return en ? en.genus : '—'
+}
+
+function resolveDescription(species: PokemonSpecies): string {
+  const es = species.flavor_text_entries.filter((entry) => entry.language.name === 'es')
+  const chosen =
+    es.length > 0 ? es[es.length - 1] : species.flavor_text_entries.find((entry) => entry.language.name === 'en')
+  if (!chosen) return '—'
+  return chosen.flavor_text.replace(/[\n\f]+/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+function resolveGender(rate: number): string {
+  if (rate === -1) return 'Sin género'
+  const male = ((8 - rate) / 8) * 100
+  const female = (rate / 8) * 100
+  return `${formatPercent(male)}% / ${formatPercent(female)}%`
+}
+
+function resolveAbility(detail: PokemonDetail): string {
+  const slot1 = detail.abilities.find((ability) => ability.slot === 1)
+  if (!slot1) return '—'
+  return slot1.ability.name.charAt(0).toUpperCase() + slot1.ability.name.slice(1)
+}
+
+function resolveWeaknesses(detail: PokemonDetail): TypeName[] {
+  const weaknesses: TypeName[] = []
+  for (const entry of detail.types) {
+    const chart = WEAKNESS_CHART[entry.type.name] ?? []
+    for (const weakness of chart) {
+      if (!weaknesses.includes(weakness)) weaknesses.push(weakness)
+    }
+  }
+  return weaknesses
+}
+
+/** Derive the rich-panel fields from a detail (+ optional species). Exported so
+ *  the presentational detail panel reuses this logic instead of duplicating it. */
+export function deriveSpecies(detail: PokemonDetail, species: PokemonSpecies | null): PokemonDerivedSpecies {
+  return {
+    peso: `${formatDecimal(detail.weight / 10)} kg`,
+    altura: `${formatDecimal(detail.height / 10)} m`,
+    categoria: species ? resolveCategory(species) : '—',
+    descripcion: species ? resolveDescription(species) : '—',
+    genero: species ? resolveGender(species.gender_rate) : '—',
+    habilidad: resolveAbility(detail),
+    debilidades: resolveWeaknesses(detail),
+  }
+}
+
 export const usePokemonStore = defineStore('pokemon', () => {
   // ---------------------------------------------------------------- Catalog
   const pokemonList = ref<PokemonSummary[]>([])
@@ -313,66 +377,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
   /** Store-level mirror of loaded entities so cached visits skip re-requests. */
   const detailByName = new Map<string, PokemonDetail>()
   const speciesById = new Map<number, PokemonSpecies>()
-
-  function formatDecimal(value: number): string {
-    return value.toFixed(1).replace('.', ',')
-  }
-
-  function formatPercent(value: number): string {
-    const fixed = value.toFixed(1).replace('.', ',')
-    return fixed.endsWith(',0') ? fixed.slice(0, -2) : fixed
-  }
-
-  function resolveCategory(species: PokemonSpecies): string {
-    const es = species.genera.find((genus) => genus.language.name === 'es')
-    if (es) return es.genus
-    const en = species.genera.find((genus) => genus.language.name === 'en')
-    return en ? en.genus : '—'
-  }
-
-  function resolveDescription(species: PokemonSpecies): string {
-    const es = species.flavor_text_entries.filter((entry) => entry.language.name === 'es')
-    const chosen =
-      es.length > 0 ? es[es.length - 1] : species.flavor_text_entries.find((entry) => entry.language.name === 'en')
-    if (!chosen) return '—'
-    return chosen.flavor_text.replace(/[\n\f]+/g, ' ').replace(/\s+/g, ' ').trim()
-  }
-
-  function resolveGender(rate: number): string {
-    if (rate === -1) return 'Sin género'
-    const male = ((8 - rate) / 8) * 100
-    const female = (rate / 8) * 100
-    return `${formatPercent(male)}% / ${formatPercent(female)}%`
-  }
-
-  function resolveAbility(detail: PokemonDetail): string {
-    const slot1 = detail.abilities.find((ability) => ability.slot === 1)
-    if (!slot1) return '—'
-    return slot1.ability.name.charAt(0).toUpperCase() + slot1.ability.name.slice(1)
-  }
-
-  function resolveWeaknesses(detail: PokemonDetail): TypeName[] {
-    const weaknesses: TypeName[] = []
-    for (const entry of detail.types) {
-      const chart = WEAKNESS_CHART[entry.type.name] ?? []
-      for (const weakness of chart) {
-        if (!weaknesses.includes(weakness)) weaknesses.push(weakness)
-      }
-    }
-    return weaknesses
-  }
-
-  function deriveSpecies(detail: PokemonDetail, species: PokemonSpecies | null): PokemonDerivedSpecies {
-    return {
-      peso: `${formatDecimal(detail.weight / 10)} kg`,
-      altura: `${formatDecimal(detail.height / 10)} m`,
-      categoria: species ? resolveCategory(species) : '—',
-      descripcion: species ? resolveDescription(species) : '—',
-      genero: species ? resolveGender(species.gender_rate) : '—',
-      habilidad: resolveAbility(detail),
-      debilidades: resolveWeaknesses(detail),
-    }
-  }
 
   /** Non-blocking species load; failure degrades the species-derived fields. */
   function hydrateSpecies(detail: PokemonDetail): void {
