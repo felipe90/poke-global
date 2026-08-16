@@ -112,6 +112,7 @@ function activate(): void {
   width: 96px;
   height: 96px;
   object-fit: contain;
+  pointer-events: none;
 }
 
 .pokemon-card:focus-visible {

@@ -188,6 +188,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-card);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+  padding-bottom: var(--space-info-gap);
 }
 
 .pokedex-list-view__actions {

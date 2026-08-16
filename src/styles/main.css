@@ -158,6 +158,7 @@ button {
   height: 24px;
   border-radius: var(--radius-icon-circle);
   background: #fafafa;
+  pointer-events: none;
 }
 
 /* ---------------------------------------------------------------- States */
