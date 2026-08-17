@@ -542,6 +542,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 ---
 
-## Entregado — commit `b94df6f` (push a `origin/main`)
+## Entregado — commit `38c08f0` (push a `origin/main`)
 
-Trabajo de la sesión del 2026-08-16 commiteado y pusheado. `public/favicon.ico` y `.engram/config.json` ya estaban resueltos en commits previos (no aparecieron como modificados).
+Sesión del 2026-08-16 (segunda tanda): fuentes oficiales del Figma + auditoría tipográfica, card reconstruida a la geometría exacta (con los 18 elements SVG exportados), SearchBar completo. El commit `88632b2` (tipos dinámicos — debilidades del API) ya estaba pusheado por el usuario a mitad de la sesión. Rama `main` limpia.
