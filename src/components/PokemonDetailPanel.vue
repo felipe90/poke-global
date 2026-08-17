@@ -7,7 +7,7 @@ import categoryIcon from '@/assets/icons/properties/category.svg'
 import heightIcon from '@/assets/icons/properties/height.svg'
 import weightIcon from '@/assets/icons/properties/weight.svg'
 import { FALLBACK_TYPE_COLOR, getTypeMeta, resolveWeaknesses } from '@/data/types'
-import { getAnimatedSprite } from '@/services/pokeapi'
+import { getAnimatedSprite, getStaticSprite } from '@/services/pokeapi'
 import { deriveSpecies, usePokemonStore } from '@/stores/pokemon'
 import type { PokemonDerivedSpecies } from '@/stores/pokemon'
 import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
@@ -45,6 +45,10 @@ const fields = computed(() => {
 })
 
 const artwork = computed(() => getAnimatedSprite(props.detail))
+
+/** Static sprite for the favorite snapshot — the header shows the GIF, but
+ *  the favorites list must render the static image (same as the list card). */
+const favoriteImage = computed(() => getStaticSprite(props.detail))
 
 const favoriteTypes = computed(() => props.detail.types.map((entry) => entry.type.name))
 
@@ -107,7 +111,7 @@ const genderRate = computed(() => fields.value.genderRate)
           class="detail-header__favorite"
           :name="detail.name"
           :id="detail.id"
-          :image-url="artwork ?? ''"
+          :image-url="favoriteImage ?? ''"
           :types="favoriteTypes"
           :size="28"
           @click="emit('toggleFavorite')"

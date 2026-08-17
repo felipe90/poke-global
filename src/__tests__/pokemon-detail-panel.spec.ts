@@ -224,6 +224,16 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(wrapper.find('.share-button .app-button').exists()).toBe(true)
   })
 
+  it('passes the static sprite (not the GIF) to the favorite snapshot', () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    // The header artwork is the animated GIF...
+    expect(wrapper.get('.detail-header__artwork').attributes('src')).toBe('https://example.com/bulbasaur.gif')
+    // ...but the favorite button receives the static image so the favorites
+    // list renders statically (same source as the list card).
+    const favButton = wrapper.findComponent({ name: 'FavoriteButton' })
+    expect(favButton.props('imageUrl')).toBe('https://example.com/bulbasaur.png')
+  })
+
   it('emits toggleFavorite and share when those buttons are activated', async () => {
     const wrapper = mountPanel(bulbasaurDetail)
     await wrapper.find('.favorite-button').trigger('click')

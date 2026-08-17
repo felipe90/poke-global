@@ -113,6 +113,13 @@ export function getAnimatedSprite(detail: PokemonDetail): string | null {
   return detail.sprites.other.showdown.front_default ?? getOfficialArtwork(detail)
 }
 
+/** Static sprite for favorites — same source the list card uses. Favored
+ *  snapshots must not store the animated GIF, so a favorite added from the
+ *  detail header (which shows the GIF) still renders statically in the list. */
+export function getStaticSprite(detail: PokemonDetail): string | null {
+  return detail.sprites.front_default ?? getOfficialArtwork(detail)
+}
+
 /**
  * Fixed share format — never includes species-derived fields:
  * `{name}, {types, slot order}, HP {hp}, Attack {attack}, Defense {defense}, Speed {speed}`

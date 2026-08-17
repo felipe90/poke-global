@@ -9,6 +9,7 @@ import {
   fetchTypeCatalog,
   getAnimatedSprite,
   getOfficialArtwork,
+  getStaticSprite,
   statsToPokemonStats,
 } from '@/services/pokeapi'
 import { PAGE_SIZE } from '@/types/pokemon'
@@ -310,6 +311,28 @@ describe('pokeapi service', () => {
         },
       }
       expect(getAnimatedSprite(noGif)).toBe('https://example.com/pikachu-art.png')
+    })
+  })
+
+  describe('getStaticSprite', () => {
+    it('returns the static front_default sprite (not the GIF)', () => {
+      expect(getStaticSprite(pikachuDetail)).toBe(
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
+      )
+    })
+
+    it('falls back to the official artwork when front_default is missing', () => {
+      const noFront: PokemonDetail = {
+        ...pikachuDetail,
+        sprites: {
+          front_default: null,
+          other: {
+            'official-artwork': { front_default: 'https://example.com/pikachu-art.png' },
+            showdown: { front_default: 'https://example.com/pikachu.gif' },
+          },
+        },
+      }
+      expect(getStaticSprite(noFront)).toBe('https://example.com/pikachu-art.png')
     })
   })
 
