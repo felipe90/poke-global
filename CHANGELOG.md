@@ -559,16 +559,48 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — margen 4px, tokens resuelven al mismo valor (badge circle rgb(250,250,250), favorito rgb(229,57,53)). Suite 216/216 + type-check + lint PASS.
 - **Archivos afectados**: `tokens.css`, 7 componentes, `main.css`, 3 tests.
 
+### [feature] Cabecera de favoritos — back + título centrado (Grid 3 columnas)
+
+- **Descripción**: La lista de favoritos ahora tiene cabecera con botón de retorno (chevron-left) a la izquierda, título "Favoritos" **perfectamente centrado** (Grid 3 columnas `40px 1fr 40px` con spacer invisible — flex space-between habría desplazado el título) y sticky sobre la lista. Título Montserrat 20/600 line-height 28 (`--line-height-lg`), padding vertical `--space-2xl` (32px) según specs. El back usa `router.back()` con fallback a `/`.
+- **Verificación**: navegador — título con desviación 0px del centro, header sticky top 0, chevron-left. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/views/FavoritesView.vue`, `src/assets/icons/tab/chevron-left.svg`, `tokens.css`.
+
+### [architecture] TypeFilterSheet rediseñado al Figma — lista vertical + botones columna
+
+- **Descripción**: El sheet de filtros se alineó al BottomSheet real del Figma (nodo Flow/Pokedex): lista vertical 1 columna (antes grid 2 col) con filas de 32px (icono 18 + label Montserrat 14/500 + check custom a la derecha), título Poppins 20/600, accordion "Tipo" Montserrat 16/600 + chevron, botón X de cerrar (close.svg), botones en flex column con el AppButton existente (Aplicar primary + Cancelar secondary).
+- **Mejoras UI** (fuera del Figma pero aprobadas): transición suave (overlay fade + sheet slide-up con keyframes), acordeón colapsable con chevron rotando (abierto por defecto, `aria-expanded`), scrollbar de la lista oculta (mobile-first), sheet al 70% del viewport con lista scrolleable y botones fijos, ancho máximo 360px (consistente con el frame app).
+- **Bug dvh resuelto**: `70dvh` → `70vh` — el device toolbar de Chrome encoge el viewport dinámico con la URL bar y la lista desaparecía (el flex la encogía a 0). `vh` estable lo arregla.
+- **Verificación**: navegador — opciones verticales, check a la derecha, botones columna primary/secondary, 70% viewport, scroll interno. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/TypeFilterSheet.vue`, `main.css`, `src/assets/icons/tab/close.svg`, tests.
+
+### [architecture] CustomCheckbox.vue — Figma Check (32×32 + 18×18 r4, checked #1F49B6)
+
+- **Descripción**: Componente reutilizable con la geometría EXACTA del Figma (COMPONENT_SET Check 10:5823): círculo táctil 32×32 envolviendo cuadro 18×18 r4. Unchecked: fill `#fafafa` + stroke `#d6d6d6`; Checked: fill **`#1F49B6`** + stroke `#0d47a1` + check blanco. Input nativo oculto para accesibilidad; visual controlado por `input:checked + box`. Tokens: `--check-default`, `--check-border`. Usado en el TypeFilterSheet.
+- **Gotchas**: (1) NO anidar `<label>` dentro de `<label>` (HTML inválido — el click no llega al input); el option es label y el checkbox usa span raíz. (2) El selector `input:checked + box` requiere que el input vaya ANTES del box en el DOM.
+- **Verificación**: navegador — checked bg rgb(31,73,182)=#1F49B6 + check blanco; unchecked #fafafa. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/CustomCheckbox.vue` (nuevo), `TypeFilterSheet.vue`, `tokens.css`.
+
+### [fix] App-shell: scroll interno en .app-main — fix touch scroll header/tabbar
+
+- **Descripción**: El sticky del header y el TabBar se rompía con el **scroll táctil** (device toolbar de Chrome) en favoritos: el scroll ocurría en el BODY y el sticky del body es frágil con touch. Fix con el **patrón app-shell** (estándar mobile): `#app` con `height: 100vh` + `overflow: hidden`; `.app-main` con `overflow-y: auto` (el scroll vive en el contenido, no en la ventana); `.app-tab-bar` sin sticky (fijo por el layout flex column, fuera del scroll container); el header sticky pega dentro del main. También se corrigieron todos los `dvh` → `vh` del proyecto (#app, .state, SplashView, OnboardingView).
+- **Verificación**: con 23 favoritos (lista 3094px) + gesture de arrastre: `windowScrollY: 0` (body no scrollea), `mainScrollTop: 2519`, `headerTop: 0`, `tabbarTop: 590` fijo. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/styles/main.css`, `SplashView.vue`, `OnboardingView.vue`.
+
+### [chore] Directorios de desarrollo local fuera del repo
+
+- **Descripción**: `design-reference/`, `.vscode/`, `.engram/`, `.atl/` y `openspec/` salieron de version control (`git rm --cached` — quedan en disco para el entorno local) y se ignoraron. Son artefactos del entorno de desarrollo, no parte de la entrega. `.playwright-mcp/` ya estaba ignorado. 0 referencias en código.
+- **Archivos afectados**: `.gitignore`, 72 archivos removidos del índice.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: revisar alineación al Figma — search bar y cards ya refinados; queda resultado de búsqueda/filtro y sentinel de infinite scroll.
 - [ ] **Detalle de pokémon (`/pokemon/:name`)**: revisar alineación al Figma — header con círculo del tipo + imagen, chips junto al nombre, campos 2 columnas, Debilidades, Próximo/Anterior, estados de carga con `LoadingSpinner` (tipografía ya auditada).
-- [ ] **Favoritos con datos**: pantalla con cards + trash + snapshot localStorage + sync cross-tab (el estado vacío ya quedó cubierto por `FeedbackState`; la card reutilizada).
+- [ ] **Favoritos con datos**: pantalla con cards + trash + snapshot localStorage + sync cross-tab (el estado vacío ya quedó cubierto por `FeedbackState`; la card reutilizada; cabecera y scroll OK).
 - [ ] **README** AI-First: qué es, cómo se desarrolla, cómo se prueba, decisiones.
 - [ ] Fix del nit de `vitest.config.ts` (extensión en el import).
 
 ---
 
-## Entregado — commit `b23db63` (push a `origin/main`)
+## Entregado — commit `448ad65` (push a `origin/main`)
 
-Sesión del 2026-08-16 (tercera tanda): assets reorganizados, element de la card con CSS mask + gradiente, corazón favorito activo rojo, margen 4px + auditoría de tokens. Commits previos de la sesión: `88632b2` (tipos dinámicos), `38c08f0` (fuentes + card + search). Rama `main` limpia.
+Sesión del 2026-08-16 (cuarta tanda): cabecera de favoritos, sheet de filtros rediseñado + mejoras UI (transición, acordeón, scrollbar oculta, 70vh), CustomCheckbox, fix app-shell scroll táctil, limpieza de directorios locales. Commits previos: `88632b2`, `38c08f0`, `b23db63`. Rama `main` limpia.
