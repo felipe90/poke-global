@@ -52,6 +52,12 @@ const { sentinel, observe, disconnect } = useInfiniteScroll({
   enabled: computed(() => !store.applyingFilter),
   loadingMore: computed(() => store.loadingMore || store.loadingFirst || store.applyingFilter),
   hasMore: computed(() => (filterActive.value ? hasMoreFiltered.value : store.nextUrl !== null)),
+  // The app-shell scrolls inside .app-main, not the window — the observer
+  // must use that container as its intersection root (resolved at observe).
+  // A generous rootMargin preloads the next page before the sentinel fully
+  // enters, so the 1px sentinel never has to reach the exact bottom edge.
+  root: () => document.querySelector('.app-main'),
+  rootMargin: '200px 0px',
   onLoadMore: () => {
     if (filterActive.value) {
       store.incrementFilterSlice()

@@ -72,7 +72,8 @@ const currentStep = ref(0)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100%;
+  flex: 1;
   padding: var(--space-card);
   background: var(--bg);
   text-align: center;

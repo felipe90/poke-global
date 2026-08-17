@@ -44,7 +44,9 @@ button {
   min-height: 0;
   overflow-y: auto;
   max-width: 640px;
-  padding: 0 var(--space-card) 120px;
+  padding: 0 var(--space-card);
+  display: flex;
+  flex-direction: column;
 }
 
 .app-tab-bar {
@@ -188,7 +190,7 @@ button {
   text-align: center;
   gap: var(--space-card);
   padding: var(--space-card);
-  min-height: 100vh;
+  flex: 1 1 auto;
   background: var(--bg);
 }
 

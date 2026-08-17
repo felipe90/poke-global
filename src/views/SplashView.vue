@@ -49,7 +49,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100%;
+  flex: 1;
   background: var(--bg);
 }
 </style>

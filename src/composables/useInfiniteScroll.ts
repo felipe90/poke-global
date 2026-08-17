@@ -18,6 +18,8 @@ export interface UseInfiniteScrollOptions {
   hasMore: GuardValue
   /** Called once per viewport entry when every guard is open. */
   onLoadMore: () => void
+  /** Scroll container observed for intersections — resolved when observing. */
+  root?: Element | null | (() => Element | null)
   rootMargin?: string
   threshold?: number
 }
@@ -42,6 +44,9 @@ export function useInfiniteScroll(options: UseInfiniteScrollOptions) {
     const target = sentinel.value
     if (typeof IntersectionObserver === 'undefined' || target === null) return
 
+    // Resolve the root at observe time (the scroll container exists then).
+    const resolvedRoot = typeof options.root === 'function' ? options.root() : (options.root ?? null)
+
     active = true
     observer = new IntersectionObserver(
       (entries) => {
@@ -50,7 +55,7 @@ export function useInfiniteScroll(options: UseInfiniteScrollOptions) {
           options.onLoadMore()
         }
       },
-      { root: null, rootMargin: options.rootMargin, threshold: options.threshold },
+      { root: resolvedRoot, rootMargin: options.rootMargin, threshold: options.threshold },
     )
     observer.observe(target)
   }

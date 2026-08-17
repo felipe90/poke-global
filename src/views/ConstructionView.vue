@@ -7,3 +7,12 @@ import ConstructionState from '@/components/ConstructionState.vue'
     <ConstructionState />
   </div>
 </template>
+
+<style scoped>
+.construction-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+</style>

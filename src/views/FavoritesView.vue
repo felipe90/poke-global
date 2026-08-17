@@ -104,7 +104,10 @@ function remove(name: string): void {
 
 <style scoped>
 .favorites-view {
-  min-height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* Header: back button left, centered title (3-col grid keeps it centered). */

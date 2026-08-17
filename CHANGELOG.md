@@ -591,9 +591,22 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Descripción**: `design-reference/`, `.vscode/`, `.engram/`, `.atl/` y `openspec/` salieron de version control (`git rm --cached` — quedan en disco para el entorno local) y se ignoraron. Son artefactos del entorno de desarrollo, no parte de la entrega. `.playwright-mcp/` ya estaba ignorado. 0 referencias en código.
 - **Archivos afectados**: `.gitignore`, 72 archivos removidos del índice.
 
+### [fix] Scroll vertical en onboarding/estados + app-shell — el scroll vive en .app-main
+
+- **Descripción**: El onboarding permitía scroll vertical y las páginas de error/construcción no centraban. Causa: las vistas usaban `min-height: 100vh` dentro de `.app-main` (que tenía `padding-bottom: 120px` del clearance del tab bar) → desborde. Fix con el **patrón app-shell**: `#app` con `height: 100vh` + `overflow: hidden`; `.app-main` con `overflow-y: auto` (el scroll interno, estándar mobile); `.app-tab-bar` sin sticky (fijo por el layout flex column, fuera del scroll); `.state` y wrappers (`construction-view`, `favorites-view`) con `flex: 1` para llenar y centrar; splash/onboarding con `flex: 1` + `min-height: 100%`.
+- **Por qué app-shell**: el sticky del body es frágil con el **scroll táctil** (device toolbar de Chrome) — el usuario reportó que header y tab bar se movían con el gesto táctil pero no con el scrollbar. Con el scroll interno, header/tab bar quedan fijos por layout (touch-safe).
+- **Verificación**: onboarding/construcción/error sin scroll (`scrollable: false`), contenido centrado en main, con 23 favoritos: `windowScrollY: 0`, `mainScrollTop: 2519`, headerTop 0, tabbarTop 590 fijo. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `main.css` (#app, .app-main, .state, .app-tab-bar), `SplashView.vue`, `OnboardingView.vue`, `ConstructionView.vue`, `FavoritesView.vue`, `App.vue`.
+
+### [fix] Infinite scroll roto por el app-shell — IO root = .app-main + rootMargin
+
+- **Descripción**: Al mover el scroll al `.app-main` interno, el IntersectionObserver seguía con `root: null` (ventana) → el sentinel nunca intersectaba y el infinite scroll dejó de cargar. Fix: `useInfiniteScroll` ahora acepta `root` (Element o getter, resuelto en `observe()`); `PokedexListView` pasa `root: () => document.querySelector('.app-main')` + `rootMargin: '200px 0px'` (precarga antes del borde — el sentinel de 1px quedaba ~16px fuera del área de scroll por el gap). También se quitó el `padding-bottom: 120px` del main (empujaba el sentinel fuera del área de intersección y ya no hacía falta con el tab bar fuera del scroll).
+- **Verificación**: scroll gradual → 24 → 72 cards (3 páginas), scrollHeight 3140 → 9188. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/composables/useInfiniteScroll.ts`, `src/views/PokedexListView.vue`, `main.css`.
+
 ## Pendiente / Próximos pasos
 
-- [ ] **Lista de pokémon (`/`)**: revisar alineación al Figma — search bar y cards ya refinados; queda resultado de búsqueda/filtro y sentinel de infinite scroll.
+- [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; queda revisar resultado de búsqueda/filtro.
 - [ ] **Detalle de pokémon (`/pokemon/:name`)**: revisar alineación al Figma — header con círculo del tipo + imagen, chips junto al nombre, campos 2 columnas, Debilidades, Próximo/Anterior, estados de carga con `LoadingSpinner` (tipografía ya auditada).
 - [ ] **Favoritos con datos**: pantalla con cards + trash + snapshot localStorage + sync cross-tab (el estado vacío ya quedó cubierto por `FeedbackState`; la card reutilizada; cabecera y scroll OK).
 - [ ] **README** AI-First: qué es, cómo se desarrolla, cómo se prueba, decisiones.
@@ -601,6 +614,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 ---
 
-## Entregado — commit `448ad65` (push a `origin/main`)
+## Entregado — commit `8d24c2d` (push a `origin/main`)
 
-Sesión del 2026-08-16 (cuarta tanda): cabecera de favoritos, sheet de filtros rediseñado + mejoras UI (transición, acordeón, scrollbar oculta, 70vh), CustomCheckbox, fix app-shell scroll táctil, limpieza de directorios locales. Commits previos: `88632b2`, `38c08f0`, `b23db63`. Rama `main` limpia.
+Sesión del 2026-08-16 (quinta tanda): fix scroll vertical onboarding/estados, patrón app-shell (scroll interno touch-safe), fix infinite scroll (IO root + rootMargin). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`. Rama `main` limpia.
