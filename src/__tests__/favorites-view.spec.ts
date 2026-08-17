@@ -75,15 +75,26 @@ describe('FavoritesView (4.5)', () => {
     fetchSpy.mockRestore()
   })
 
-  it('per-item trash (#cd3131) removes the favorite and persists immediately', async () => {
+  it('swiping a card reveals the action layer whose click removes the favorite and persists immediately', async () => {
     const { wrapper, store } = await mountFavorites(({ store }) => {
       store.favorites = [favorite('pikachu', 25), favorite('bulbasaur', 1)]
     })
     await flushPromises()
-    const trash = wrapper.findAll('.favorite-trash')[0]!
-    expect(trash.attributes('style')).toContain('var(--danger)')
+    const first = wrapper.findAll('.swipe-container')[0]!
+    const cardLayer = first.get('.card-layer')
+    const pointer = (type: string, clientX: number): void => {
+      cardLayer.element.dispatchEvent(
+        new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, clientX, clientY: 100 }),
+      )
+    }
 
-    await trash.trigger('click')
+    pointer('pointerdown', 200)
+    pointer('pointermove', 120)
+    pointer('pointerup', 120)
+    await flushPromises()
+    expect(first.get('.card-layer').attributes('style')).toContain('translateX(-80px)')
+
+    await first.get('.action-layer').trigger('click')
     await flushPromises()
     expect(wrapper.text()).not.toContain('Pikachu')
     expect(store.favorites.map((f) => f.name)).toEqual(['bulbasaur'])

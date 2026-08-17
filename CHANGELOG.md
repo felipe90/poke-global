@@ -629,16 +629,37 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: móvil 390/430 llenan la pantalla, desktop 900 centrado a 480, sin overflowX, 24 cards en todos. Suite 216/216 + type-check + lint PASS.
 - **Archivos afectados**: `src/styles/main.css` (#app).
 
+### [feature] Swipe-to-reveal en favoritos — trash al deslizar
+
+- **Descripción**: La lista de favoritos reemplaza el botón de trash visible por un **swipe-to-reveal** (patrón clásico): una capa posterior roja con el icono de papelera y la card encima que se desliza horizontalmente. `useSwipeReveal` (composable con **Pointer Events** — funciona con mouse Y touch), `SwipeToReveal.vue` (componente de 2 capas superpuestas).
+- **Detalles de gesto**: `MAX_SWIPE = -80`, `THRESHOLD = -40`, arrastre elástico a -100, solo a la izquierda; soltar bajo el umbral abre (`swiped=true`), sobre el umbral vuelve a 0. **Solo intercepta cuando el horizontal domina al vertical** (preserva el scroll del `.app-main`). El click tras soltar se bloquea (`@click.capture` con stopPropagation/preventDefault) para no navegar al detalle, pero **sin cerrar el swipe** (queda abierto hasta tocar la acción o arrastrar de nuevo).
+- **A11y**: el action-layer es un botón real accesible (sin `aria-hidden`, el trash con `aria-label`).
+- **Gotchas**: (1) `v-bind="{ onPointerDown }"` NO enlaza — Vue hipena la clave y `onPointerDown` → `pointer-down` que nunca matchea; usar `onPointerdown` (minúsculas). (2) El `reset()` en el click capture cerraba el swipe al primer click (el navegador sintetiza un click al soltar) — fix: bloquear sin reset.
+- **Verificación**: navegador — swipe abre a translateX(-80px), click en trash elimina (cards 0), sin navegación (path /favorites). Suite **230/230** (14 tests nuevos) + type-check + lint PASS.
+- **Archivos afectados**: `src/composables/useSwipeReveal.ts` (nuevo), `src/components/SwipeToReveal.vue` (nuevo), `FavoritesView.vue`, 3 archivos de tests.
+
+### [fix] Header de favoritos a ancho completo del frame
+
+- **Descripción**: El header quedaba 32px más angosto que el frame (dentro del padding lateral de 16px del `.app-main`). Fix: `margin-inline: calc(-1 * var(--space-card))` en `.page-header` — rompe el padding del main y el header toca los bordes del frame (como el TabBar). Título sigue centrado.
+- **Verificación**: header 480px = frame, `headerFillsApp: true`, título centrado (offset 0), sin overflowX. Suite 230/230 + type-check + lint PASS.
+- **Archivos afectados**: `src/views/FavoritesView.vue`.
+
+### [docs] README actualizado + fix nit de vitest
+
+- **README**: reescrito con el mapa de navegación (splash → onboarding → shell 4 tabs + deep links), arquitectura actual (debilidades del API, sin WEAKNESS_CHART), layout app-shell (frame fluido 480, scroll interno), 216→230 tests.
+- **Nit vitest**: `vitest.config.ts` importaba `./vite.config` sin extensión (Vite 8 native loader lo exige). Fix: agregar `.ts` + `allowImportingTsExtensions: true` en `tsconfig.node.json` (válido con noEmit). Desapareció el warning de cada corrida.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
 - [ ] **Detalle de pokémon (`/pokemon/:name`)**: revisar alineación al Figma — header con círculo del tipo + imagen, chips junto al nombre, campos 2 columnas, Debilidades, Próximo/Anterior, estados de carga con `LoadingSpinner` (tipografía ya auditada).
-- [ ] **Favoritos con datos**: pantalla con cards + trash + snapshot localStorage + sync cross-tab (el estado vacío ya quedó cubierto por `FeedbackState`; la card reutilizada; cabecera y scroll OK).
-- [ ] **README** AI-First: qué es, cómo se desarrolla, cómo se prueba, decisiones.
-- [ ] Fix del nit de `vitest.config.ts` (extensión en el import).
+- [ ] **Favoritos con datos**: swipe-to-reveal implementado; falta revisar snapshot localStorage + sync cross-tab a fondo (el estado vacío y cabecera ya OK).
+- [ ] **README** AI-First: actualizado con mapa de navegación, arquitectura y layout.
 
 ---
 
-## Entregado — commit `c41be4c` (push a `origin/main`)
 
-Sesión del 2026-08-17 (séptima tanda): fix glitch onboarding + overflow, fix toolbar sticky de la lista, decisión de frame fluido hasta 480px (responsive evaluado, opción C). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`, `322bbe1`, `a81e7c5`. Rama `main` limpia.
+
+## Entregado — commit `d4e9b51` (push a `origin/main`)
+
+Sesión del 2026-08-17 (octava tanda): swipe-to-reveal en favoritos (Pointer Events), header de favoritos a ancho completo, README actualizado (mapa de navegación + arquitectura + layout), fix nit de vitest. Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`, `322bbe1`, `a81e7c5`, `c41be4c`. Rama `main` limpia.

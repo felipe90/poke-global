@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import chevronLeftIcon from '@/assets/icons/tab/chevron-left.svg'
 import EmptyState from '@/components/EmptyState.vue'
 import PokemonCard from '@/components/PokemonCard.vue'
+import SwipeToReveal from '@/components/SwipeToReveal.vue'
 import { usePokemonStore } from '@/stores/pokemon'
 
 const router = useRouter()
@@ -65,38 +66,17 @@ function remove(name: string): void {
         :key="favorite.name"
         class="favorites-list__item"
       >
-        <PokemonCard
-          :favorite="favorite"
-          :context="navContext"
-          favorite-disabled
+        <SwipeToReveal
           class="favorites-list__card"
-          @navigate="goDetail"
-        />
-        <button
-          type="button"
-          class="favorite-trash"
-          :aria-label="`Quitar ${favorite.name} de favoritos`"
-          :style="{ color: 'var(--danger)' }"
-          @click="remove(favorite.name)"
+          @delete="remove(favorite.name)"
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M3 6h18" />
-            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-            <path d="M10 11v6" />
-            <path d="M14 11v6" />
-          </svg>
-        </button>
+          <PokemonCard
+            :favorite="favorite"
+            :context="navContext"
+            favorite-disabled
+            @navigate="goDetail"
+          />
+        </SwipeToReveal>
       </li>
     </ul>
   </div>
@@ -110,7 +90,8 @@ function remove(name: string): void {
   min-height: 0;
 }
 
-/* Header: back button left, centered title (3-col grid keeps it centered). */
+/* Header: back button left, centered title (3-col grid keeps it centered).
+   Full frame width — breaks out of .app-main's 16px side padding. */
 .page-header {
   position: sticky;
   top: 0;
@@ -119,6 +100,7 @@ function remove(name: string): void {
   grid-template-columns: 40px 1fr 40px;
   align-items: center;
   gap: var(--space-xxs);
+  margin-inline: calc(-1 * var(--space-card));
   padding: var(--space-2xl) var(--space-md);
   background: var(--surface-default);
 }
@@ -166,29 +148,10 @@ function remove(name: string): void {
 }
 
 .favorites-list__item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-info-gap);
   width: 100%;
 }
 
 .favorites-list__card {
-  flex: 1;
-  min-width: 0;
-}
-
-.favorite-trash {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-card);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.favorite-trash:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
+  width: 100%;
 }
 </style>
