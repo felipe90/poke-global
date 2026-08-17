@@ -685,6 +685,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — GIF anima (2 capturas a 450ms con hashes distintos), artwork 142.22×154.86 top 143.19, fondo 498×498 top −227, elemento con gradiente + mask `type-grass.png`, chevron 9×16. Suite **234/234** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PokemonDetailPanel.vue`, `src/services/pokeapi.ts` (`getAnimatedSprite`), `src/types/pokemon.ts` (`sprites.other.showdown`), `src/assets/icons/nav/chevron-left.svg`, tests.
 
+### [architecture] Detalle header centrado — fondo/wrap/artwork al centro, elemento tipo 181.76×196.49
+
+- **Descripción**: El header del detalle queda **centrado horizontalmente**: el fondo 498×498 pasa de `left: -63px` (offset del Figma, que dejaba el centro 6px a la derecha) a `left: 50% + translateX(-50%)` → centro exacto. Nuevo `.detail-header__element-wrap` 204×204 (Figma "Elemento Outline", centrado a 1px) que contiene el vector del tipo con máscara en las dimensiones exactas del Figma: **181.76×196.49, top 4.16, left 9.64** (relativos al wrap). El artwork GIF pasa de `left: 102` a centrado (el Figma lo deja ~7px a la izquierda; el usuario pidió centrarlo).
+- **Verificación**: navegador — centerOffset 0px en fondo, wrap y artwork; elemento 181.75×196.48, gradiente + máscara `type-grass.png`. Suite **234/234** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`, tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
