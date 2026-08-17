@@ -8,13 +8,20 @@ import SwipeToReveal from '@/components/SwipeToReveal.vue'
 const FRONT_SLOT = '<button type="button" class="front">Tap</button>'
 
 function mountReveal(actionsSlot?: string): VueWrapper {
-  return mount(SwipeToReveal, {
+  const wrapper = mount(SwipeToReveal, {
     slots: {
       default: FRONT_SLOT,
       ...(actionsSlot ? { actions: actionsSlot } : {}),
     },
   })
+  // jsdom has no layout: stub the container width (reveal = 0.7 × WIDTH).
+  const el = wrapper.get('.swipe-container').element as HTMLElement
+  Object.defineProperty(el, 'offsetWidth', { configurable: true, value: WIDTH })
+  return wrapper
 }
+
+const WIDTH = 200
+const MAX_SWIPE = -WIDTH * 0.7 // -140
 
 /** Dispatch a real PointerEvent (jsdom) so clientX/clientY/pointerId reach the handlers. */
 async function pointerOn(layer: { element: Element }, type: string, init: PointerEventInit): Promise<void> {
@@ -78,13 +85,13 @@ describe('SwipeToReveal', () => {
     const layer = wrapper.get('.card-layer')
 
     await pointerOn(layer, 'pointerdown', { pointerId: 1, clientX: 200, clientY: 100 })
-    await pointerOn(layer, 'pointermove', { pointerId: 1, clientX: 140, clientY: 103 })
-    expect(layer.attributes('style')).toContain('translateX(-60px)')
+    await pointerOn(layer, 'pointermove', { pointerId: 1, clientX: 100, clientY: 103 })
+    expect(layer.attributes('style')).toContain('translateX(-100px)')
 
     await pointerOn(layer, 'pointerup', { pointerId: 1 })
     vi.advanceTimersByTime(16) // rAF frame
     await nextTick()
-    expect(wrapper.get('.card-layer').attributes('style')).toContain('translateX(-80px)')
+    expect(wrapper.get('.card-layer').attributes('style')).toContain(`translateX(${MAX_SWIPE}px)`)
     vi.useRealTimers()
   })
 
@@ -100,7 +107,7 @@ describe('SwipeToReveal', () => {
 
     expect(clickSpy).not.toHaveBeenCalled()
     // The reveal stays open (blocking navigation must not close the swipe).
-    expect(wrapper.get('.card-layer').attributes('style')).toContain('translateX(-80px)')
+    expect(wrapper.get('.card-layer').attributes('style')).toContain(`translateX(${MAX_SWIPE}px)`)
   })
 
   it('does not swallow clicks once the swipe lock window has passed', async () => {

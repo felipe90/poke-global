@@ -657,6 +657,14 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — swipe abre a -80px, transición de cierre 0.25s aplicada (sin salto). Suite 230/230 + type-check + lint PASS.
 - **Archivos afectados**: `src/composables/useSwipeReveal.ts`, `src/components/SwipeToReveal.vue`, `src/assets/icons/tab/trash.svg` (nuevo), 2 archivos de tests.
 
+### [feature] Swipe-to-reveal al Figma — card 70%, contenedor full-width, radius dinámico
+
+- **Descripción**: Refinamiento del swipe a las especificaciones del Figma: (1) la card viaja un **70% de su ancho** (`MAX_SWIPE_RATIO = 0.7`, `THRESHOLD_RATIO = 0.35` — dinámicos según `offsetWidth`) y su borde izquierdo **sobresale del frame** (recortado por overflow); (2) el contenedor `.swipe-container` **se expande a todo el ancho de la app** al deslizar (`margin-inline: calc(-1 * var(--space-card))`), rompiendo el padding del main; (3) al abrir, el contenedor **pierde el redondeo derecho** (`border-radius: 16px 0 0 16px`); (4) la franja roja es un **rectángulo full-bleed** (`border-radius: 0`, el padre recorta — no tarjeta flotante).
+- **Transiciones suaves**: el contenedor transiciona `margin` + `border-radius` (mismo cubic-bezier que la card); durante el arrastre el contenedor sigue al dedo (`is-swiping` quita la transición), la expansión/radius suave se reproduce al soltar.
+- **Gotcha clave**: el `--active` se basa en `translateX !== 0 || isSwiping` (estado persistente) — usar el `swiped` temporal (300ms) hacía que el contenedor **colapsara a los 300ms** mientras la card aún estaba abierta (desincronización/salto).
+- **Verificación**: navegador — contenedor `--active` left 0/right 358 (full frame), radius `16px 0 0 16px`, card `translateX(-250.6px)` (70% de 358) a los 450ms (persistente). Suite **230/230** + type-check + lint PASS.
+- **Archivos afectados**: `src/composables/useSwipeReveal.ts`, `src/components/SwipeToReveal.vue`, 3 archivos de tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.

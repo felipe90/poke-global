@@ -81,6 +81,9 @@ describe('FavoritesView (4.5)', () => {
     })
     await flushPromises()
     const first = wrapper.findAll('.swipe-container')[0]!
+    // jsdom has no layout — stub the container width so the reveal derives
+    // from it (full reveal = 0.7 × width, threshold = 0.35 × width).
+    Object.defineProperty(first.element, 'offsetWidth', { configurable: true, value: 200 })
     const cardLayer = first.get('.card-layer')
     const pointer = (type: string, clientX: number): void => {
       cardLayer.element.dispatchEvent(
@@ -89,10 +92,11 @@ describe('FavoritesView (4.5)', () => {
     }
 
     pointer('pointerdown', 200)
-    pointer('pointermove', 120)
-    pointer('pointerup', 120)
+    pointer('pointermove', 80) // dx -120 < threshold (-70) → opens to -140
+    pointer('pointerup', 80)
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve())) // rAF snap
     await flushPromises()
-    expect(first.get('.card-layer').attributes('style')).toContain('translateX(-80px)')
+    expect(first.get('.card-layer').attributes('style')).toContain('translateX(-140px)')
 
     await first.get('.action-layer').trigger('click')
     await flushPromises()

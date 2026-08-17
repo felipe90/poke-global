@@ -6,14 +6,21 @@
  * `delete`. While a swipe is open (`swiped`), a click captured on the front
  * layer is swallowed so that releasing the gesture does not navigate.
  */
-import { useSwipeReveal } from '@/composables/useSwipeReveal'
+import { ref } from 'vue'
+
 import trashIcon from '@/assets/icons/tab/trash.svg'
+import { useSwipeReveal } from '@/composables/useSwipeReveal'
 
 const emit = defineEmits<{
   delete: []
 }>()
 
-const { translateX, isSwiping, swiped, handlers } = useSwipeReveal()
+const containerRef = ref<HTMLElement | null>(null)
+
+/** Full reveal = the card's own width (the card travels to the app's left edge). */
+const { translateX, isSwiping, swiped, handlers } = useSwipeReveal(
+  () => containerRef.value?.offsetWidth ?? 0,
+)
 
 function onCardClickCapture(event: Event): void {
   // A click right after releasing a swipe (browser synthesizes one) must not
@@ -28,7 +35,11 @@ function onCardClickCapture(event: Event): void {
 </script>
 
 <template>
-  <div class="swipe-container">
+  <div
+    ref="containerRef"
+    class="swipe-container"
+    :class="{ 'swipe-container--active': translateX !== 0 || isSwiping, 'is-swiping': isSwiping }"
+  >
     <div
       class="action-layer"
       role="button"
@@ -61,24 +72,47 @@ function onCardClickCapture(event: Event): void {
 <style scoped>
 .swipe-container {
   position: relative;
-  overflow: hidden;
+  width: 100%;
   border-radius: var(--radius-lg);
+  overflow: hidden;
   user-select: none;
   touch-action: pan-y;
+  /* Smooth the container's width/radius expansion when it breaks out of the
+     app padding on swipe (margin + border-radius, same timing as the card). */
+  transition: margin 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+    border-radius 0.25s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+/* During the drag, the container follows the finger instantly (no expansion
+   tween while the card is also translating); the smooth expansion/radius
+   plays on release via the base transition above. */
+.swipe-container.is-swiping {
+  transition: none;
+}
+
+/* While swiping or open, the container breaks out of .app-main's 16px side
+   padding and spans the full app width, so the card's leading edge slides
+   past the app boundary and clips. Only the left side stays rounded — the
+   right edge (revealing the red) becomes square. */
+.swipe-container--active {
+  margin-inline: calc(-1 * var(--space-card));
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+/* The red action layer is a full-bleed rectangle (no radius/margin/padding of
+   its own); the parent's overflow:hidden + border-radius crops it to the
+   card shape, so the revealed red fills the full height — not a floating
+   rounded chip. */
 .action-layer {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: var(--space-lg);
+  padding-right: 20px;
   background: #d32f2f;
-  border-radius: var(--radius-lg);
+  border-radius: 0;
+  margin: 0;
 }
 
 .swipe-trash {

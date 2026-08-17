@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { MAX_SWIPE, THRESHOLD, useSwipeReveal } from '@/composables/useSwipeReveal'
+import { MAX_SWIPE_RATIO, THRESHOLD_RATIO, useSwipeReveal } from '@/composables/useSwipeReveal'
+
+/** Fixed test width: full reveal = -140 (0.7×200), threshold = -70 (0.35×200). */
+const WIDTH = 200
+const MAX_SWIPE = -WIDTH * MAX_SWIPE_RATIO
+const THRESHOLD = -WIDTH * THRESHOLD_RATIO
 
 /** Minimal PointerEvent shape consumed by the composable handlers. */
 type PointerLike = {
@@ -30,13 +35,13 @@ describe('useSwipeReveal', () => {
   }
 
   it('opens fully when the horizontal drag passes the threshold', () => {
-    const { translateX, isSwiping, swiped, handlers } = useSwipeReveal()
+    const { translateX, isSwiping, swiped, handlers } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     expect(isSwiping.value).toBe(true)
 
-    handlers.onPointermove(pointer({ clientX: 140, clientY: 103 }) as PointerEvent)
-    expect(translateX.value).toBe(-60)
+    handlers.onPointermove(pointer({ clientX: 100, clientY: 103 }) as PointerEvent)
+    expect(translateX.value).toBe(-100)
     expect(translateX.value).toBeLessThan(THRESHOLD)
 
     handlers.onPointerup(pointer() as PointerEvent)
@@ -47,7 +52,7 @@ describe('useSwipeReveal', () => {
   })
 
   it('springs back to 0 when the drag stays below the threshold', () => {
-    const { translateX, swiped, handlers } = useSwipeReveal()
+    const { translateX, swiped, handlers } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     handlers.onPointermove(pointer({ clientX: 170, clientY: 102 }) as PointerEvent)
@@ -61,7 +66,7 @@ describe('useSwipeReveal', () => {
   })
 
   it('releases the swiped flag after the click-lock window', () => {
-    const { swiped, handlers } = useSwipeReveal()
+    const { swiped, handlers } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     handlers.onPointermove(pointer({ clientX: 120, clientY: 100 }) as PointerEvent)
@@ -77,7 +82,7 @@ describe('useSwipeReveal', () => {
   })
 
   it('reset() snaps back to 0 and clears swiped and isSwiping', () => {
-    const { translateX, isSwiping, swiped, handlers, reset } = useSwipeReveal()
+    const { translateX, isSwiping, swiped, handlers, reset } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     handlers.onPointermove(pointer({ clientX: 120, clientY: 100 }) as PointerEvent)
@@ -92,7 +97,7 @@ describe('useSwipeReveal', () => {
   })
 
   it('ignores vertical-dominated motion so the scroll container keeps scrolling', () => {
-    const { translateX, handlers } = useSwipeReveal()
+    const { translateX, handlers } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     handlers.onPointermove(pointer({ clientX: 195, clientY: 160 }) as PointerEvent)
@@ -104,7 +109,7 @@ describe('useSwipeReveal', () => {
   })
 
   it('ignores tiny horizontal jitter below the axis-noise threshold', () => {
-    const { translateX, handlers } = useSwipeReveal()
+    const { translateX, handlers } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     handlers.onPointermove(pointer({ clientX: 197, clientY: 100 }) as PointerEvent)
@@ -112,7 +117,7 @@ describe('useSwipeReveal', () => {
   })
 
   it('clamps the drag to the elastic limit and never reveals to the right', () => {
-    const { translateX, handlers } = useSwipeReveal()
+    const { translateX, handlers } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     handlers.onPointermove(pointer({ clientX: 20, clientY: 100 }) as PointerEvent)
