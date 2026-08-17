@@ -149,7 +149,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-card);
-  min-height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .pokedex-list-view__toolbar {

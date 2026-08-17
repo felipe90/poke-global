@@ -611,6 +611,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — ambas imágenes `complete: true` desde el inicio, crossfade suave (opacidades 0.32/0.68 a mitad), imagen del paso 2 ya cargada. Suite 216/216 + type-check + lint PASS.
 - **Archivos afectados**: `src/views/OnboardingView.vue`, tests de `views.spec.ts`.
 
+### [fix] Onboarding: desborde horizontal + scroll vertical en viewports pequeños
+
+- **Descripción**: Tras el crossfade con pasos absolute, el paso se anclaba al **viewport** (no al wrapper) porque `.onboarding__steps` no tenía `position: relative` → el paso medía 375px (todo el viewport) y desbordaba el frame de 360px horizontalmente. Fix: `position: relative` en el wrapper + `left/right: 0` en el paso. Además, el `min-height: 515px` fijo desbordaba verticalmente en pantallas pequeñas → `min-height: min(515px, calc(100vh - 32px))` (nunca excede el viewport disponible).
+- **Verificación**: navegador en 375×667 y 320×568 (iPhone SE) — paso 296px dentro del app (sin desborde horizontal), sin scroll en main/body/html, ambos pasos centrados y sin overflow. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/views/OnboardingView.vue`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; queda revisar resultado de búsqueda/filtro.
@@ -621,6 +627,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 ---
 
-## Entregado — commit `322bbe1` (push a `origin/main`)
+## Entregado — commit `a4f6c92` (push a `origin/main`)
 
-Sesión del 2026-08-16 (quinta tanda): fix scroll vertical onboarding/estados, patrón app-shell (scroll interno touch-safe), fix infinite scroll (IO root + rootMargin). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`. Rama `main` limpia.
+Sesión del 2026-08-17 (sexta tanda): fix glitch de parpadeo del onboarding (crossfade CSS con ambos pasos montados), fix desborde horizontal (wrapper relative) y scroll vertical en viewports pequeños (min-height con clamp). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`, `322bbe1`. Rama `main` limpia.

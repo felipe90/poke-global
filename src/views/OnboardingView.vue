@@ -89,24 +89,30 @@ const currentStep = ref(0)
 }
 
 .onboarding__steps {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   width: 100%;
-  /* Tallest step (measured: step 2 = 515px) — prevents layout shift. */
-  min-height: 515px;
+  max-width: 420px;
+  /* Tallest step (515px), capped so it never exceeds the viewport —
+     prevents both layout shift and vertical overflow on small screens. */
+  min-height: min(515px, calc(100vh - 32px));
 }
 
 .onboarding__step {
+  position: absolute;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-card);
   max-width: 420px;
   width: 100%;
-  /* Crossfade between steps: both stay mounted (images preloaded), the
-     hidden one fades out via opacity + visibility (display:none would be
-     instant and cannot transition). */
+  /* Steps overlap (absolute) so the hidden one never takes layout space —
+     both stay mounted (images preloaded) and crossfade via opacity. */
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
