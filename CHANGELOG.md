@@ -697,6 +697,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — chevron 30.5 vs corazón 30.5, diferencia **0px**. Suite **234/234** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
 
+### [architecture] PropertyBox.vue — propiedades del detalle con caja bordeada
+
+- **Descripción**: Nuevo componente para las propiedades del detalle (Peso, Altura, Categoría, Habilidad): contenedor **flex columna** — fila 1 con **icono** (prop `iconUrl` lista para los assets que pasará el usuario) + **label**; fila 2 con la **caja del valor** en la geometría del Figma: **154×43, border-radius 15px, border 1px solid `#E0E0E0`, gap 8px, padding 8px**, valor en el estilo actual. Reemplaza los `.detail-field` del panel; se mantiene el layout de 2 columnas por fila.
+- **Verificación**: navegador — las 4 cajas con w 154, h 43, radius 15, border #E0E0E0, gap/padding 8, valores correctos. Suite **234/234** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PropertyBox.vue` (nuevo), `src/components/PokemonDetailPanel.vue`, tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
