@@ -16,9 +16,9 @@ const AXIS_DOMINANCE = 5
 const ELASTIC_PADDING = 20
 /** Fraction of the width the card travels when fully revealed (not 100% —
  *  the overhang clips at the app edge). */
-export const MAX_SWIPE_RATIO = 0.4
+export const MAX_SWIPE_RATIO = 0.15
 /** Fraction of the width that must be dragged for a release to snap open. */
-export const THRESHOLD_RATIO = 0.35
+export const THRESHOLD_RATIO = 0.05
 /** How long an open swipe blocks clicks before they pass through again. */
 const SWIPED_LOCK_MS = 300
 

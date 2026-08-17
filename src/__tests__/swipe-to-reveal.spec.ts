@@ -21,7 +21,7 @@ function mountReveal(actionsSlot?: string): VueWrapper {
 }
 
 const WIDTH = 200
-const MAX_SWIPE = -WIDTH * 0.7 // -140
+const MAX_SWIPE = -WIDTH * 0.15 // -30 (matches MAX_SWIPE_RATIO in the composable)
 
 /** Dispatch a real PointerEvent (jsdom) so clientX/clientY/pointerId reach the handlers. */
 async function pointerOn(layer: { element: Element }, type: string, init: PointerEventInit): Promise<void> {
@@ -86,7 +86,7 @@ describe('SwipeToReveal', () => {
 
     await pointerOn(layer, 'pointerdown', { pointerId: 1, clientX: 200, clientY: 100 })
     await pointerOn(layer, 'pointermove', { pointerId: 1, clientX: 100, clientY: 103 })
-    expect(layer.attributes('style')).toContain('translateX(-100px)')
+    expect(layer.attributes('style')).toContain('translateX(-50px)')
 
     await pointerOn(layer, 'pointerup', { pointerId: 1 })
     vi.advanceTimersByTime(16) // rAF frame

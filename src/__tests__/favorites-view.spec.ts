@@ -92,11 +92,11 @@ describe('FavoritesView (4.5)', () => {
     }
 
     pointer('pointerdown', 200)
-    pointer('pointermove', 80) // dx -120 < threshold (-70) → opens to -140
+    pointer('pointermove', 80) // dx -120 < threshold (-10) → opens to -30 (0.15 × 200)
     pointer('pointerup', 80)
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve())) // rAF snap
     await flushPromises()
-    expect(first.get('.card-layer').attributes('style')).toContain('translateX(-140px)')
+    expect(first.get('.card-layer').attributes('style')).toContain('translateX(-30px)')
 
     await first.get('.action-layer').trigger('click')
     await flushPromises()

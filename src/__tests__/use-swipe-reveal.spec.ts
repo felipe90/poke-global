@@ -41,7 +41,8 @@ describe('useSwipeReveal', () => {
     expect(isSwiping.value).toBe(true)
 
     handlers.onPointermove(pointer({ clientX: 100, clientY: 103 }) as PointerEvent)
-    expect(translateX.value).toBe(-100)
+    // clamped to the elastic limit (MAX_SWIPE - ELASTIC_PADDING = -50)
+    expect(translateX.value).toBe(-50)
     expect(translateX.value).toBeLessThan(THRESHOLD)
 
     handlers.onPointerup(pointer() as PointerEvent)
@@ -55,8 +56,8 @@ describe('useSwipeReveal', () => {
     const { translateX, swiped, handlers } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
-    handlers.onPointermove(pointer({ clientX: 170, clientY: 102 }) as PointerEvent)
-    expect(translateX.value).toBe(-30)
+    handlers.onPointermove(pointer({ clientX: 190, clientY: 102 }) as PointerEvent)
+    expect(translateX.value).toBe(-10)
     expect(translateX.value).toBeGreaterThanOrEqual(THRESHOLD)
 
     handlers.onPointerup(pointer() as PointerEvent)
@@ -69,7 +70,7 @@ describe('useSwipeReveal', () => {
     const { swiped, handlers } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
-    handlers.onPointermove(pointer({ clientX: 120, clientY: 100 }) as PointerEvent)
+    handlers.onPointermove(pointer({ clientX: 180, clientY: 100 }) as PointerEvent)
     handlers.onPointerup(pointer() as PointerEvent)
     settle()
     expect(swiped.value).toBe(true)
@@ -85,7 +86,7 @@ describe('useSwipeReveal', () => {
     const { translateX, isSwiping, swiped, handlers, reset } = useSwipeReveal(() => WIDTH)
 
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
-    handlers.onPointermove(pointer({ clientX: 120, clientY: 100 }) as PointerEvent)
+    handlers.onPointermove(pointer({ clientX: 180, clientY: 100 }) as PointerEvent)
     handlers.onPointerup(pointer() as PointerEvent)
     settle()
     expect(swiped.value).toBe(true)

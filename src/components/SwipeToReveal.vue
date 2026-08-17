@@ -78,11 +78,12 @@ function onCardClickCapture(event: Event): void {
   user-select: none;
   touch-action: pan-y;
   /* Smooth the container's width/radius expansion when it breaks out of the
-     app padding on swipe (margin + width + border-radius, same timing as
-     the card). */
-  transition: margin 0.25s cubic-bezier(0.25, 1, 0.5, 1),
-    width 0.25s cubic-bezier(0.25, 1, 0.5, 1),
-    border-radius 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+     app padding on swipe (margin + width + border-radius). Ease-in-out and
+     slightly longer than the old 0.25s so the expansion feels soft; it must
+     match the card timing so both move in sync on open and close. */
+  transition: margin 0.35s cubic-bezier(0.42, 0, 0.58, 1),
+    width 0.35s cubic-bezier(0.42, 0, 0.58, 1),
+    border-radius 0.35s cubic-bezier(0.42, 0, 0.58, 1);
 }
 
 /* During the drag, the container follows the finger instantly (no expansion
@@ -111,7 +112,7 @@ function onCardClickCapture(event: Event): void {
   top: 0;
   bottom: 0;
   right: 0;
-  width: 80px;
+  width: 30%;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -139,7 +140,9 @@ function onCardClickCapture(event: Event): void {
   z-index: 2;
   will-change: transform;
   border-radius: var(--radius-lg);
-  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  /* Matches the container timing so the card and the expanding container
+     move in sync on open and close (smooth, ease-in-out). */
+  transition: transform 0.35s cubic-bezier(0.42, 0, 0.58, 1);
 }
 
 .card-layer.is-swiping {
