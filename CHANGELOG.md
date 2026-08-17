@@ -727,6 +727,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — todos los componentes siguen renderizando con estilos correctos (card 16px, badge 48.6px, search 48px, tab 77px, share flex, gender #2551C3, sheet 360×590 radius 24 animando). Suite **236/236** + type-check + lint PASS.
 - **Archivos afectados**: `src/styles/main.css` (reducido), `src/styles/tokens.css` (+2), 9 componentes `.vue` con `<style scoped>`.
 
+### [architecture] Separator.vue + tokens de stacking layers + app a 360px
+
+- **Descripción**: Nuevo `Separator.vue` (hr con `border-top: 1px solid var(--progress-track)`, extraído del `detail-divider`), reutilizado en el detalle y en la **lista de filtros del bottom sheet** (al inicio y al final). Se definieron **tokens de stacking layers** (`--layer-sticky: 2`, `--layer-header: 3`, `--layer-overlay: 100`) y se reemplazaron los `z-index` hardcodeados en SwipeToReveal, toolbar de PokedexListView, header de Favoritos y overlay del sheet. Además: **ancho de la app fijado a 360px** (`max-width: 360`, antes 480 fluido) y el bottom sheet/overlay ajustados para coincidir con ese ancho (sheet `width: 100%`, overlay `max-width: 360` + centrado).
+- **Verificación**: navegador — app 360px, sheet/overlay 360px centrado, 2 separadores en la lista (inicio y fin), separador del detalle OK, header de favoritos por encima de las cards (z-index token). Suite **236/236** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/Separator.vue` (nuevo), `TypeFilterSheet.vue`, `PokemonDetailPanel.vue`, `SwipeToReveal.vue`, `PokedexListView.vue`, `FavoritesView.vue`, `src/styles/tokens.css` (+3), `main.css` (#app 360px), `eslint.config.ts`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
