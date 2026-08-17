@@ -323,6 +323,6 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(wrapper.find('.detail-description').text()).toContain(
       'Una semilla está plantada en su espalda desde que nace.',
     )
-    expect(wrapper.find('.detail-divider').exists()).toBe(true)
+    expect(wrapper.find('.separator').exists()).toBe(true)
   })
 })

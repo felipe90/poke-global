@@ -90,7 +90,9 @@ function remove(name: string): void {
 .page-header {
   position: sticky;
   top: 0;
-  z-index: 2;
+  /* Above the sticky layer (cards use --layer-sticky) so the header always
+     covers them while the list scrolls underneath. */
+  z-index: var(--layer-header);
   display: grid;
   grid-template-columns: 40px 1fr 40px;
   align-items: center;

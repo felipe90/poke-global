@@ -23,6 +23,14 @@ export default defineConfigWithVueTs(
   vueTsConfigs.recommended,
 
   {
+    name: 'app/vue-rules',
+    rules: {
+      // Single-word primitive UI components (Separator) are intentional.
+      'vue/multi-word-component-names': ['error', { ignores: ['Separator'] }],
+    },
+  },
+
+  {
     ...pluginPlaywright.configs['flat/recommended'],
     files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
   },

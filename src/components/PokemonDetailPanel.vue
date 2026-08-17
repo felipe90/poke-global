@@ -15,6 +15,7 @@ import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
 import FavoriteButton from './FavoriteButton.vue'
 import GenderBar from './GenderBar.vue'
 import PropertyBox from './PropertyBox.vue'
+import Separator from './Separator.vue'
 import ShareButton from './ShareButton.vue'
 import TypeBadge from './TypeBadge.vue'
 
@@ -137,10 +138,7 @@ const genderRate = computed(() => fields.value.genderRate)
 
       <div class="detail-description-block">
         <p class="detail-description">{{ fields.descripcion }}</p>
-        <hr
-          class="detail-divider"
-          aria-hidden="true"
-        />
+        <Separator />
       </div>
 
       <dl class="detail-characteristics">
@@ -351,12 +349,6 @@ const genderRate = computed(() => fields.value.genderRate)
   font-size: var(--font-size-sm);
   font-weight: 400;
   color: var(--subtitle);
-}
-
-.detail-divider {
-  margin: 0;
-  border: none;
-  border-top: 1px solid var(--progress-track);
 }
 
 .detail-characteristics {

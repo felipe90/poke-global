@@ -113,4 +113,10 @@
   /* State screens (Figma: Pokedex_Error/Construcción/Favoritos vacío) */
   --state-title: #333333;
   --state-subtitle: #4d4d4d;
+
+  /* Stacking layers — z-index scale. Keep headers above sticky layers that
+     share a value; overlays/menus sit at the top of the stack. */
+  --layer-sticky: 2;
+  --layer-header: 3;
+  --layer-overlay: 100;
 }

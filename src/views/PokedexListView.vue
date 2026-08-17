@@ -160,7 +160,7 @@ onMounted(() => {
   gap: var(--space-card);
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: var(--layer-sticky);
   background: var(--bg);
   padding-bottom: var(--space-info-gap);
 }

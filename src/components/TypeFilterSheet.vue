@@ -4,6 +4,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import AppButton from '@/components/AppButton.vue'
 import closeIcon from '@/assets/icons/tab/close.svg'
 import CustomCheckbox from '@/components/CustomCheckbox.vue'
+import Separator from '@/components/Separator.vue'
 import { TYPE_META } from '@/data/types'
 import { usePokemonStore } from '@/stores/pokemon'
 import type { TypeName } from '@/types/pokemon'
@@ -189,6 +190,7 @@ function onKeydown(event: KeyboardEvent): void {
             v-show="!collapsed"
             class="sheet__list"
           >
+            <Separator class="sheet__list-separator" />
             <label
               v-for="meta in TYPE_META"
               :key="meta.name"
@@ -208,6 +210,7 @@ function onKeydown(event: KeyboardEvent): void {
                 @change="toggleType(meta.name)"
               />
             </label>
+            <Separator class="sheet__list-separator" />
           </div>
         </div>
 
@@ -259,23 +262,27 @@ function onKeydown(event: KeyboardEvent): void {
   display: flex;
   flex-direction: column;
   gap: var(--space-sheet-gap);
-  /* Mobile-first: cap at the app frame width (360px) so desktop stays
-     consistent with the phone layout. `vh` (not dvh) keeps the sheet stable
-     in Chrome's responsive/device toolbar where dvh shrinks with the URL bar. */
+  /* Full width of the app frame (the overlay centers it); `vh` (not dvh)
+     keeps the sheet stable in Chrome's responsive/device toolbar where dvh
+     shrinks with the URL bar. */
   width: 100%;
-  max-width: 360px;
   height: 70vh;
 }
 
 .sheet-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: var(--layer-overlay);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   background: rgba(0, 0, 0, 0.5);
+  /* Match the app frame width so the sheet is centered on the app (360px),
+     not stretched across the whole viewport. */
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
 }
 
 .sheet__header {
@@ -368,6 +375,10 @@ function onKeydown(event: KeyboardEvent): void {
 
 .sheet__list::-webkit-scrollbar {
   display: none;
+}
+
+.sheet__list-separator {
+  margin: var(--space-xxs) 0;
 }
 
 .sheet__option {
