@@ -18,6 +18,8 @@ const props = defineProps<{
   context?: string[]
   /** Heart renders but does nothing (favorites list removes via the trash). */
   favoriteDisabled?: boolean
+  /** Card renders but does not navigate on click (favorites list uses swipe). */
+  navigateDisabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -81,6 +83,7 @@ const imageUrl = computed(() => {
 })
 
 function activate(): void {
+  if (props.navigateDisabled) return
   if (props.context && props.context.length > 0) {
     store.setNavContext(props.context)
   }

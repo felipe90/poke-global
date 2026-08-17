@@ -106,14 +106,14 @@ describe('FavoritesView (4.5)', () => {
     expect(persisted.map((f) => f.name)).toEqual(['bulbasaur'])
   })
 
-  it('tapping a favorite navigates to /pokemon/{name}', async () => {
+  it('does not navigate to the detail when tapping a favorite (swipe handles actions)', async () => {
     const { wrapper, router } = await mountFavorites(({ store }) => {
       store.favorites = [favorite('pikachu', 25)]
     })
     await flushPromises()
     await wrapper.get('.pokemon-card').trigger('click')
     await flushPromises()
-    expect(router.currentRoute.value.path).toBe('/pokemon/pikachu')
+    expect(router.currentRoute.value.path).toBe('/')
   })
 
   it('shows the exact empty-state copy when no favorites exist', async () => {

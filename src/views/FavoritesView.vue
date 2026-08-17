@@ -24,10 +24,6 @@ function goBack(): void {
   }
 }
 
-function goDetail(name: string): void {
-  void router.push(`/pokemon/${name}`)
-}
-
 function remove(name: string): void {
   store.removeFavorite(name)
 }
@@ -74,7 +70,7 @@ function remove(name: string): void {
             :favorite="favorite"
             :context="navContext"
             favorite-disabled
-            @navigate="goDetail"
+            navigate-disabled
           />
         </SwipeToReveal>
       </li>
