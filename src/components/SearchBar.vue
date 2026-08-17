@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 
-import searchIcon from '@/assets/icons/search.svg'
+import searchIcon from '@/assets/icons/tab/search.svg'
 import { useDebouncedRef } from '@/composables/useDebouncedRef'
 import { usePokemonStore } from '@/stores/pokemon'
 

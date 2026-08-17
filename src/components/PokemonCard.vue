@@ -226,8 +226,8 @@ function activate(): void {
 
 .pokemon-card__favorite {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
 }
 
 .pokemon-card:focus-visible {

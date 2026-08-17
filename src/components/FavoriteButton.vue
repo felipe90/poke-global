@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import heartSolidIcon from '@/assets/icons/icon-heart-solid.svg'
-import heartIcon from '@/assets/icons/icon-heart.svg'
+import heartSolidIcon from '@/assets/icons/heart/icon-heart-solid.svg'
+import heartIcon from '@/assets/icons/heart/icon-heart.svg'
 import { usePokemonStore } from '@/stores/pokemon'
 import type { TypeName } from '@/types/pokemon'
 
@@ -30,23 +30,41 @@ function toggle(): void {
     types: props.types,
   })
 }
+
+/** Heart SVG used as a CSS mask so the fill can be tinted via currentColor. */
+const heartIconUrl = computed(() => (isFavorite.value ? heartSolidIcon : heartIcon))
+
+/** Inline styles: the mask URL needs url("...") with quotes — built in JS. */
+function buttonStyle(): Record<string, string> {
+  return {
+    width: `${props.size}px`,
+    height: `${props.size}px`,
+    '--favorite-icon': `url("${heartIconUrl.value}")`,
+    color: isFavorite.value ? '#e53935' : '',
+  }
+}
+
+function iconStyle(): Record<string, string> {
+  return {
+    width: `${Math.round(props.size / 2)}px`,
+    height: `${Math.round(props.size / 2)}px`,
+  }
+}
 </script>
 
 <template>
   <button
     type="button"
     class="favorite-button"
-    :class="`favorite-button--${size}`"
-    :style="{ width: `${size}px`, height: `${size}px` }"
+    :class="{ 'favorite-button--active': isFavorite }"
+    :style="buttonStyle()"
     :aria-pressed="isFavorite"
     :aria-label="isFavorite ? `Quitar ${name} de favoritos` : `Agregar ${name} a favoritos`"
     @click="toggle"
   >
-    <img
+    <span
       class="favorite-button__icon"
-      :style="{ width: `${Math.round(size / 2)}px`, height: `${Math.round(size / 2)}px` }"
-      :src="isFavorite ? heartSolidIcon : heartIcon"
-      alt=""
+      :style="iconStyle()"
       aria-hidden="true"
     />
   </button>

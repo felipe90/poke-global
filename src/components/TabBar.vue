@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { RouterLink, useRoute } from 'vue-router'
 
-import globeIcon from '@/assets/icons/globe.svg'
-import heartIcon from '@/assets/icons/heart.svg'
-import houseIcon from '@/assets/icons/house.svg'
-import userIcon from '@/assets/icons/user.svg'
+import globeIcon from '@/assets/icons/tab/globe.svg'
+import heartIcon from '@/assets/icons/tab/heart.svg'
+import houseIcon from '@/assets/icons/tab/house.svg'
+import userIcon from '@/assets/icons/tab/user.svg'
 
 const route = useRoute()
 

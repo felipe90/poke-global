@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FeedbackState from '@/components/FeedbackState.vue'
-import emptyImage from '@/assets/images/Magikarp_Jump_Pattern_01 1.png'
+import emptyImage from '@/assets/screens/Magikarp_Jump_Pattern_01 1.png'
 </script>
 
 <template>

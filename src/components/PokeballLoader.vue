@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import loaderUrl from '@/assets/images/Loader.svg'
+import loaderUrl from '@/assets/screens/Loader.svg'
 </script>
 
 <template>

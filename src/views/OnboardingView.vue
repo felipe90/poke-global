@@ -2,8 +2,8 @@
 import { ref } from 'vue'
 
 import AppButton from '@/components/AppButton.vue'
-import groupImage from '@/assets/images/Group 28.png'
-import frameImage from '@/assets/images/Frame 1000002626.png'
+import groupImage from '@/assets/screens/Group 28.png'
+import frameImage from '@/assets/screens/Frame 1000002626.png'
 import { completeOnboarding } from '@/router'
 
 const currentStep = ref(0)

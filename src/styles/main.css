@@ -117,31 +117,9 @@ button {
   width: 100%;
 }
 
-/* --------------------------------------------------------- Pokemon card */
-
-.pokemon-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-radius: var(--radius-card);
-}
-
-.pokemon-card__info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-info-gap);
-  padding: 16px 0 16px 16px;
-}
-
-.pokemon-card__types {
-  display: flex;
-  gap: var(--space-info-gap);
-}
-
-.pokemon-card__image {
-  border-radius: var(--radius-card);
-  padding: 4px;
-}
+/* --------------------------------------------------------- Pokemon card
+   The card's full layout lives in PokemonCard.vue (scoped); nothing global
+   may override it. */
 
 /* Shimmer while a card's type metadata resolves */
 .pokemon-card--loading {
@@ -239,6 +217,7 @@ button {
   flex-direction: column;
   gap: var(--space-sm);
   padding-top: 48px;
+  padding-bottom: var(--space-lg);
 }
 
 .search-bar__row {
@@ -363,21 +342,25 @@ button {
 }
 
 /* ----------------------------------------------------- Favorite button
-   Figma Card: Fav 36×36 r=50%, white border, translucent white fill. */
+   Figma Card: Fav 36×36 r=50%, white border, translucent white fill.
+   The heart is a CSS mask tinted by currentColor (red #E53935 when active). */
 
 .favorite-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid #fff;
+  border: 2px solid #fff;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
 }
 
 .favorite-button__icon {
-  object-fit: contain;
+  background-color: currentColor;
+  -webkit-mask: var(--favorite-icon) center / contain no-repeat;
+  mask: var(--favorite-icon) center / contain no-repeat;
 }
 
 .favorite-button:focus-visible {

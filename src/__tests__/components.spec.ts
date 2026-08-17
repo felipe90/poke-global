@@ -341,16 +341,17 @@ describe('FavoriteButton (5.11)', () => {
     expect(wrapper.attributes('aria-pressed')).toBe('false')
   })
 
-  it('swaps the heart image when favorited', async () => {
+  it('swaps the heart mask and tints red when favorited', async () => {
     const wrapper = mountFavorite()
-    const outline = wrapper.find('img').attributes('src') ?? ''
+    const outline = wrapper.attributes('style') ?? ''
     const { usePokemonStore } = await import('@/stores/pokemon')
     const store = usePokemonStore()
     await store.toggleFavorite({ name: 'pikachu', id: 25, imageUrl: 'https://example.com/pikachu.png', types: ['electric'] })
     await nextTick()
-    const solid = wrapper.find('img').attributes('src') ?? ''
+    const solid = wrapper.attributes('style') ?? ''
     expect(solid).not.toBe(outline)
-    expect(solid).toMatch(/^data:image\/svg\+xml/)
+    expect(solid).toContain('--favorite-icon: url("data:image/svg+xml')
+    expect(solid).toContain('color: rgb(229, 57, 53)')
   })
 })
 
