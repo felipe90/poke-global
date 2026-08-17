@@ -29,11 +29,11 @@ withDefaults(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-xs);
   width: 100%;
   max-width: 328px;
   height: 58px;
-  padding: 16px var(--space-xl);
+  padding: var(--space-card) var(--space-xl);
   border: none;
   border-radius: var(--radius-pill);
   font-size: var(--font-cta);

@@ -14,6 +14,8 @@
   --onboarding-dot-inactive: #4565b7;
   --progress-fill: #1f49b6;
   --progress-track: #eff0f2;
+  --color-white: #ffffff;
+  --favorite-active: #e53935;
 
   /* TabBar (Figma: tapBar) */
   --tapbar-bg: #fafafa;
@@ -62,6 +64,7 @@
   /* Spacing — Figma scale (Spacing/none…Spacing/2xl), 4px base.
    lg = 16px fixes TabBar height: 1(border) + 16 + 44(item) + 16 = 77. */
   --space-none: 0px;
+  --space-2xs: 2px;
   --space-xxs: 4px;
   --space-xs: 8px;
   --space-sm: 12px;

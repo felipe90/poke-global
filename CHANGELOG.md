@@ -532,6 +532,33 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — input 264×48 r30, botón 52×48, resultados con strong 700, "Borrar filtro" subrayado `#1E88E5`. Suite 216/216 + type-check + lint PASS.
 - **Archivos afectados**: `src/components/SearchBar.vue`, `src/styles/main.css`, `src/styles/tokens.css`, `src/views/PokedexListView.vue`, 2 archivos de tests.
 
+### [refactor] Assets reorganizados por propósito
+
+- **Descripción**: `src/assets` se reorganizó en 4 grupos por propósito (no por formato): `icons/tab/` (house, globe, heart, user, search), `icons/heart/` (corazón outline/solid), `types/badges/` (18 PNG de chips) y `screens/` (onboarding, magikarp, loader). Se eliminaron las reglas globales muertas de `.pokemon-card` en `main.css` (el scoped es la única fuente de verdad).
+- **Verificación**: git detectó 49 renames; suite 216/216 + type-check + lint PASS; 0 rutas viejas.
+- **Archivos afectados**: `src/assets/*` (movidos), imports en 7 componentes/vistas, `main.css`.
+
+### [architecture] Element decorativo de la card — CSS mask con gradiente blanco
+
+- **Descripción**: El elemento detrás del sprite pasó de SVG externo (17/18 — faltaba fire por rate limit de la API de Figma) a técnica de **CSS mask**: un span con `background: linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.15) 100%)` + `mask-image: url(type-{tipo}.png)`. La máscara usa solo el canal ALPHA del PNG (la forma del icono) y el gradiente pinta el blanco degradado.
+- **Hallazgos**: los PNG de badges tienen **ratios de aspecto distintos** por tipo (water 0.65, grass 0.897, ice 1.137) — forzar `mask-size` fijo los deformaba; fix con `contain`. El rate limit de la API de Figma (~30 req/min) y las URLs S3 que expiran hicieron inviable completar el SVG fire — la máscara con PNG resolvió los 18 sin dependencia.
+- **Verificación**: navegador — Bulbasaur→hoja grass, Charmander→llama fire, gradiente 0.85→0.15, sprite encima. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonCard.vue`, `src/data/types.ts` (element desde badges PNG).
+
+### [feature] Corazón favorito activo en rojo (mask tintada)
+
+- **Descripción**: El `FavoriteButton` cambió de `<img>` a un span con **CSS mask** (mismo patrón del TabBar): el corazón se tiñe vía `currentColor` — **rojo `#E53935`** (token `--favorite-active`) cuando está activo, claro cuando no. El fondo del botón NO cambia (se mantiene translúcido con borde blanco).
+- **Gotcha**: el `url("...")` inline en el template attribute rompe el compiler de Vue → el style se construye en funciones JS (`buttonStyle`/`iconStyle`).
+- **Verificación**: navegador — no-favorito `aria-pressed=false` corazón claro; favorito `true` corazón `rgb(229,57,53)` con fondo intacto. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/FavoriteButton.vue`, `main.css`, test actualizado.
+
+### [refactor] Margen 4px en la imagen + auditoría de valores quemados → tokens
+
+- **Descripción**: Margen de 4px a la imagen de la card (`--space-xxs`). Auditoría completa de valores hardcodeados: tokens nuevos `--color-white` (`#ffffff`), `--favorite-active` (`#e53935`), `--space-2xs` (2px). Reemplazados: `#fafafa`→`--surface-default` (TypeBadge, main.css), `#fff`→`--color-white` (card, nav buttons, search inputs), `#cd3131`→`--danger` (trash), gaps 2/8→`--space-2xs`/`--space-xs`, radius 16→`--radius-lg`, LoadingSpinner 32→`--space-2xl`.
+- **Decisión**: la geometría Figma exacta NO se tokeniza (círculo 498×498, artwork 142×155, nav 48px, media 126×102, onboarding 342/251, search 48/30/52) — son medidas específicas del diseño, no reutilizables.
+- **Verificación**: navegador — margen 4px, tokens resuelven al mismo valor (badge circle rgb(250,250,250), favorito rgb(229,57,53)). Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `tokens.css`, 7 componentes, `main.css`, 3 tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: revisar alineación al Figma — search bar y cards ya refinados; queda resultado de búsqueda/filtro y sentinel de infinite scroll.
@@ -542,6 +569,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 ---
 
-## Entregado — commit `38c08f0` (push a `origin/main`)
+## Entregado — commit `b23db63` (push a `origin/main`)
 
-Sesión del 2026-08-16 (segunda tanda): fuentes oficiales del Figma + auditoría tipográfica, card reconstruida a la geometría exacta (con los 18 elements SVG exportados), SearchBar completo. El commit `88632b2` (tipos dinámicos — debilidades del API) ya estaba pusheado por el usuario a mitad de la sesión. Rama `main` limpia.
+Sesión del 2026-08-16 (tercera tanda): assets reorganizados, element de la card con CSS mask + gradiente, corazón favorito activo rojo, margen 4px + auditoría de tokens. Commits previos de la sesión: `88632b2` (tipos dinámicos), `38c08f0` (fuentes + card + search). Rama `main` limpia.

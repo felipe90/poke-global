@@ -81,7 +81,7 @@ describe('FavoritesView (4.5)', () => {
     })
     await flushPromises()
     const trash = wrapper.findAll('.favorite-trash')[0]!
-    expect(trash.attributes('style')).toContain('rgb(205, 49, 49)')
+    expect(trash.attributes('style')).toContain('var(--danger)')
 
     await trash.trigger('click')
     await flushPromises()

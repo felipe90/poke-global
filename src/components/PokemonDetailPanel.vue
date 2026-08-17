@@ -339,7 +339,7 @@ const statRows = [
   height: 48px;
   border: none;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-white);
   color: var(--title);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
   cursor: pointer;

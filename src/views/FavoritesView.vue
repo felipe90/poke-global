@@ -46,7 +46,7 @@ function remove(name: string): void {
           type="button"
           class="favorite-trash"
           :aria-label="`Quitar ${favorite.name} de favoritos`"
-          :style="{ color: '#cd3131' }"
+          :style="{ color: 'var(--danger)' }"
           @click="remove(favorite.name)"
         >
           <svg

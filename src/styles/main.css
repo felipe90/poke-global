@@ -162,7 +162,7 @@ button {
   width: 20px;
   height: 20px;
   border-radius: var(--radius-icon-circle);
-  background: #fafafa;
+  background: var(--surface-default);
   pointer-events: none;
 }
 
@@ -247,7 +247,7 @@ button {
   padding: 14px var(--space-card) 14px 44px;
   border: 1.5px solid var(--border-default, #e0e0e0);
   border-radius: 30px;
-  background: #fff;
+  background: var(--color-white);
   color: var(--title);
   font-family: var(--font-family);
   font-size: var(--font-search);
@@ -277,7 +277,7 @@ button {
   padding: 14px var(--space-card);
   border: 1.5px solid var(--border-default, #e0e0e0);
   border-radius: 30px;
-  background: #fff;
+  background: var(--color-white);
   cursor: pointer;
 }
 

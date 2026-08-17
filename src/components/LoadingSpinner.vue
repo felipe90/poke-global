@@ -15,8 +15,8 @@
 <style scoped>
 .loading-spinner {
   display: inline-block;
-  width: 32px;
-  height: 32px;
+  width: var(--space-2xl);
+  height: var(--space-2xl);
   border: 3px solid var(--primary);
   border-right-color: transparent;
   border-bottom-color: transparent;

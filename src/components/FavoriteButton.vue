@@ -40,7 +40,7 @@ function buttonStyle(): Record<string, string> {
     width: `${props.size}px`,
     height: `${props.size}px`,
     '--favorite-icon': `url("${heartIconUrl.value}")`,
-    color: isFavorite.value ? '#e53935' : '',
+    color: isFavorite.value ? 'var(--favorite-active)' : '',
   }
 }
 

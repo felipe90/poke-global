@@ -68,6 +68,11 @@ const elementUrl = computed(() => {
   return getTypeMeta(primary)?.element ?? null
 })
 
+/** Element style: the mask URL needs url("...") with quotes — built in JS. */
+function elementStyle(): Record<string, string> {
+  return { '--element-icon': `url("${elementUrl.value ?? ''}")` }
+}
+
 const imageUrl = computed(() => {
   if (props.favorite) return props.favorite.imageUrl || null
   return Number.isFinite(id.value) ? `${SPRITE_BASE}${id.value}.png` : null
@@ -111,11 +116,10 @@ function activate(): void {
       class="pokemon-card__media"
       :style="{ backgroundColor: mediaBackground }"
     >
-      <img
+      <span
         v-if="elementUrl"
         class="pokemon-card__element"
-        :src="elementUrl"
-        alt=""
+        :style="elementStyle()"
         aria-hidden="true"
       />
       <img
@@ -144,11 +148,11 @@ function activate(): void {
   justify-content: space-between;
   align-items: stretch;
   gap: var(--space-sm);
-  color: #fff;
+  color: var(--color-white);
   border: none;
   text-align: left;
   background: var(--bg);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   min-height: 102px;
   padding: 0 0 0 var(--space-card);
 }
@@ -158,7 +162,7 @@ function activate(): void {
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 2px;
+  gap: var(--space-2xs);
   flex: 1;
   min-width: 0;
   padding: var(--space-card) 0;
@@ -187,7 +191,7 @@ function activate(): void {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .pokemon-card__media {
@@ -198,8 +202,8 @@ function activate(): void {
   gap: 10px;
   width: 126px;
   min-height: 102px;
-  border-radius: 16px;
-  padding: 4px 16px;
+  border-radius: var(--radius-lg);
+  padding: var(--space-xxs) var(--space-card);
   flex-shrink: 0;
   align-self: stretch;
 }
@@ -210,9 +214,16 @@ function activate(): void {
   right: 0;
   bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  /* White gradient: near-opaque top → transparent bottom (Figma).
+     The type icon (PNG alpha) acts as the mask shape. `contain` keeps each
+     PNG's native aspect ratio (they differ per type) so nothing distorts. */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  -webkit-mask: var(--element-icon) center / contain no-repeat;
+  mask: var(--element-icon) center / contain no-repeat;
   pointer-events: none;
 }
 
@@ -220,6 +231,7 @@ function activate(): void {
   position: relative;
   width: 94px;
   height: 94px;
+  margin: var(--space-xxs);
   object-fit: contain;
   pointer-events: none;
 }

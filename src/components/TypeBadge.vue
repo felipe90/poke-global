@@ -23,7 +23,7 @@ const background = computed(() => meta.value?.color ?? FALLBACK_TYPE_COLOR)
   >
     <span
       class="type-badge__icon"
-      :style="{ backgroundColor: '#fafafa', borderRadius: '100px' }"
+      :style="{ backgroundColor: 'var(--surface-default)', borderRadius: '100px' }"
     >
       <img
         v-if="meta"

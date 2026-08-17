@@ -151,7 +151,7 @@ describe('TypeBadge (5.2)', () => {
     const wrapper = mount(TypeBadge, { props: { type: 'electric' } })
     const circle = wrapper.find('.type-badge__icon')
     expect(circle.exists()).toBe(true)
-    expect(circle.attributes('style')).toContain('rgb(250, 250, 250)')
+    expect(circle.attributes('style')).toContain('var(--surface-default)')
     const icon = circle.find('img')
     expect(icon.exists()).toBe(true)
     expect(icon.attributes('aria-hidden')).toBe('true')
@@ -351,7 +351,7 @@ describe('FavoriteButton (5.11)', () => {
     const solid = wrapper.attributes('style') ?? ''
     expect(solid).not.toBe(outline)
     expect(solid).toContain('--favorite-icon: url("data:image/svg+xml')
-    expect(solid).toContain('color: rgb(229, 57, 53)')
+    expect(solid).toContain('var(--favorite-active)')
   })
 })
 
