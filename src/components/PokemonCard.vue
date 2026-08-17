@@ -16,6 +16,8 @@ const props = defineProps<{
   index?: number
   /** Ordered list captured as the nav context when the card is activated. */
   context?: string[]
+  /** Heart renders but does nothing (favorites list removes via the trash). */
+  favoriteDisabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -113,27 +115,30 @@ function activate(): void {
       </div>
     </div>
     <div
-      class="pokemon-card__media"
+      class="pokemon-card__side"
       :style="{ backgroundColor: mediaBackground }"
     >
-      <span
-        v-if="elementUrl"
-        class="pokemon-card__element"
-        :style="elementStyle()"
-        aria-hidden="true"
-      />
-      <img
-        v-if="imageUrl"
-        class="pokemon-card__image"
-        :src="imageUrl"
-        :alt="name"
-      />
+      <div class="pokemon-card__media">
+        <span
+          v-if="elementUrl"
+          class="pokemon-card__element"
+          :style="elementStyle()"
+          aria-hidden="true"
+        />
+        <img
+          v-if="imageUrl"
+          class="pokemon-card__image"
+          :src="imageUrl"
+          :alt="name"
+        />
+      </div>
       <FavoriteButton
         class="pokemon-card__favorite"
         :name="name"
         :id="id"
         :image-url="imageUrl ?? ''"
         :types="types"
+        :disabled="props.favoriteDisabled"
         @click.stop
       />
     </div>
@@ -194,6 +199,19 @@ function activate(): void {
   gap: var(--space-xs);
 }
 
+.pokemon-card__side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  /* Space between the decorative element and the card edge; the dynamic
+     type-darkened background comes from the inline mediaBackground style. */
+  padding: var(--space-xxs);
+  border-radius: var(--radius-lg);
+}
+
 .pokemon-card__media {
   position: relative;
   display: flex;
@@ -202,10 +220,8 @@ function activate(): void {
   gap: 10px;
   width: 126px;
   min-height: 102px;
-  border-radius: var(--radius-lg);
-  padding: var(--space-xxs) var(--space-card);
+  background-color: transparent;
   flex-shrink: 0;
-  align-self: stretch;
 }
 
 .pokemon-card__element {

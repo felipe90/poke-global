@@ -14,8 +14,10 @@ const props = withDefaults(
     types: TypeName[]
     /** Figma: 36×36 in the card, 28×28 in the detail header. */
     size?: number
+    /** Renders the heart without any action (favorites list uses the trash). */
+    disabled?: boolean
   }>(),
-  { size: 36 },
+  { size: 36, disabled: false },
 )
 
 const store = usePokemonStore()
@@ -23,6 +25,7 @@ const store = usePokemonStore()
 const isFavorite = computed(() => store.isFavorite(props.name))
 
 function toggle(): void {
+  if (props.disabled) return
   store.toggleFavorite({
     name: props.name,
     id: props.id,

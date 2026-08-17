@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
+import chevronLeftIcon from '@/assets/icons/tab/chevron-left.svg'
 import EmptyState from '@/components/EmptyState.vue'
 import PokemonCard from '@/components/PokemonCard.vue'
 import { usePokemonStore } from '@/stores/pokemon'
@@ -14,6 +15,14 @@ const favorites = computed(() => store.favorites)
 /** Ordered favorite names captured as the nav context when a card is activated. */
 const navContext = computed(() => favorites.value.map((favorite) => favorite.name))
 
+function goBack(): void {
+  if (router.options.history.state.back) {
+    router.back()
+  } else {
+    void router.push('/')
+  }
+}
+
 function goDetail(name: string): void {
   void router.push(`/pokemon/${name}`)
 }
@@ -25,6 +34,26 @@ function remove(name: string): void {
 
 <template>
   <div class="favorites-view">
+    <header class="page-header">
+      <button
+        type="button"
+        class="page-header__back"
+        aria-label="Volver"
+        @click="goBack"
+      >
+        <img
+          :src="chevronLeftIcon"
+          alt=""
+          aria-hidden="true"
+        />
+      </button>
+      <h1 class="page-header__title">Favoritos</h1>
+      <div
+        class="page-header__spacer"
+        aria-hidden="true"
+      />
+    </header>
+
     <EmptyState v-if="favorites.length === 0" />
 
     <ul
@@ -39,6 +68,7 @@ function remove(name: string): void {
         <PokemonCard
           :favorite="favorite"
           :context="navContext"
+          favorite-disabled
           class="favorites-list__card"
           @navigate="goDetail"
         />
@@ -75,6 +105,51 @@ function remove(name: string): void {
 <style scoped>
 .favorites-view {
   min-height: 100%;
+}
+
+/* Header: back button left, centered title (3-col grid keeps it centered). */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: var(--space-xxs);
+  padding: var(--space-2xl) var(--space-md);
+  background: var(--surface-default);
+}
+
+.page-header__back {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--title);
+  cursor: pointer;
+}
+
+.page-header__back:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+
+.page-header__title {
+  margin: 0;
+  font-family: var(--font-family-montserrat);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  line-height: var(--line-height-lg);
+  letter-spacing: 0;
+  color: var(--title);
+  text-align: center;
+}
+
+.page-header__spacer {
+  width: 40px;
 }
 
 .favorites-list {

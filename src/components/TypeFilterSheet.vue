@@ -2,6 +2,8 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import AppButton from '@/components/AppButton.vue'
+import closeIcon from '@/assets/icons/tab/close.svg'
+import CustomCheckbox from '@/components/CustomCheckbox.vue'
 import { TYPE_META } from '@/data/types'
 import { usePokemonStore } from '@/stores/pokemon'
 import type { TypeName } from '@/types/pokemon'
@@ -26,6 +28,12 @@ const selected = ref<TypeName[]>([])
 const applying = ref(false)
 const applyFailed = ref(false)
 const dialogRef = ref<HTMLElement | null>(null)
+/** Accordion state: the type list starts expanded (main filter). */
+const collapsed = ref(false)
+
+function toggleCollapsed(): void {
+  collapsed.value = !collapsed.value
+}
 
 let previousFocus: HTMLElement | null = null
 
@@ -132,38 +140,75 @@ function onKeydown(event: KeyboardEvent): void {
         @click.stop
       >
         <header class="sheet__header">
+          <button
+            type="button"
+            class="sheet__close"
+            aria-label="Cerrar"
+            @click="discard"
+          >
+            <img
+              :src="closeIcon"
+              alt=""
+              aria-hidden="true"
+            />
+          </button>
           <h2
             id="type-filter-sheet-title"
             class="sheet__title"
           >
             Filtra por tus preferencias
           </h2>
-          <p
-            class="sheet__count"
-            aria-live="polite"
-          >
-            {{ selectedCount }} seleccionado{{ selectedCount === 1 ? '' : 's' }}
-          </p>
         </header>
 
-        <div class="sheet__grid">
-          <label
-            v-for="meta in TYPE_META"
-            :key="meta.name"
-            class="sheet__option"
+        <div class="sheet__accordion">
+          <button
+            type="button"
+            class="sheet__accordion-head"
+            :aria-expanded="!collapsed"
+            @click="toggleCollapsed"
           >
-            <input
-              type="checkbox"
-              class="sheet__checkbox"
-              :checked="selected.includes(meta.name)"
-              @change="toggleType(meta.name)"
-            />
-            <span
-              class="sheet__option-dot"
-              :style="{ backgroundColor: meta.color }"
-            />
-            <span class="sheet__option-label">{{ meta.esLabel }}</span>
-          </label>
+            <span class="sheet__accordion-title">Tipo</span>
+            <svg
+              class="sheet__accordion-chevron"
+              :class="{ 'sheet__accordion-chevron--open': !collapsed }"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M6 15l6-6 6 6" />
+            </svg>
+          </button>
+
+          <div
+            v-show="!collapsed"
+            class="sheet__list"
+          >
+            <label
+              v-for="meta in TYPE_META"
+              :key="meta.name"
+              class="sheet__option"
+              :class="{ 'sheet__option--selected': selected.includes(meta.name) }"
+            >
+              <img
+                class="sheet__option-icon"
+                :src="meta.icon"
+                alt=""
+                aria-hidden="true"
+              />
+              <span class="sheet__option-label">{{ meta.esLabel }}</span>
+              <CustomCheckbox
+                :model-value="selected.includes(meta.name)"
+                :label="`Filtrar por ${meta.esLabel}`"
+                @change="toggleType(meta.name)"
+              />
+            </label>
+          </div>
         </div>
 
         <p
@@ -176,10 +221,10 @@ function onKeydown(event: KeyboardEvent): void {
 
         <div class="sheet__actions">
           <AppButton
-            variant="secondary"
-            @click="discard"
+            :disabled="applyDisabled"
+            @click="apply"
           >
-            Cancelar
+            Aplicar
           </AppButton>
           <AppButton
             v-if="applyFailed"
@@ -188,12 +233,17 @@ function onKeydown(event: KeyboardEvent): void {
             Reintentar
           </AppButton>
           <AppButton
-            :disabled="applyDisabled"
-            @click="apply"
+            variant="secondary"
+            @click="discard"
           >
-            Aplicar
+            Cancelar
           </AppButton>
         </div>
+
+        <div
+          class="sheet__indicator"
+          aria-hidden="true"
+        />
       </section>
     </div>
   </Transition>
@@ -202,57 +252,119 @@ function onKeydown(event: KeyboardEvent): void {
 <style scoped>
 .sheet__header {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-sheet-gap);
+  flex-direction: column;
+  gap: var(--space-xxs);
+}
+
+.sheet__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--subtitle);
+  cursor: pointer;
+}
+
+.sheet__close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
 }
 
 .sheet__title {
   margin: 0;
-  font-size: var(--font-screen-title);
-  font-weight: 500;
+  font-family: var(--font-family);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--title);
+  text-align: center;
+}
+
+.sheet__accordion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sheet-gap);
+  flex: 1;
+  min-height: 0;
+}
+
+.sheet__accordion-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.sheet__accordion-head:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+
+.sheet__accordion-title {
+  font-family: var(--font-family-montserrat);
+  font-size: var(--font-size-md);
+  font-weight: 600;
   color: var(--title);
 }
 
-.sheet__count {
-  margin: 0;
-  font-size: var(--font-data-label);
-  font-weight: 500;
+.sheet__accordion-chevron {
   color: var(--subtitle);
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
 }
 
-.sheet__grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-sheet-gap);
+.sheet__accordion-chevron--open {
+  transform: rotate(0deg);
+}
+
+.sheet__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxs);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-right: var(--space-xxs);
+  /* Mobile-first: hide the native scrollbar (the Figma has no visible bar). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sheet__list::-webkit-scrollbar {
+  display: none;
 }
 
 .sheet__option {
   display: flex;
   align-items: center;
-  gap: var(--space-info-gap);
-  padding: var(--space-info-gap);
+  gap: var(--space-xs);
+  height: 32px;
+  padding: 0;
   border-radius: var(--radius-card);
   cursor: pointer;
 }
 
-.sheet__checkbox {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--primary);
-}
-
-.sheet__option-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-icon-circle);
-  flex-shrink: 0;
+.sheet__option-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .sheet__option-label {
-  font-size: var(--font-data-value);
+  flex: 1;
+  font-family: var(--font-family-montserrat);
+  font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--title);
+  color: var(--subtitle);
 }
 
 .sheet__error {
@@ -264,11 +376,33 @@ function onKeydown(event: KeyboardEvent): void {
 
 .sheet__actions {
   display: flex;
+  flex-direction: column;
   gap: var(--space-sheet-gap);
 }
 
 .sheet__actions :deep(.app-button) {
-  flex: 1;
+  width: 100%;
   max-width: none;
+}
+
+.sheet__indicator {
+  width: 134px;
+  height: 4px;
+  margin: 0 auto;
+  border-radius: 100px;
+  background: var(--title);
+  opacity: 0.8;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

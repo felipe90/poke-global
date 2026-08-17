@@ -17,15 +17,19 @@ body {
 }
 
 #app {
-  /* Mobile frame (Figma: 360×800) centered; body behind stays neutral. */
+  /* Mobile frame (Figma: 360×800) centered; body behind stays neutral.
+     App-shell: the frame has a fixed height and the MAIN scrolls internally,
+     so the header and tab bar stay fixed by layout (touch-safe, unlike
+     relying on position: sticky which the touch scroll can break). */
   width: 360px;
-  min-height: 800px;
-  min-height: 100dvh;
+  height: 800px;
+  height: 100vh;
   margin: 0 auto;
   background: var(--surface-default);
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 0 1px var(--tapbar-border-top);
+  overflow: hidden;
 }
 
 button {
@@ -36,14 +40,16 @@ button {
 /* ---------------------------------------------------------------- Shell layout */
 
 .app-main {
-  flex: 1 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   max-width: 640px;
   padding: 0 var(--space-card) 120px;
 }
 
 .app-tab-bar {
-  position: sticky;
-  bottom: 0;
+  /* Outside the scrolling .app-main: fixed by the flex column layout. */
+  flex-shrink: 0;
 }
 
 /* ------------------------------------------------------------------- TabBar */
@@ -182,7 +188,7 @@ button {
   text-align: center;
   gap: var(--space-card);
   padding: var(--space-card);
-  min-height: 100dvh;
+  min-height: 100vh;
   background: var(--bg);
 }
 
@@ -409,8 +415,12 @@ button {
   display: flex;
   flex-direction: column;
   gap: var(--space-sheet-gap);
-  max-width: 640px;
-  margin: 0 auto;
+  /* Mobile-first: cap at the app frame width (360px) so desktop stays
+     consistent with the phone layout. `vh` (not dvh) keeps the sheet stable
+     in Chrome's responsive/device toolbar where dvh shrinks with the URL bar. */
+  width: 100%;
+  max-width: 360px;
+  height: 70vh;
 }
 
 .sheet-overlay {
@@ -419,33 +429,51 @@ button {
   z-index: 100;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: flex-end;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
 }
 
-/* Transition: slide sheet up / down */
+/* Transition: fade the overlay + slide the sheet up / down.
+   The Transition wraps the overlay (root) and the sheet is its child, so the
+   sheet uses an animation driven by the parent's enter/leave classes. */
 .sheet-enter-active,
 .sheet-leave-active {
-  transition: transform 0.25s ease;
+  transition: opacity 0.25s ease;
 }
 
 .sheet-enter-from,
 .sheet-leave-to {
-  transform: translateY(100%);
-}
-
-/* Transition: fade between onboarding steps */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
   opacity: 0;
 }
 
-/* Transition: slide between onboarding steps */
+.sheet-enter-active .sheet {
+  animation: sheet-slide-up 0.25s ease;
+}
+
+.sheet-leave-active .sheet {
+  animation: sheet-slide-down 0.25s ease;
+}
+
+@keyframes sheet-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-slide-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* Transition: fade between onboarding steps */
 .slide-enter-active,
 .slide-leave-active {
   transition:

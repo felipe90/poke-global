@@ -61,27 +61,28 @@ describe('TypeFilterSheet (5.3)', () => {
     expect(wrapper.text()).toContain('Filtra por tus preferencias')
   })
 
-  it('renders 18 checkboxes with all esLabels and their Figma colors', () => {
+  it('renders 18 type options with all esLabels, icons and checkboxes', () => {
     const wrapper = mountSheet()
-    const checkboxes = wrapper.findAll('.sheet__option input[type="checkbox"]')
-    expect(checkboxes).toHaveLength(18)
+    const options = wrapper.findAll('.sheet__option')
+    expect(options).toHaveLength(18)
     for (const meta of TYPE_META) {
       expect(wrapper.text()).toContain(meta.esLabel)
     }
-    const grassDot = wrapper
+    const grassOption = wrapper
       .findAll('.sheet__option')
       .find((el) => el.text().includes('Planta'))!
-      .get('.sheet__option-dot')
-    expect(grassDot.attributes('style')).toContain('rgb(139, 195, 74)')
+    expect(grassOption.find('.sheet__option-icon').exists()).toBe(true)
+    expect(grassOption.find('input[type="checkbox"]').exists()).toBe(true)
   })
 
-  it('supports multi-select with a visible selected count', async () => {
+  it('supports multi-select and enables Aplicar', async () => {
     const wrapper = mountSheet()
     await checkboxByName(wrapper, 'Planta').setValue(true)
     await checkboxByName(wrapper, 'Veneno').setValue(true)
-    expect(wrapper.text()).toContain('2 seleccionados')
     const apply = wrapper.findAll('button').find((b) => b.text() === 'Aplicar')!
     expect(apply.attributes('disabled')).toBeUndefined()
+    const selected = wrapper.findAll('.sheet__option--selected')
+    expect(selected).toHaveLength(2)
   })
 
   it('disables Aplicar while no type is selected', () => {
@@ -99,10 +100,10 @@ describe('TypeFilterSheet (5.3)', () => {
 
   it('discards pending selection and reverts to the applied filter on Escape', async () => {
     const wrapper = mountSheet({ applied: ['grass'], pending: ['grass', 'poison'] })
-    expect(wrapper.text()).toContain('2 seleccionados')
+    expect(wrapper.findAll('.sheet__option--selected')).toHaveLength(2)
     await wrapper.get('[role="dialog"]').trigger('keydown.esc')
     await nextTick()
-    expect(wrapper.text()).toContain('1 seleccionado')
+    expect(wrapper.findAll('.sheet__option--selected')).toHaveLength(1)
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
 
@@ -110,12 +111,12 @@ describe('TypeFilterSheet (5.3)', () => {
     const wrapper = mountSheet({ applied: ['grass'], pending: ['grass', 'poison'] })
     await wrapper.findAll('button').find((b) => b.text() === 'Cancelar')!.trigger('click')
     expect(wrapper.emitted('close')).toHaveLength(1)
-    expect(wrapper.text()).toContain('1 seleccionado')
+    expect(wrapper.findAll('.sheet__option--selected')).toHaveLength(1)
 
     const wrapper2 = mountSheet({ applied: ['grass'], pending: ['grass', 'poison'] })
     await wrapper2.get('.sheet-overlay').trigger('click')
     await nextTick()
-    expect(wrapper2.text()).toContain('1 seleccionado')
+    expect(wrapper2.findAll('.sheet__option--selected')).toHaveLength(1)
     expect(wrapper2.emitted('close')).toHaveLength(1)
   })
 

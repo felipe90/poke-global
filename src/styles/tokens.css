@@ -16,6 +16,8 @@
   --progress-track: #eff0f2;
   --color-white: #ffffff;
   --favorite-active: #e53935;
+  --check-default: #1f49b6;
+  --check-border: #d6d6d6;
 
   /* TabBar (Figma: tapBar) */
   --tapbar-bg: #fafafa;
@@ -102,6 +104,7 @@
   --font-size-lg: 20px;
   --line-height-xs: 16px;
   --line-height-md: 22px;
+  --line-height-lg: 28px;
 
   /* State screens (Figma: Pokedex_Error/Construcción/Favoritos vacío) */
   --state-title: #333333;
