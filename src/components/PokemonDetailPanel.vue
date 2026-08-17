@@ -2,12 +2,13 @@
 import { computed } from 'vue'
 
 import { FALLBACK_TYPE_COLOR, getTypeMeta, resolveWeaknesses } from '@/data/types'
-import { getOfficialArtwork, statsToPokemonStats } from '@/services/pokeapi'
+import { getOfficialArtwork } from '@/services/pokeapi'
 import { deriveSpecies, usePokemonStore } from '@/stores/pokemon'
 import type { PokemonDerivedSpecies } from '@/stores/pokemon'
 import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
 
 import FavoriteButton from './FavoriteButton.vue'
+import GenderBar from './GenderBar.vue'
 import ShareButton from './ShareButton.vue'
 import TypeBadge from './TypeBadge.vue'
 
@@ -15,17 +16,12 @@ const props = defineProps<{
   detail: PokemonDetail
   species?: PokemonSpecies | null
   derived?: PokemonDerivedSpecies | null
-  /** Adjacent pokémon in the nav context; null/undefined disables the control. */
-  prevName?: string | null
-  nextName?: string | null
 }>()
 
 const store = usePokemonStore()
 
 const emit = defineEmits<{
   back: []
-  prev: []
-  next: []
   toggleFavorite: []
   share: []
 }>()
@@ -51,16 +47,7 @@ const headerColor = computed(() => {
   return primary ? getTypeMeta(primary)?.color ?? FALLBACK_TYPE_COLOR : undefined
 })
 
-const stats = computed(() => statsToPokemonStats(props.detail.stats))
-
-const statRows = [
-  { key: 'hp', label: 'HP' },
-  { key: 'attack', label: 'Attack' },
-  { key: 'defense', label: 'Defense' },
-  { key: 'special-attack', label: 'Sp. Atk' },
-  { key: 'special-defense', label: 'Sp. Def' },
-  { key: 'speed', label: 'Speed' },
-] as const
+const genderRate = computed(() => fields.value.genderRate)
 </script>
 
 <template>
@@ -112,60 +99,6 @@ const statRows = [
         :src="artwork"
         :alt="detail.name"
       />
-
-      <nav
-        class="detail-header__nav"
-        aria-label="Navegación entre Pokémon"
-      >
-        <button
-          type="button"
-          class="nav-button nav-prev"
-          :disabled="!prevName"
-          :aria-label="prevName ? `Anterior: ${prevName}` : 'Anterior no disponible'"
-          @click="emit('prev')"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              d="M15 5 L8 12 L15 19"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </button>
-        <button
-          type="button"
-          class="nav-button nav-next"
-          :disabled="!nextName"
-          :aria-label="nextName ? `Próximo: ${nextName}` : 'Próximo no disponible'"
-          @click="emit('next')"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              d="M9 5 L16 12 L9 19"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </button>
-      </nav>
     </header>
 
     <section class="detail-body">
@@ -211,13 +144,9 @@ const statRows = [
             <dd class="detail-field__value">{{ fields.habilidad }}</dd>
           </div>
         </div>
-        <div class="detail-characteristics__row">
-          <div class="detail-field">
-            <dt class="detail-field__label">Género</dt>
-            <dd class="detail-field__value">{{ fields.genero }}</dd>
-          </div>
-        </div>
       </dl>
+
+      <GenderBar :gender-rate="genderRate" />
 
       <section
         v-if="fields.debilidades.length > 0"
@@ -231,21 +160,6 @@ const statRows = [
             :key="type"
             :type="type"
           />
-        </div>
-      </section>
-
-      <section
-        class="detail-stats"
-        aria-label="Estadísticas base"
-      >
-        <h3 class="detail-stats__title">Estadísticas</h3>
-        <div
-          v-for="row in statRows"
-          :key="row.key"
-          class="detail-panel__stat-row"
-        >
-          <span class="detail-panel__stat-label">{{ row.label }}</span>
-          <span class="detail-panel__stat-value">{{ stats[row.key] }}</span>
         </div>
       </section>
 
@@ -320,39 +234,6 @@ const statRows = [
   height: 155px;
   object-fit: contain;
   transform: translate(-50%, -58%);
-}
-
-.detail-header__nav {
-  position: absolute;
-  bottom: var(--space-card);
-  left: 50%;
-  display: flex;
-  gap: var(--space-card);
-  transform: translateX(-50%);
-}
-
-.nav-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 50%;
-  background: var(--color-white);
-  color: var(--title);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-  cursor: pointer;
-}
-
-.nav-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.nav-button:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
 }
 
 /* ------------------------------------------------------------------ Body */
@@ -451,7 +332,7 @@ const statRows = [
 
 .detail-weaknesses__title {
   margin: 0;
-  font-size: 27px;
+  font-size: var(--font-data-value);
   font-weight: 500;
   color: var(--title);
 }
@@ -460,38 +341,5 @@ const statRows = [
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-info-gap);
-}
-
-.detail-stats {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-info-gap);
-}
-
-.detail-stats__title {
-  margin: 0 0 var(--space-info-gap);
-  font-size: 27px;
-  font-weight: 500;
-  color: var(--title);
-}
-
-.detail-panel__stat-row {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-card);
-  padding: var(--space-info-gap) 0;
-  border-bottom: 1px solid var(--progress-track);
-}
-
-.detail-panel__stat-label {
-  font-size: var(--font-data-label);
-  font-weight: 500;
-  color: var(--subtitle);
-}
-
-.detail-panel__stat-value {
-  font-size: var(--font-data-value);
-  font-weight: 500;
-  color: var(--title);
 }
 </style>

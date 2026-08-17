@@ -665,10 +665,18 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — contenedor `--active` left 0/right 358 (full frame), radius `16px 0 0 16px`, card `translateX(-250.6px)` (70% de 358) a los 450ms (persistente). Suite **230/230** + type-check + lint PASS.
 - **Archivos afectados**: `src/composables/useSwipeReveal.ts`, `src/components/SwipeToReveal.vue`, 3 archivos de tests.
 
+### [architecture] Detalle al Figma — GenderBar nuevo, sin nav/stats, orden correcto
+
+- **Descripción**: Refactor del detalle a las aclaraciones del usuario sobre el Figma real: se eliminaron los botones **Próximo/Anterior** (no están en el Figma) y la sección de **Estadísticas** (tampoco), y el campo Género salió de las características.
+- **GenderBar.vue (nuevo)**: barra de género del Figma — label "Género" (12/500 `#424242`), barra 328×8 radius 9999 con segmento **`#2551c3`** proporcional al % macho (solo azul, no azul/rosa), iconos male/female 18px + % a los extremos; genderless muestra "Sin género". `PokemonDerivedSpecies.genderRate` nuevo (de `species.gender_rate`, -1 genderless).
+- **Orden del detalle**: heading → types → descripción → características (Peso|Altura, Categoría|Habilidad) → **GenderBar** → **Debilidades** → ShareButton. Título Debilidades ajustado a **18/500** (antes 27px — el Figma usa 18/500).
+- **Verificación**: navegador — orden `detail-heading → elements → description → characteristics → gender-bar → weaknesses`, sin nav/stats, segmento 87.5% (Bulbasaur), Debilidades 18px. Suite **230/230** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/GenderBar.vue` (nuevo), `PokemonDetailPanel.vue`, `PokemonDetailView.vue`, `stores/pokemon.ts` (genderRate), tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
-- [ ] **Detalle de pokémon (`/pokemon/:name`)**: revisar alineación al Figma — header con círculo del tipo + imagen, chips junto al nombre, campos 2 columnas, Debilidades, Próximo/Anterior, estados de carga con `LoadingSpinner` (tipografía ya auditada).
+- [ ] **Detalle de pokémon (`/pokemon/:name`)**: alineado al Figma — header círculo + imagen, chips, características, GenderBar, Debilidades, sin nav/stats. Pendiente: revisar estados de carga con `LoadingSpinner`.
 - [ ] **Favoritos con datos**: swipe-to-reveal implementado; falta revisar snapshot localStorage + sync cross-tab a fondo (el estado vacío y cabecera ya OK).
 - [ ] **README** AI-First: actualizado con mapa de navegación, arquitectura y layout.
 

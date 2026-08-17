@@ -34,6 +34,8 @@ export interface PokemonDerivedSpecies {
   genero: string
   habilidad: string
   debilidades: TypeName[]
+  /** -1 = genderless; 0..8 = female ratio. Used by the GenderBar. */
+  genderRate: number
 }
 
 /** Merge two summary lists deduplicated by name, preserving order. */
@@ -114,6 +116,7 @@ export function deriveSpecies(
     debilidades: resolveWeaknessesFor
       ? detail.types.flatMap((entry) => resolveWeaknessesFor(entry.type.name))
       : [],
+    genderRate: species ? species.gender_rate : -1,
   }
 }
 

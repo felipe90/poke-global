@@ -497,6 +497,7 @@ describe('pokemon store — detail + species slice (2.4)', () => {
       genero: '50% / 50%',
       habilidad: 'Static',
       debilidades: ['ground'],
+      genderRate: 4,
     })
   })
 

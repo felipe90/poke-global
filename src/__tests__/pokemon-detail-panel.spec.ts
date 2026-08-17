@@ -104,20 +104,11 @@ const pikachuDetail: PokemonDetail = {
 function mountPanel(
   detail: PokemonDetail,
   species: PokemonSpecies | null = bulbasaurSpecies,
-  nav: { prevName?: string | null; nextName?: string | null } = {},
 ) {
   return mount(PokemonDetailPanel, {
-    props: { detail, species, ...nav },
+    props: { detail, species },
     global: { plugins: [pinia] },
   })
-}
-
-function statValue(wrapper: ReturnType<typeof mount>, label: string): string {
-  const row = wrapper
-    .findAll('.detail-panel__stat-row')
-    .find((el) => el.get('.detail-panel__stat-label').text() === label)
-  expect(row, `stat row ${label} not found`).toBeTruthy()
-  return row!.get('.detail-panel__stat-value').text()
 }
 
 describe('PokemonDetailPanel (5.10)', () => {
@@ -129,7 +120,7 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(image.attributes('src')).toBe('https://example.com/bulbasaur.png')
   })
 
-  it('renders all derived fields: description, Peso, Altura, Categoría, Habilidad, Género', () => {
+  it('renders all derived fields: description, Peso, Altura, Categoría, Habilidad', () => {
     const wrapper = mountPanel(bulbasaurDetail)
     expect(wrapper.text()).toContain('Una semilla está plantada en su espalda desde que nace.')
     expect(wrapper.text()).toContain('Peso')
@@ -140,16 +131,25 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(wrapper.text()).toContain('Pokémon Semilla')
     expect(wrapper.text()).toContain('Habilidad')
     expect(wrapper.text()).toContain('Overgrow')
-    expect(wrapper.text()).toContain('Género')
-    expect(wrapper.text()).toContain('87,5% / 12,5%')
   })
 
-  it('renders genderless pokémon as Sin género', () => {
+  it('renders the gender bar with male/female percentages', () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    expect(wrapper.find('.gender-bar').exists()).toBe(true)
+    expect(wrapper.text()).toContain('87,5%')
+    expect(wrapper.text()).toContain('12,5%')
+    const segments = wrapper.findAll('.gender-bar__segment')
+    expect(segments).toHaveLength(1)
+    expect(segments[0]?.attributes('style')).toContain('87.5%')
+  })
+
+  it('renders the gender bar as Sin género for genderless pokémon', () => {
     const genderlessSpecies: PokemonSpecies = {
       ...bulbasaurSpecies,
       gender_rate: -1,
     }
     const wrapper = mountPanel(bulbasaurDetail, genderlessSpecies)
+    expect(wrapper.find('.gender-bar').exists()).toBe(true)
     expect(wrapper.text()).toContain('Sin género')
   })
 
@@ -172,22 +172,15 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(badges.slice(0, 2)).toEqual(['Planta', 'Veneno'])
   })
 
-  it('renders all six base stats with their API values', () => {
+  it('renders no stats section (not part of the Figma detail)', () => {
     const wrapper = mountPanel(bulbasaurDetail)
-    expect(statValue(wrapper, 'HP')).toBe('45')
-    expect(statValue(wrapper, 'Attack')).toBe('49')
-    expect(statValue(wrapper, 'Defense')).toBe('49')
-    expect(statValue(wrapper, 'Sp. Atk')).toBe('65')
-    expect(statValue(wrapper, 'Sp. Def')).toBe('65')
-    expect(statValue(wrapper, 'Speed')).toBe('45')
+    expect(wrapper.find('.detail-stats').exists()).toBe(false)
   })
 
-  it('renders pikachu stat values from the API base_stat', () => {
-    const wrapper = mountPanel(pikachuDetail, null)
-    expect(statValue(wrapper, 'HP')).toBe('35')
-    expect(statValue(wrapper, 'Attack')).toBe('55')
-    expect(statValue(wrapper, 'Defense')).toBe('40')
-    expect(statValue(wrapper, 'Speed')).toBe('90')
+  it('renders no Próximo/Anterior nav buttons (not part of the Figma detail)', () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    expect(wrapper.find('.detail-header__nav').exists()).toBe(false)
+    expect(wrapper.find('.nav-button').exists()).toBe(false)
   })
 
   it('degrades species-derived fields to — when species is unavailable', () => {
@@ -242,36 +235,32 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(wrapper.emitted('back')).toHaveLength(1)
   })
 
-  it('renders circular Próximo/Anterior nav buttons that emit prev and next', async () => {
-    const wrapper = mountPanel(bulbasaurDetail, bulbasaurSpecies, { prevName: 'charmander', nextName: 'ivysaur' })
-    const prev = wrapper.get('.nav-prev')
-    const next = wrapper.get('.nav-next')
-    expect(prev.attributes('disabled')).toBeUndefined()
-    expect(next.attributes('disabled')).toBeUndefined()
-    await prev.trigger('click')
-    await next.trigger('click')
-    expect(wrapper.emitted('prev')).toHaveLength(1)
-    expect(wrapper.emitted('next')).toHaveLength(1)
-  })
-
-  it('disables the nav buttons at the bounds (no prev / no next)', () => {
-    const atStart = mountPanel(bulbasaurDetail, bulbasaurSpecies, { prevName: null, nextName: 'ivysaur' })
-    expect(atStart.get('.nav-prev').attributes('disabled')).toBeDefined()
-    expect(atStart.get('.nav-next').attributes('disabled')).toBeUndefined()
-
-    const atEnd = mountPanel(bulbasaurDetail, bulbasaurSpecies, { prevName: 'charmander', nextName: null })
-    expect(atEnd.get('.nav-prev').attributes('disabled')).toBeUndefined()
-    expect(atEnd.get('.nav-next').attributes('disabled')).toBeDefined()
-  })
-
-  it('groups characteristics in the Figma 2-column rows (Peso|Altura, Categoría|Habilidad, Género)', () => {
+  it('groups characteristics in the Figma 2-column rows (Peso|Altura, Categoría|Habilidad)', () => {
     const wrapper = mountPanel(bulbasaurDetail)
     const rows = wrapper.findAll('.detail-characteristics__row')
     expect(rows.map((row) => row.findAll('dt').map((el) => el.text()))).toEqual([
       ['Peso', 'Altura'],
       ['Categoría', 'Habilidad'],
-      ['Género'],
     ])
+  })
+
+  it('renders the gender bar after characteristics and before Debilidades', async () => {
+    await preloadWith(
+      {
+        grass: ['fire'],
+      },
+      { grass: 'Planta' },
+    )
+    const wrapper = mountPanel(bulbasaurDetail)
+    const body = wrapper.get('.detail-body')
+    const children = Array.from(body.element.children)
+    const names = children.map((el) => el.className)
+    const cIndex = names.findIndex((n) => n.includes('detail-characteristics'))
+    const gIndex = names.findIndex((n) => n.includes('gender-bar'))
+    const wIndex = names.findIndex((n) => n.includes('detail-weaknesses'))
+    expect(cIndex).toBeGreaterThanOrEqual(0)
+    expect(gIndex).toBeGreaterThan(cIndex)
+    expect(wIndex).toBeGreaterThan(gIndex)
   })
 
   it('renders the description above a separator line', () => {

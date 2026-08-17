@@ -162,43 +162,25 @@ describe('PokemonDetailView (4.4)', () => {
     expect(wrapper.text()).toContain('—')
   })
 
-  it('Próximo/Anterior navigate within the nav context, disabled at bounds', async () => {
-    const { wrapper, router } = await mountDetail('ivysaur', ({ mod, store }) => {
-      mod.fetchPokemonDetail.mockImplementation((name: string) =>
-        Promise.resolve(makeDetail(name, { bulbasaur: 1, ivysaur: 2, venusaur: 3 }[name] ?? 2)),
-      )
+  it('renders no Próximo/Anterior nav (not part of the Figma detail)', async () => {
+    const { wrapper } = await mountDetail('ivysaur', ({ mod, store }) => {
+      mod.fetchPokemonDetail.mockResolvedValue(makeDetail('ivysaur', 2))
       mod.fetchPokemonSpecies.mockResolvedValue(makeSpecies(2))
       store.setNavContext(['bulbasaur', 'ivysaur', 'venusaur'])
     })
     await flushPromises()
     expect(wrapper.find('.detail-nav').exists()).toBe(false)
-    expect(wrapper.find('.nav-prev').attributes('disabled')).toBeUndefined()
-    expect(wrapper.find('.nav-next').attributes('disabled')).toBeUndefined()
-
-    await wrapper.get('.nav-next').trigger('click')
-    await flushPromises()
-    expect(router.currentRoute.value.params.name).toBe('venusaur')
-    expect(wrapper.find('.nav-next').attributes('disabled')).toBeDefined()
-
-    await wrapper.get('.nav-prev').trigger('click')
-    await flushPromises()
-    expect(router.currentRoute.value.params.name).toBe('ivysaur')
-
-    await wrapper.get('.nav-prev').trigger('click')
-    await flushPromises()
-    expect(router.currentRoute.value.params.name).toBe('bulbasaur')
-    expect(wrapper.find('.nav-prev').attributes('disabled')).toBeDefined()
-    expect(wrapper.find('.nav-next').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('.nav-prev').exists()).toBe(false)
+    expect(wrapper.find('.nav-next').exists()).toBe(false)
   })
 
-  it('a deep-linked detail with no context disables both controls', async () => {
+  it('renders no stats section (not part of the Figma detail)', async () => {
     const { wrapper } = await mountDetail('pikachu', ({ mod }) => {
       mod.fetchPokemonDetail.mockResolvedValue(makeDetail('pikachu', 25))
       mod.fetchPokemonSpecies.mockResolvedValue(makeSpecies(25))
     })
     await flushPromises()
-    expect(wrapper.find('.nav-prev').attributes('disabled')).toBeDefined()
-    expect(wrapper.find('.nav-next').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('.detail-stats').exists()).toBe(false)
   })
 
   it('the header back arrow returns to the previous route', async () => {
@@ -241,20 +223,15 @@ describe('PokemonDetailView (4.4)', () => {
     expect(router.currentRoute.value.path).toBe('/')
   })
 
-  it('moves focus to the heading when navigating Próximo/Anterior', async () => {
+  it('moves focus to the heading when the detail loads', async () => {
     const { wrapper, router } = await mountDetail(
       'ivysaur',
-      ({ mod, store }) => {
-        mod.fetchPokemonDetail.mockImplementation((name: string) =>
-          Promise.resolve(makeDetail(name, { bulbasaur: 1, ivysaur: 2, venusaur: 3 }[name] ?? 2)),
-        )
+      ({ mod }) => {
+        mod.fetchPokemonDetail.mockResolvedValue(makeDetail('ivysaur', 2))
         mod.fetchPokemonSpecies.mockResolvedValue(makeSpecies(2))
-        store.setNavContext(['bulbasaur', 'ivysaur', 'venusaur'])
       },
       true,
     )
-    await flushPromises()
-    await wrapper.get('.nav-next').trigger('click')
     await flushPromises()
     expect(document.activeElement).toBe(wrapper.find('.detail-heading').element)
     router.push('/')

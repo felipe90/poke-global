@@ -21,14 +21,6 @@ const name = computed(() => {
 
 const displayName = computed(() => name.value.charAt(0).toUpperCase() + name.value.slice(1))
 
-const prevName = computed(() => store.prevName(name.value))
-const nextName = computed(() => store.nextName(name.value))
-
-function goTo(pokemon: string | null | undefined): void {
-  if (!pokemon) return
-  void router.push(`/pokemon/${pokemon}`)
-}
-
 /** Back to the previous route within the app; fall back to the list. */
 function goBack(): void {
   if (router.options.history.state.back) {
@@ -92,11 +84,7 @@ watch(
       <PokemonDetailPanel
         :detail="store.selectedDetail"
         :derived="store.selectedSpecies"
-        :prev-name="prevName"
-        :next-name="nextName"
         @back="goBack"
-        @prev="goTo(prevName)"
-        @next="goTo(nextName)"
       />
     </template>
   </div>
