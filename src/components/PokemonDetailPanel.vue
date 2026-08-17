@@ -188,6 +188,7 @@ const genderRate = computed(() => fields.value.genderRate)
       </section>
 
       <ShareButton
+        class="detail-share"
         :detail="detail"
         @click="emit('share')"
       />
@@ -378,6 +379,8 @@ const genderRate = computed(() => fields.value.genderRate)
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* Double the body gap (2 x 16px) between the gender bar and Debilidades. */
+  margin-top: var(--space-card);
 }
 
 .detail-weaknesses__title {
@@ -390,6 +393,13 @@ const genderRate = computed(() => fields.value.genderRate)
 .detail-weaknesses__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-info-gap);
+  /* Triple the info gap (3 x 4px) between the weakness badges. */
+  gap: 12px;
+}
+
+/* Share sits apart from the weaknesses block and centers horizontally. */
+.detail-share {
+  align-items: center;
+  margin-top: var(--space-card);
 }
 </style>
