@@ -614,6 +614,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 ---
 
-## Entregado — commit `8d24c2d` (push a `origin/main`)
+## Entregado — commit `322bbe1` (push a `origin/main`)
 
 Sesión del 2026-08-16 (quinta tanda): fix scroll vertical onboarding/estados, patrón app-shell (scroll interno touch-safe), fix infinite scroll (IO root + rootMargin). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`. Rama `main` limpia.
