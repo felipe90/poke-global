@@ -691,6 +691,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — centerOffset 0px en fondo, wrap y artwork; elemento 181.75×196.48, gradiente + máscara `type-grass.png`. Suite **234/234** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PokemonDetailPanel.vue`, tests.
 
+### [architecture] Simetría detalle — corazón a la misma distancia del borde que el chevron
+
+- **Descripción**: El corazón (icono 14px centrado en botón 28px) quedaba más cerca del borde derecho que el chevron (icono 9px centrado en botón 38px). `.detail-header__favorite { margin-right: 7.5px }` compensa: ambos iconos quedan a **30.5px** de su borde respectivo (el Figma los mantiene simétricos: chevron 31.8, corazón 33.8).
+- **Verificación**: navegador — chevron 30.5 vs corazón 30.5, diferencia **0px**. Suite **234/234** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
