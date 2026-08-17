@@ -102,13 +102,16 @@ function onCardClickCapture(event: Event): void {
   border-radius: 0;
 }
 
-/* The red action layer is a full-bleed rectangle (no radius/margin/padding of
-   its own); the parent's overflow:hidden + border-radius crops it to the
-   card shape, so the revealed red fills the full height — not a floating
-   rounded chip. */
+/* The red action layer is a full-height rectangle pinned to the RIGHT side
+   only (the revealed action area) — not the whole container. That way, when
+   the container expands into the left margin on swipe, there is no red there
+   to peek through before the card covers it. The parent's overflow clips it. */
 .action-layer {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 80px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
