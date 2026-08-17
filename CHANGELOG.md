@@ -660,6 +660,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 
 
-## Entregado — commit `d4e9b51` (push a `origin/main`)
+## Entregado — commit `a5cae26` (push a `origin/main`)
 
 Sesión del 2026-08-17 (octava tanda): swipe-to-reveal en favoritos (Pointer Events), header de favoritos a ancho completo, README actualizado (mapa de navegación + arquitectura + layout), fix nit de vitest. Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`, `322bbe1`, `a81e7c5`, `c41be4c`. Rama `main` limpia.
