@@ -715,6 +715,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — género→debilidades 32, chips 12, share→debilidades 32, share centerOffset 0. Suite **234/234** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
 
+### [architecture] Género NO quemado (viene del API) + margen inferior del share
+
+- **Descripción**: **Confirmado** que el género no está hardcodeado: se deriva de `gender_rate` de `/pokemon-species/{id}` (male=(8−rate)/8). Bulbasaur y Charmander coinciden en 87,5%/12,5% porque ambos tienen `gender_rate=1` en la base real de PokeAPI (los starters son 87.5% macho); **Pidgey** da **50/50** (`gender_rate=4`). Ajuste estético: `.detail-share` gana **margin-bottom 48px** (calc 3×space-card) para que al hacer scroll quede espacio antes del tab menu — igual al espacio superior share→debilidades (16px gap + 32px margin = 48px).
+- **Verificación**: navegador — share margin-bottom 48px, espacio final 48px; Pidgey 50/50 (segmento 171.5px = mitad del track). Suite **236/236** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
