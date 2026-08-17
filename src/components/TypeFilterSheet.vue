@@ -417,6 +417,11 @@ function onKeydown(event: KeyboardEvent): void {
   display: flex;
   flex-direction: column;
   gap: var(--space-sheet-gap);
+  /* Full-width panel: break out of the sheet's side padding so the top
+     shadow spans edge to edge, flush with the list's separator above.
+     The top padding keeps the buttons clear of that shadow. */
+  margin-inline: calc(-1 * var(--space-sheet-lr));
+  padding: var(--space-sheet-tb) var(--space-sheet-lr) 0;
   /* Top shadow separates the button panel from the list above (Figma:
      box-shadow 0 -1px 3px 0 rgba(0,0,0,0.12)). */
   box-shadow: var(--shadow-top);
