@@ -271,7 +271,7 @@ describe('PokemonDetailPanel (5.10)', () => {
   it('groups characteristics in the Figma 2-column rows (Peso|Altura, Categoría|Habilidad)', () => {
     const wrapper = mountPanel(bulbasaurDetail)
     const rows = wrapper.findAll('.detail-characteristics__row')
-    expect(rows.map((row) => row.findAll('dt').map((el) => el.text()))).toEqual([
+    expect(rows.map((row) => row.findAll('.property-box__label').map((el) => el.text()))).toEqual([
       ['Peso', 'Altura'],
       ['Categoría', 'Habilidad'],
     ])

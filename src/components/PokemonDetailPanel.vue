@@ -10,6 +10,7 @@ import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
 
 import FavoriteButton from './FavoriteButton.vue'
 import GenderBar from './GenderBar.vue'
+import PropertyBox from './PropertyBox.vue'
 import ShareButton from './ShareButton.vue'
 import TypeBadge from './TypeBadge.vue'
 
@@ -140,24 +141,24 @@ const genderRate = computed(() => fields.value.genderRate)
 
       <dl class="detail-characteristics">
         <div class="detail-characteristics__row">
-          <div class="detail-field">
-            <dt class="detail-field__label">Peso</dt>
-            <dd class="detail-field__value">{{ fields.peso }}</dd>
-          </div>
-          <div class="detail-field">
-            <dt class="detail-field__label">Altura</dt>
-            <dd class="detail-field__value">{{ fields.altura }}</dd>
-          </div>
+          <PropertyBox
+            label="Peso"
+            :value="fields.peso"
+          />
+          <PropertyBox
+            label="Altura"
+            :value="fields.altura"
+          />
         </div>
         <div class="detail-characteristics__row">
-          <div class="detail-field">
-            <dt class="detail-field__label">Categoría</dt>
-            <dd class="detail-field__value">{{ fields.categoria }}</dd>
-          </div>
-          <div class="detail-field">
-            <dt class="detail-field__label">Habilidad</dt>
-            <dd class="detail-field__value">{{ fields.habilidad }}</dd>
-          </div>
+          <PropertyBox
+            label="Categoría"
+            :value="fields.categoria"
+          />
+          <PropertyBox
+            label="Habilidad"
+            :value="fields.habilidad"
+          />
         </div>
       </dl>
 
@@ -361,28 +362,8 @@ const genderRate = computed(() => fields.value.genderRate)
   gap: var(--space-card);
 }
 
-.detail-characteristics__row > .detail-field {
+.detail-characteristics__row > .property-box {
   flex: 1 1 0;
-}
-
-.detail-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-info-gap);
-}
-
-.detail-field__label {
-  margin: 0;
-  font-size: var(--font-data-label);
-  font-weight: 500;
-  color: var(--subtitle);
-}
-
-.detail-field__value {
-  margin: 0;
-  font-size: var(--font-data-value);
-  font-weight: 500;
-  color: var(--title);
 }
 
 .detail-weaknesses {
