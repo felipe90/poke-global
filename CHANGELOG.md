@@ -709,6 +709,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — labels uppercase, iconos 18×18, valores centrados (centro texto = centro caja), line-height 20.7px, track 8px/49px/#FF7596, segmento #2551C3 radius 0. Suite **234/234** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PropertyBox.vue`, `src/components/GenderBar.vue`, `src/components/PokemonDetailPanel.vue` (imports de iconos), `src/assets/icons/properties/*`, `src/assets/icons/gender/*`, tests.
 
+### [architecture] Espaciado detalle — doble género→debilidades, triple badges, share separado+centrado
+
+- **Descripción**: (1) Espacio entre la GenderBar y Debilidades duplicado a **32px** (`margin-top: 16px` en `.detail-weaknesses` + el gap body de 16px); (2) gap entre las badges de debilidades triplicado a **12px** (antes 4px); (3) ShareButton separado **32px** de debilidades y **centrado horizontalmente** (`align-items: center` sobre el flex column del share — el AppButton de 328px queda con offset 0).
+- **Verificación**: navegador — género→debilidades 32, chips 12, share→debilidades 32, share centerOffset 0. Suite **234/234** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
