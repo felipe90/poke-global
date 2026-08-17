@@ -107,40 +107,49 @@ describe('OnboardingView (4.2)', () => {
     expect(text).toContain(
       'Accede a una amplia lista de Pokémon de todas las generaciones creadas por Nintendo',
     )
-    expect(text).not.toContain('Mantén tu Pokédex actualizada')
-    expect(wrapper.get('button').text()).toBe('Continuar')
+    // Both steps stay mounted (crossfade preloads both images); step 1 is
+    // the visible one (no --hidden class).
+    const steps = wrapper.findAll('.onboarding__step')
+    expect(steps).toHaveLength(2)
+    expect(steps[0]?.classes()).not.toContain('onboarding__step--hidden')
+    expect(steps[1]?.classes()).toContain('onboarding__step--hidden')
+    expect(steps[0]!.find('button').text()).toBe('Continuar')
 
-    const dots = wrapper.findAll('.dot')
-    expect(dots).toHaveLength(2)
-    expect(dots[0]?.attributes('aria-label')).toBe('paso 1 de 2')
-    expect(dots[0]?.attributes('aria-current')).toBe('step')
-    expect(dots[1]?.attributes('aria-label')).toBe('paso 2 de 2')
-    expect(dots[1]?.attributes('aria-current')).toBeUndefined()
+    const dots = wrapper.findAll('.onboarding__step .dot')
+    expect(dots).toHaveLength(4) // 2 per step (both stay mounted)
+    const visibleStepDots = steps[0]!.findAll('.dot')
+    expect(visibleStepDots).toHaveLength(2)
+    expect(visibleStepDots[0]?.attributes('aria-label')).toBe('paso 1 de 2')
+    expect(visibleStepDots[0]?.attributes('aria-current')).toBe('step')
+    expect(visibleStepDots[1]?.attributes('aria-label')).toBe('paso 2 de 2')
+    expect(visibleStepDots[1]?.attributes('aria-current')).toBeUndefined()
   })
 
   it('Continuar is a keyboard-operable button that advances to step 02 (dot 2 active)', async () => {
     const { wrapper } = await freshOnboarding()
-    const cta = wrapper.get('button')
+    const cta = wrapper.get('.onboarding__step button')
     expect(cta.element.tagName).toBe('BUTTON')
     await cta.trigger('click')
 
-    const text = wrapper.text()
-    expect(text).toContain('Mantén tu Pokédex actualizada')
-    expect(text).toContain(
+    const steps = wrapper.findAll('.onboarding__step')
+    expect(steps[0]?.classes()).toContain('onboarding__step--hidden')
+    expect(steps[1]?.classes()).not.toContain('onboarding__step--hidden')
+    expect(steps[1]!.text()).toContain('Mantén tu Pokédex actualizada')
+    expect(steps[1]!.text()).toContain(
       'Regístrate y guarda tu perfil, Pokémon favoritos, configuraciones y mucho más',
     )
-    expect(text).not.toContain('Todos los Pokémon en un solo lugar')
-    expect(wrapper.get('button').text()).toBe('Empecemos')
+    expect(steps[1]!.find('button').text()).toBe('Empecemos')
 
-    const dots = wrapper.findAll('.dot')
+    const dots = steps[1]!.findAll('.dot')
     expect(dots[1]?.attributes('aria-current')).toBe('step')
     expect(dots[0]?.attributes('aria-current')).toBeUndefined()
   })
 
   it('Empecemos completes onboarding and resumes to / by default', async () => {
     const { wrapper, router } = await freshOnboarding()
-    await wrapper.get('button').trigger('click')
-    await wrapper.get('button').trigger('click')
+    const buttons = wrapper.findAll('.onboarding__step button')
+    await buttons[0]!.trigger('click')
+    await buttons[1]!.trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/')
   })
@@ -153,8 +162,9 @@ describe('OnboardingView (4.2)', () => {
     const { default: OnboardingView } = await import('@/views/OnboardingView.vue')
     const wrapper = mount(OnboardingView, { global: { plugins: [router] } })
     await router.isReady()
-    await wrapper.get('button').trigger('click')
-    await wrapper.get('button').trigger('click')
+    const buttons = wrapper.findAll('.onboarding__step button')
+    await buttons[0]!.trigger('click')
+    await buttons[1]!.trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/favorites')
   })
@@ -162,16 +172,20 @@ describe('OnboardingView (4.2)', () => {
   it('writes no onboarding-seen key and offers no skip control', async () => {
     const { wrapper, router } = await freshOnboarding()
     expect(wrapper.text()).not.toMatch(/saltar|omitir|skip/i)
-    await wrapper.get('button').trigger('click')
-    await wrapper.get('button').trigger('click')
+    const buttons = wrapper.findAll('.onboarding__step button')
+    await buttons[0]!.trigger('click')
+    await buttons[1]!.trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/')
     expect(Object.keys(localStorage).some((key) => /onboarding/i.test(key))).toBe(false)
   })
 
-  it('wraps the steps in a fade <Transition>', async () => {
+  it('crossfades via the --hidden class instead of a <Transition> (both steps stay mounted)', async () => {
     const { wrapper } = await freshOnboarding()
-    expect(wrapper.findComponent({ name: 'Transition' }).exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'Transition' }).exists()).toBe(false)
+    const steps = wrapper.findAll('.onboarding__step')
+    expect(steps).toHaveLength(2)
+    expect(steps[1]?.classes()).toContain('onboarding__step--hidden')
   })
 })
 

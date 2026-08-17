@@ -11,8 +11,14 @@ const currentStep = ref(0)
 
 <template>
   <section class="onboarding-view">
-    <Transition name="fade" mode="out-in">
-      <div v-if="currentStep === 0" key="step-1" class="onboarding__step">
+    <!-- Both steps stay mounted (v-show) so both images load up front —
+         switching steps never waits for a network fetch. The crossfade is a
+         pure CSS transition on opacity (no <Transition> wrapper needed). -->
+    <div class="onboarding__steps">
+      <div
+        class="onboarding__step"
+        :class="{ 'onboarding__step--hidden': currentStep !== 0 }"
+      >
         <img
           class="onboarding__image onboarding__image--step1"
           :src="groupImage"
@@ -37,7 +43,10 @@ const currentStep = ref(0)
           Continuar
         </AppButton>
       </div>
-      <div v-else key="step-2" class="onboarding__step">
+      <div
+        class="onboarding__step"
+        :class="{ 'onboarding__step--hidden': currentStep !== 1 }"
+      >
         <img
           class="onboarding__image onboarding__image--step2"
           :src="frameImage"
@@ -62,7 +71,7 @@ const currentStep = ref(0)
           Empecemos
         </AppButton>
       </div>
-    </Transition>
+    </div>
   </section>
 </template>
 
@@ -79,6 +88,15 @@ const currentStep = ref(0)
   text-align: center;
 }
 
+.onboarding__steps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  /* Tallest step (measured: step 2 = 515px) — prevents layout shift. */
+  min-height: 515px;
+}
+
 .onboarding__step {
   display: flex;
   flex-direction: column;
@@ -86,6 +104,16 @@ const currentStep = ref(0)
   gap: var(--space-card);
   max-width: 420px;
   width: 100%;
+  /* Crossfade between steps: both stay mounted (images preloaded), the
+     hidden one fades out via opacity + visibility (display:none would be
+     instant and cannot transition). */
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.onboarding__step--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .onboarding__step :deep(.app-button) {

@@ -604,6 +604,13 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: scroll gradual → 24 → 72 cards (3 páginas), scrollHeight 3140 → 9188. Suite 216/216 + type-check + lint PASS.
 - **Archivos afectados**: `src/composables/useInfiniteScroll.ts`, `src/views/PokedexListView.vue`, `main.css`.
 
+### [fix] Glitch de parpadeo en el onboarding — ambos pasos montados + crossfade CSS
+
+- **Descripción**: Al cambiar de paso, el `v-if`/`v-else` + `mode="out-in"` desmontaba el paso viejo y montaba el nuevo — la imagen del paso 2 (52KB) se cargaba EN ESE MOMENTO → parpadeo (frame sin imagen + salto al llegar). Fix: ambos pasos **siempre montados** (las dos imágenes se precargan al entrar al onboarding), ocultando el inactivo con la clase `--hidden` (opacity 0 + visibility hidden, transicionable) para un **crossfade CSS puro**. `min-height: 515px` en el wrapper (el paso más alto) elimina el layout shift.
+- **Gotchas**: `<Transition>` exige exactamente un hijo directo con v-if/v-show (lint `vue/require-toggle-inside-transition`) — con dos pasos montados se usó CSS puro en vez de Transition. VTU `isVisible()` no detecta `visibility: hidden` (solo display:none) — los tests verifican la clase `--hidden`.
+- **Verificación**: navegador — ambas imágenes `complete: true` desde el inicio, crossfade suave (opacidades 0.32/0.68 a mitad), imagen del paso 2 ya cargada. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/views/OnboardingView.vue`, tests de `views.spec.ts`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; queda revisar resultado de búsqueda/filtro.
