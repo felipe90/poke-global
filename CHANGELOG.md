@@ -639,6 +639,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 ---
 
-## Entregado — commit `f3c2b91` (push a `origin/main`)
+## Entregado — commit `c41be4c` (push a `origin/main`)
 
 Sesión del 2026-08-17 (séptima tanda): fix glitch onboarding + overflow, fix toolbar sticky de la lista, decisión de frame fluido hasta 480px (responsive evaluado, opción C). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`, `322bbe1`, `a81e7c5`. Rama `main` limpia.
