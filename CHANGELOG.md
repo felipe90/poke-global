@@ -703,6 +703,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — las 4 cajas con w 154, h 43, radius 15, border #E0E0E0, gap/padding 8, valores correctos. Suite **234/234** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PropertyBox.vue` (nuevo), `src/components/PokemonDetailPanel.vue`, tests.
 
+### [architecture] PropertyBox/GenderBar Figma — labels uppercase, iconos, colores por sexo, división recta
+
+- **Descripción**: **PropertyBox**: labels en **uppercase** (text-transform), iconos del Figma conectados (`properties/weight|height|category|ability.svg`, 16px), valores **centrados** (justify-content + text-align center) con **line-height 1.15** para que los valores largos cortados ocupen menos vertical. **GenderBar**: label **GÉNERO** uppercase Poppins 500 12px, line-height 100%, letter-spacing 5%; iconos male/female del Figma (18px); **track 8px alto, radio 49px, rosa `#FF7596`** (porción hembra) y **segmento azul `#2551C3` sin border-radius** (división recta, no redondeada).
+- **Verificación**: navegador — labels uppercase, iconos 18×18, valores centrados (centro texto = centro caja), line-height 20.7px, track 8px/49px/#FF7596, segmento #2551C3 radius 0. Suite **234/234** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PropertyBox.vue`, `src/components/GenderBar.vue`, `src/components/PokemonDetailPanel.vue` (imports de iconos), `src/assets/icons/properties/*`, `src/assets/icons/gender/*`, tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
