@@ -61,17 +61,24 @@ export function useSwipeReveal() {
     if (!isSwiping.value) return
     isSwiping.value = false
     pointerId = null
-    if (translateX.value < THRESHOLD) {
-      translateX.value = MAX_SWIPE
-      swiped.value = true
-      clearLockTimer()
-      lockTimer = setTimeout(() => {
-        swiped.value = false
-        lockTimer = null
-      }, SWIPED_LOCK_MS)
-    } else {
-      translateX.value = 0
-    }
+    // Re-enable the transition in THIS frame, then apply the destination
+    // transform on the NEXT frame (rAF). Doing both in the same tick makes
+    // the browser see the new transform under the just-restored transition
+    // and snap instead of animating (the classic swipe-release jump).
+    const shouldOpen = translateX.value < THRESHOLD
+    requestAnimationFrame(() => {
+      if (shouldOpen) {
+        translateX.value = MAX_SWIPE
+        swiped.value = true
+        clearLockTimer()
+        lockTimer = setTimeout(() => {
+          swiped.value = false
+          lockTimer = null
+        }, SWIPED_LOCK_MS)
+      } else {
+        translateX.value = 0
+      }
+    })
   }
 
   function reset(): void {

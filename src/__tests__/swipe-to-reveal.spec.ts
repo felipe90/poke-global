@@ -28,6 +28,13 @@ async function swipeCard(wrapper: VueWrapper, toClientX: number, fromClientX = 2
   await pointerOn(layer, 'pointerdown', { pointerId: 1, clientX: fromClientX, clientY: 100 })
   await pointerOn(layer, 'pointermove', { pointerId: 1, clientX: toClientX, clientY: 103 })
   await pointerOn(layer, 'pointerup', { pointerId: 1 })
+  // The snap/spring is deferred to the next rAF frame — advance it.
+  if (vi.isFakeTimers()) {
+    vi.advanceTimersByTime(16)
+  } else {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  }
+  await nextTick()
 }
 
 describe('SwipeToReveal', () => {
@@ -66,6 +73,7 @@ describe('SwipeToReveal', () => {
   })
 
   it('applies the swipe transform and snaps open past the threshold', async () => {
+    vi.useFakeTimers()
     const wrapper = mountReveal()
     const layer = wrapper.get('.card-layer')
 
@@ -74,7 +82,10 @@ describe('SwipeToReveal', () => {
     expect(layer.attributes('style')).toContain('translateX(-60px)')
 
     await pointerOn(layer, 'pointerup', { pointerId: 1 })
+    vi.advanceTimersByTime(16) // rAF frame
+    await nextTick()
     expect(wrapper.get('.card-layer').attributes('style')).toContain('translateX(-80px)')
+    vi.useRealTimers()
   })
 
   it('swallows a front-layer click while the swipe is open but keeps the reveal open', async () => {
@@ -96,6 +107,7 @@ describe('SwipeToReveal', () => {
     vi.useFakeTimers()
     const wrapper = mountReveal()
     await swipeCard(wrapper, 120)
+    vi.advanceTimersByTime(16) // settle the deferred snap under fake timers
 
     vi.advanceTimersByTime(300)
 

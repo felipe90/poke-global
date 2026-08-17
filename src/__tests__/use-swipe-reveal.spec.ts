@@ -23,6 +23,12 @@ describe('useSwipeReveal', () => {
     vi.useRealTimers()
   })
 
+  /** onPointerUp defers the destination transform to the next rAF frame —
+   *  advance the (fake) animation frame so the snap/spring applies. */
+  function settle(): void {
+    vi.advanceTimersByTime(16)
+  }
+
   it('opens fully when the horizontal drag passes the threshold', () => {
     const { translateX, isSwiping, swiped, handlers } = useSwipeReveal()
 
@@ -35,6 +41,7 @@ describe('useSwipeReveal', () => {
 
     handlers.onPointerup(pointer() as PointerEvent)
     expect(isSwiping.value).toBe(false)
+    settle()
     expect(translateX.value).toBe(MAX_SWIPE)
     expect(swiped.value).toBe(true)
   })
@@ -48,6 +55,7 @@ describe('useSwipeReveal', () => {
     expect(translateX.value).toBeGreaterThanOrEqual(THRESHOLD)
 
     handlers.onPointerup(pointer() as PointerEvent)
+    settle()
     expect(translateX.value).toBe(0)
     expect(swiped.value).toBe(false)
   })
@@ -58,6 +66,7 @@ describe('useSwipeReveal', () => {
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     handlers.onPointermove(pointer({ clientX: 120, clientY: 100 }) as PointerEvent)
     handlers.onPointerup(pointer() as PointerEvent)
+    settle()
     expect(swiped.value).toBe(true)
 
     vi.advanceTimersByTime(299)
@@ -73,6 +82,7 @@ describe('useSwipeReveal', () => {
     handlers.onPointerdown(pointer({ clientX: 200, clientY: 100 }) as PointerEvent)
     handlers.onPointermove(pointer({ clientX: 120, clientY: 100 }) as PointerEvent)
     handlers.onPointerup(pointer() as PointerEvent)
+    settle()
     expect(swiped.value).toBe(true)
 
     reset()
@@ -89,6 +99,7 @@ describe('useSwipeReveal', () => {
     expect(translateX.value).toBe(0)
 
     handlers.onPointerup(pointer() as PointerEvent)
+    settle()
     expect(translateX.value).toBe(0)
   })
 

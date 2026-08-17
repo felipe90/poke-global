@@ -649,6 +649,14 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **README**: reescrito con el mapa de navegación (splash → onboarding → shell 4 tabs + deep links), arquitectura actual (debilidades del API, sin WEAKNESS_CHART), layout app-shell (frame fluido 480, scroll interno), 216→230 tests.
 - **Nit vitest**: `vitest.config.ts` importaba `./vite.config` sin extensión (Vite 8 native loader lo exige). Fix: agregar `.ts` + `allowImportingTsExtensions: true` en `tsconfig.node.json` (válido con noEmit). Desapareció el warning de cada corrida.
 
+### [fix] Swipe-to-reveal: transición suave al cerrar + icono de trash del Figma
+
+- **Transición al cerrar**: el `onPointerUp` ponía `is-swiping = false` y cambiaba el `translateX` en el **mismo frame** → el navegador no tenía un estado intermedio con la transición activa y el cierre saltaba. Fix: restaurar la transición en el frame actual y aplicar el transform destino en el **siguiente rAF** (`requestAnimationFrame`). Ahora el cierre anima suave (0.25s cubic-bezier).
+- **Icono de trash**: reemplazado el SVG inline por el icono oficial del Figma (`Icon/Interface, Essential/Group.svg` → `src/assets/icons/tab/trash.svg`, 38px, stroke blanco 2.11). El action-layer es `role="button"` con `aria-label="Eliminar de favoritos"` (accesible).
+- **Tests**: actualizados para el flujo asíncrono del rAF (helper `settle()`/`advanceTimersByTime(16)` con fake timers). Suite **230/230** + type-check + lint PASS.
+- **Verificación**: navegador — swipe abre a -80px, transición de cierre 0.25s aplicada (sin salto). Suite 230/230 + type-check + lint PASS.
+- **Archivos afectados**: `src/composables/useSwipeReveal.ts`, `src/components/SwipeToReveal.vue`, `src/assets/icons/tab/trash.svg` (nuevo), 2 archivos de tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.

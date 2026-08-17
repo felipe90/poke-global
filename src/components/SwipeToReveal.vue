@@ -7,6 +7,7 @@
  * layer is swallowed so that releasing the gesture does not navigate.
  */
 import { useSwipeReveal } from '@/composables/useSwipeReveal'
+import trashIcon from '@/assets/icons/tab/trash.svg'
 
 const emit = defineEmits<{
   delete: []
@@ -30,28 +31,18 @@ function onCardClickCapture(event: Event): void {
   <div class="swipe-container">
     <div
       class="action-layer"
+      role="button"
+      aria-label="Eliminar de favoritos"
       @click="emit('delete')"
     >
       <slot name="actions">
         <span class="swipe-trash">
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            role="img"
-            aria-label="Eliminar de favoritos"
-          >
-            <path d="M3 6h18" />
-            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-            <path d="M10 11v6" />
-            <path d="M14 11v6" />
-          </svg>
+          <img
+            class="swipe-trash__icon"
+            :src="trashIcon"
+            alt=""
+            aria-hidden="true"
+          />
         </span>
       </slot>
     </div>
@@ -96,6 +87,11 @@ function onCardClickCapture(event: Event): void {
   justify-content: center;
   color: var(--color-white);
   cursor: pointer;
+}
+
+.swipe-trash__icon {
+  width: 38px;
+  height: 38px;
 }
 
 .card-layer {
