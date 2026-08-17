@@ -739,14 +739,14 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — snapshot guarda `pokemon/1.png` (estático), header sigue `showdown/1.gif`, card de favoritos muestra `1.png`. Suite **239/239** + type-check + lint PASS.
 - **Archivos afectados**: `src/services/pokeapi.ts` (`getStaticSprite`), `src/components/PokemonDetailPanel.vue`, tests.
 
-## Pendiente / Próximos pasos
+## Estado
 
-- [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
-- [x] **Detalle de pokémon (`/pokemon/:name`)**: **TERMINADO** — alineado al Figma: GIF animado de showdown, header tipo card (fondo 498×498 + elemento con máscara + artwork centrado), chevron oficial, chips, PropertyBox con iconos, GenderBar (colores por sexo, división recta), Debilidades, sin nav/stats, categoría transformada, habilidad en español, share separado/centrado.
-- [ ] **Favoritos con datos**: swipe-to-reveal implementado; falta revisar snapshot localStorage + sync cross-tab a fondo (el estado vacío y cabecera ya OK).
-- [ ] **README** AI-First: actualizado con mapa de navegación, arquitectura y layout.
+- ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
+- ✅ **Detalle de pokémon (`/pokemon/:name`)**: alineado al Figma — GIF animado, header tipo card, chevron oficial, chips, PropertyBox con iconos, GenderBar, Debilidades, categoría transformada, habilidad en español, share separado/centrado.
+- ✅ **Favoritos con datos**: swipe-to-reveal, header sticky, snapshot localStorage, sync cross-tab, imágenes estáticas.
+- ✅ **README** AI-First: mapa de navegación, arquitectura y layout.
 
-> El detalle de la implementación queda terminado; lo siguiente son edge cases y mejoras técnicas.
+> La implementación de las vistas está terminada. Los edge cases y mejoras técnicas se trabajan en la rama `dev/edge-cases`.
 
 ---
 
