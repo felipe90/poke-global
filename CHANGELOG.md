@@ -627,6 +627,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 ---
 
-## Entregado — commit `a4f6c92` (push a `origin/main`)
+## Entregado — commit `a81e7c5` (push a `origin/main`)
 
 Sesión del 2026-08-17 (sexta tanda): fix glitch de parpadeo del onboarding (crossfade CSS con ambos pasos montados), fix desborde horizontal (wrapper relative) y scroll vertical en viewports pequeños (min-height con clamp). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`, `322bbe1`. Rama `main` limpia.
