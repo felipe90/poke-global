@@ -223,10 +223,10 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect((background.element as HTMLElement).style.backgroundColor).toBe('rgb(247, 208, 44)')
   })
 
-  it('renders the type element with the white gradient mask inside the background', () => {
+  it('renders the type element with the white gradient mask inside its centered wrap', () => {
     const wrapper = mountPanel(bulbasaurDetail)
-    const background = wrapper.get('.detail-header__background')
-    const element = background.find('.detail-header__element')
+    const wrap = wrapper.get('.detail-header__element-wrap')
+    const element = wrap.find('.detail-header__element')
     expect(element.exists()).toBe(true)
     expect(element.attributes('style')).toContain('--element-icon: url')
   })

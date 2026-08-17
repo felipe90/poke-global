@@ -69,6 +69,11 @@ const genderRate = computed(() => fields.value.genderRate)
         class="detail-header__background"
         :style="headerColor ? { backgroundColor: headerColor } : {}"
         aria-hidden="true"
+      ></div>
+
+      <div
+        class="detail-header__element-wrap"
+        aria-hidden="true"
       >
         <span
           v-if="elementUrl"
@@ -200,18 +205,32 @@ const genderRate = computed(() => fields.value.genderRate)
 .detail-header__background {
   position: absolute;
   top: -227px;
-  left: -63px;
+  left: 50%;
   width: 498px;
   height: 498px;
   border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+/* Figma "Elemento Outline": 204x204, horizontally centered (the Figma keeps
+   it at 1px of the header center). The type vector lives inside at the
+   exact Figma offset (top 4.16, left 9.64). */
+.detail-header__element-wrap {
+  position: absolute;
+  top: 35px;
+  left: 50%;
+  width: 204px;
+  height: 204px;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .detail-header__element {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  top: 4.16px;
+  left: 9.64px;
+  width: 181.76px;
+  height: 196.49px;
   /* White gradient + type icon (PNG alpha) as the mask shape — same as the
      list card's decorative element. */
   background: linear-gradient(
@@ -258,15 +277,16 @@ const genderRate = computed(() => fields.value.genderRate)
   outline-offset: 2px;
 }
 
-/* The artwork is independent of the background container — absolute
-   coordinates from the Figma (top 143.2, left 102, 142.23 x 154.87). */
+/* The artwork is independent of the background container — Figma geometry
+   (142.23 x 154.87, top 143.2) but horizontally centered on the frame. */
 .detail-header__artwork {
   position: absolute;
   top: 143.2px;
-  left: 102px;
+  left: 50%;
   width: 142.23px;
   height: 154.87px;
   object-fit: contain;
+  transform: translateX(-50%);
 }
 
 /* ------------------------------------------------------------------ Body */
