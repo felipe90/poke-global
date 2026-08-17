@@ -721,6 +721,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — share margin-bottom 48px, espacio final 48px; Pidgey 50/50 (segmento 171.5px = mitad del track). Suite **236/236** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
 
+### [architecture] Barrido de estilos — componentes scoped + tokens nuevos
+
+- **Descripción**: Los estilos de componentes que vivían en `main.css` global se movieron a su `<style scoped>` en cada `.vue`: TabBar, TypeBadge, FeedbackState (`.state`), SearchBar, FavoriteButton, ShareButton, PokeballLoader, PokemonCard (shimmer), TypeFilterSheet (`.sheet`/`.sheet-overlay`). `main.css` pasó de **555 → 190 líneas**, conservando solo base (`body`/`#app`/`button`), shell (`.app-main`/`.app-tab-bar`), grid, keyframes globales y las transiciones de Vue `<Transition>` (sheet/slide/fade) + su override de reduced-motion. **Tokens**: se agregaron `--gender-male` (`#2551c3`) y `--gender-female` (`#ff7596`); se reemplazaron `#fff` → `var(--color-white)` en TypeBadge/FavoriteButton y los `gap/padding: 8px` → `var(--space-xs)` en PropertyBox/GenderBar.
+- **Verificación**: navegador — todos los componentes siguen renderizando con estilos correctos (card 16px, badge 48.6px, search 48px, tab 77px, share flex, gender #2551C3, sheet 360×590 radius 24 animando). Suite **236/236** + type-check + lint PASS.
+- **Archivos afectados**: `src/styles/main.css` (reducido), `src/styles/tokens.css` (+2), 9 componentes `.vue` con `<style scoped>`.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
