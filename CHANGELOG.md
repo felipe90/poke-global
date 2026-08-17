@@ -617,9 +617,21 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador en 375×667 y 320×568 (iPhone SE) — paso 296px dentro del app (sin desborde horizontal), sin scroll en main/body/html, ambos pasos centrados y sin overflow. Suite 216/216 + type-check + lint PASS.
 - **Archivos afectados**: `src/views/OnboardingView.vue`.
 
+### [fix] Toolbar de la lista sticky — el search ya no se va de la pantalla
+
+- **Descripción**: Al scrollear la lista larga, la cabecera con el search se salía de la pantalla. Causa: `.pokedex-list-view` con `flex: 1` + `min-height: 0` tenía `height: 590px` fija (igual al main) y el contenido (72 cards) lo desbordaba — el toolbar sticky se anclaba al list de altura fija, no al scrollport del `.app-main`. Fix: `flex: 1 0 auto` (basis auto — el list crece con su contenido) para que el sticky se pegue al scrollport real.
+- **Verificación**: con 72 cards y scroll al fondo (5591px), `toolbarPinned: true` (top 0). Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/views/PokedexListView.vue`.
+
+### [decision] Frame fluido hasta 480px — responsive evaluado (opción C)
+
+- **Descripción**: Evaluación de si hacer la app responsive o dejarla fija a 360px. El Figma es un único frame mobile de 360px — hacer breakpoints/columnas **inventaría diseño** que no existe en el Figma y agregaría riesgo. El único problema real: móviles modernos (>360px, iPhone 14=390, Pro Max=430) mostraban margen gris lateral con el frame fijo. **Decisión C**: `#app` con `width: 100% + max-width: 480px` — llena el viewport móvil real (sin margen) y se centra a 480 en desktop. El diseño interno NO cambió (componentes fluyen con flex/%, medidas Figma intactas).
+- **Verificación**: móvil 390/430 llenan la pantalla, desktop 900 centrado a 480, sin overflowX, 24 cards en todos. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/styles/main.css` (#app).
+
 ## Pendiente / Próximos pasos
 
-- [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; queda revisar resultado de búsqueda/filtro.
+- [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
 - [ ] **Detalle de pokémon (`/pokemon/:name`)**: revisar alineación al Figma — header con círculo del tipo + imagen, chips junto al nombre, campos 2 columnas, Debilidades, Próximo/Anterior, estados de carga con `LoadingSpinner` (tipografía ya auditada).
 - [ ] **Favoritos con datos**: pantalla con cards + trash + snapshot localStorage + sync cross-tab (el estado vacío ya quedó cubierto por `FeedbackState`; la card reutilizada; cabecera y scroll OK).
 - [ ] **README** AI-First: qué es, cómo se desarrolla, cómo se prueba, decisiones.
@@ -627,6 +639,6 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 
 ---
 
-## Entregado — commit `a81e7c5` (push a `origin/main`)
+## Entregado — commit `f3c2b91` (push a `origin/main`)
 
-Sesión del 2026-08-17 (sexta tanda): fix glitch de parpadeo del onboarding (crossfade CSS con ambos pasos montados), fix desborde horizontal (wrapper relative) y scroll vertical en viewports pequeños (min-height con clamp). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`, `322bbe1`. Rama `main` limpia.
+Sesión del 2026-08-17 (séptima tanda): fix glitch onboarding + overflow, fix toolbar sticky de la lista, decisión de frame fluido hasta 480px (responsive evaluado, opción C). Commits previos: `88632b2`, `38c08f0`, `b23db63`, `448ad65`, `322bbe1`, `a81e7c5`. Rama `main` limpia.

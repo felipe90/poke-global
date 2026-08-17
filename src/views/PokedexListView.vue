@@ -149,8 +149,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-card);
-  flex: 1;
-  min-height: 0;
+  /* Grow with the content (basis auto) so the sticky toolbar can pin to
+     the .app-main scrollport — a fixed flex height breaks position:sticky. */
+  flex: 1 0 auto;
 }
 
 .pokedex-list-view__toolbar {

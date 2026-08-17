@@ -17,11 +17,13 @@ body {
 }
 
 #app {
-  /* Mobile frame (Figma: 360×800) centered; body behind stays neutral.
+  /* Mobile frame (Figma: 360×800) — fluid up to 480px so it fills real
+     phone viewports (>360) without side gutters, and centers on desktop.
      App-shell: the frame has a fixed height and the MAIN scrolls internally,
      so the header and tab bar stay fixed by layout (touch-safe, unlike
      relying on position: sticky which the touch scroll can break). */
-  width: 360px;
+  width: 100%;
+  max-width: 480px;
   height: 800px;
   height: 100vh;
   margin: 0 auto;
