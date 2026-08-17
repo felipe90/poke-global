@@ -370,7 +370,7 @@ describe('ShareButton (5.12)', () => {
       { base_stat: 50, stat: { name: 'special-defense' } },
       { base_stat: 90, stat: { name: 'speed' } },
     ],
-    abilities: [{ slot: 1, ability: { name: 'static' } }],
+    abilities: [{ slot: 1, ability: { name: 'static', url: 'https://pokeapi.co/api/v2/ability/1/' } }],
     sprites: {
       front_default: null,
       other: {

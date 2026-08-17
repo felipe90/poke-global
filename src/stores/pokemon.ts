@@ -9,6 +9,7 @@ import { defineStore } from 'pinia'
 
 import { TYPE_META, resolveWeaknesses } from '@/data/types'
 import {
+  fetchAbilityName,
   fetchPokemonDetail,
   fetchPokemonPage,
   fetchPokemonSpecies,
@@ -71,9 +72,11 @@ function formatPercent(value: number): string {
 
 function resolveCategory(species: PokemonSpecies): string {
   const es = species.genera.find((genus) => genus.language.name === 'es')
-  if (es) return es.genus
-  const en = species.genera.find((genus) => genus.language.name === 'en')
-  return en ? en.genus : '—'
+  const raw = (es ?? species.genera.find((genus) => genus.language.name === 'en'))?.genus ?? '—'
+  // The API genus reads "Pokémon Semilla"; the Figma wants the trailing part
+  // in uppercase without the "Pokémon" word (accent or not, any casing).
+  const withoutPrefix = raw.replace(/^pok[ée]mon\s+/i, '')
+  return withoutPrefix.toUpperCase()
 }
 
 function resolveDescription(species: PokemonSpecies): string {
@@ -407,6 +410,23 @@ export const usePokemonStore = defineStore('pokemon', () => {
       })
   }
 
+  /** Non-blocking Spanish ability-name load (the detail only carries the EN
+   *  name; the Figma shows the localized label). Updates the current species. */
+  function hydrateAbility(detail: PokemonDetail): void {
+    const slot1 = detail.abilities.find((ability) => ability.slot === 1)
+    if (!slot1) return
+    const fallback = slot1.ability.name.charAt(0).toUpperCase() + slot1.ability.name.slice(1)
+    void Promise.resolve(fetchAbilityName(slot1.ability.url, fallback))
+      .then((esName) => {
+        if (selectedSpecies.value && selectedDetail.value?.id === detail.id) {
+          selectedSpecies.value = { ...selectedSpecies.value, habilidad: esName }
+        }
+      })
+      .catch(() => {
+        /* keep the English fallback */
+      })
+  }
+
   async function openDetail(name: string): Promise<void> {
     if (detailLoadingName.value === name) return
     const cached = detailByName.get(name)
@@ -415,6 +435,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
       detailError.value = null
       detailNotFound.value = false
       hydrateSpecies(cached)
+      hydrateAbility(cached)
       return
     }
 
@@ -429,6 +450,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
       detailByName.set(name, detail)
       selectedDetail.value = detail
       hydrateSpecies(detail)
+      hydrateAbility(detail)
     } catch (error) {
       detailError.value = name
       detailNotFound.value = error instanceof Error && /\b404\b/.test(error.message)

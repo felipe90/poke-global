@@ -375,6 +375,11 @@ const genderRate = computed(() => fields.value.genderRate)
   flex: 1 1 0;
 }
 
+/* Double the body gap (2 x 16px) between the properties and the gender bar. */
+.gender-bar {
+  margin-top: var(--space-card);
+}
+
 .detail-weaknesses {
   display: flex;
   flex-direction: column;
@@ -400,6 +405,6 @@ const genderRate = computed(() => fields.value.genderRate)
 /* Share sits apart from the weaknesses block and centers horizontally. */
 .detail-share {
   align-items: center;
-  margin-top: var(--space-card);
+  margin-top: calc(2 * var(--space-card));
 }
 </style>

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   buildShareText,
+  fetchAbilityName,
   fetchPokemonDetail,
   fetchPokemonPage,
   fetchPokemonSpecies,
@@ -32,7 +33,7 @@ function makeDetail(name: string, id: number, types: PokemonDetail['types'], sta
     weight: 60,
     types,
     stats,
-    abilities: [{ slot: 1, ability: { name: 'static' } }],
+    abilities: [{ slot: 1, ability: { name: 'static', url: 'https://pokeapi.co/api/v2/ability/1/' } }],
     sprites: {
       front_default: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
       other: {
@@ -312,8 +313,32 @@ describe('pokeapi service', () => {
     })
   })
 
-  describe('buildShareText', () => {
-    it('formats pikachu exactly', () => {
+  describe('fetchAbilityName', () => {
+    it('returns the Spanish localized name', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          name: 'overgrow',
+          names: [
+            { name: 'Espessura', language: { name: 'es' } },
+            { name: 'Overgrow', language: { name: 'en' } },
+          ],
+        }),
+      )
+      const name = await fetchAbilityName('https://pokeapi.co/api/v2/ability/65/', 'Overgrow')
+      expect(name).toBe('Espessura')
+      expect(fetchMock).toHaveBeenCalledWith('https://pokeapi.co/api/v2/ability/65/')
+    })
+
+    it('falls back to the English name when Spanish is missing', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({ name: 'static', names: [{ name: 'Static', language: { name: 'en' } }] }),
+      )
+      const name = await fetchAbilityName('https://pokeapi.co/api/v2/ability/34/', 'Static')
+      expect(name).toBe('Static')
+    })
+  })
+
+  describe('buildShareText', () => {    it('formats pikachu exactly', () => {
       expect(buildShareText(pikachuDetail)).toBe(
         'pikachu, electric, HP 35, Attack 55, Defense 40, Speed 90',
       )

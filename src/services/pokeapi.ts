@@ -1,14 +1,16 @@
 /**
- * PokeAPI service — the ONLY module allowed to call the 4 whitelisted endpoints:
+ * PokeAPI service — the ONLY module allowed to call the whitelisted endpoints:
  *   GET /pokemon?limit=24&offset=N
  *   GET /pokemon/{name}
  *   GET /pokemon-species/{id}
  *   GET /type/{type}
+ *   GET /ability/{id}  (localized ability names; the detail only carries the EN name)
  * Each entity has an in-memory session cache; cache hits skip the network and
  * failed/404 requests are never cached.
  */
 import { PAGE_SIZE } from '@/types/pokemon'
 import type {
+  PokemonAbilityResponse,
   PokemonDetail,
   PokemonListResponse,
   PokemonSpecies,
@@ -22,6 +24,7 @@ const BASE_URL = 'https://pokeapi.co/api/v2'
 const detailCache = new Map<string, PokemonDetail>()
 const speciesCache = new Map<number, PokemonSpecies>()
 const typeCatalogCache = new Map<TypeName, TypeCatalogResponse>()
+const abilityNameCache = new Map<string, string>()
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url)
@@ -64,6 +67,20 @@ export async function fetchTypeCatalog(type: TypeName): Promise<TypeCatalogRespo
   const catalog = await fetchJson<TypeCatalogResponse>(`${BASE_URL}/type/${type}`)
   typeCatalogCache.set(type, catalog)
   return catalog
+}
+
+/** Fetch an ability's localized (Spanish) name from its endpoint URL. The
+ *  pokémon detail only carries the English name, so the Figma's Spanish
+ *  label requires this extra lookup. Falls back to the English name. Cached. */
+export async function fetchAbilityName(abilityUrl: string, fallback: string): Promise<string> {
+  const cached = abilityNameCache.get(abilityUrl)
+  if (cached) return cached
+
+  const ability = await fetchJson<PokemonAbilityResponse>(abilityUrl)
+  const es = ability.names.find((entry) => entry.language.name === 'es')
+  const resolved = es?.name ?? fallback
+  abilityNameCache.set(abilityUrl, resolved)
+  return resolved
 }
 
 /** Extract the six base stats from a detail's raw `stats` array. */

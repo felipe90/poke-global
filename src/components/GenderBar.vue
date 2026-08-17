@@ -65,7 +65,8 @@ function format(value: number): string {
 .gender-bar {
   display: flex;
   flex-direction: column;
-  gap: var(--space-info-gap);
+  /* Double the info gap (2 x 4px) between the label and the track. */
+  gap: 8px;
 }
 
 .gender-bar__label {

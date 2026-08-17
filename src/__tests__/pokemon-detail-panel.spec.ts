@@ -56,7 +56,7 @@ const bulbasaurDetail: PokemonDetail = {
     { base_stat: 65, stat: { name: 'special-defense' } },
     { base_stat: 45, stat: { name: 'speed' } },
   ],
-  abilities: [{ slot: 1, ability: { name: 'overgrow' } }],
+  abilities: [{ slot: 1, ability: { name: 'overgrow', url: 'https://pokeapi.co/api/v2/ability/1/' } }],
   sprites: {
     front_default: 'https://example.com/bulbasaur.png',
     other: {
@@ -96,7 +96,7 @@ const pikachuDetail: PokemonDetail = {
     { base_stat: 50, stat: { name: 'special-defense' } },
     { base_stat: 90, stat: { name: 'speed' } },
   ],
-  abilities: [{ slot: 1, ability: { name: 'static' } }],
+  abilities: [{ slot: 1, ability: { name: 'static', url: 'https://pokeapi.co/api/v2/ability/1/' } }],
   sprites: {
     front_default: null,
     other: {
@@ -134,7 +134,7 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(wrapper.text()).toContain('Altura')
     expect(wrapper.text()).toContain('0,7 m')
     expect(wrapper.text()).toContain('Categoría')
-    expect(wrapper.text()).toContain('Pokémon Semilla')
+    expect(wrapper.text()).toContain('SEMILLA')
     expect(wrapper.text()).toContain('Habilidad')
     expect(wrapper.text()).toContain('Overgrow')
     // Property icons come from the Figma assets (labels uppercase via CSS,

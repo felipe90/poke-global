@@ -46,7 +46,7 @@ function makeDetail(name: string, id: number): PokemonDetail {
       { base_stat: 65, stat: { name: 'special-defense' } },
       { base_stat: 45, stat: { name: 'speed' } },
     ],
-    abilities: [{ slot: 1, ability: { name: 'overgrow' } }],
+    abilities: [{ slot: 1, ability: { name: 'overgrow', url: 'https://pokeapi.co/api/v2/ability/1/' } }],
     sprites: {
       front_default: null,
       other: {

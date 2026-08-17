@@ -56,7 +56,7 @@ export interface PokemonDetail {
   weight: number
   types: { slot: number; type: { name: TypeName } }[]
   stats: { base_stat: number; stat: { name: string } }[]
-  abilities: { slot: number; ability: { name: string } }[]
+  abilities: { slot: number; ability: { name: string; url: string } }[]
   sprites: {
     front_default: string | null
     other: {
@@ -76,6 +76,12 @@ export interface PokemonSpecies {
   }[]
   genera: { genus: string; language: { name: string } }[]
   gender_rate: number
+}
+
+/** Response of `GET /api/v2/ability/{id}` (fields used by the app). */
+export interface PokemonAbilityResponse {
+  name: string
+  names: { name: string; language: { name: string } }[]
 }
 
 /** Snapshot of a favorite pokémon, persisted under `STORAGE_KEY`. */

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
-import { fetchPokemonDetail, fetchPokemonPage, fetchPokemonSpecies, fetchTypeCatalog } from '@/services/pokeapi'
+import { fetchAbilityName, fetchPokemonDetail, fetchPokemonPage, fetchPokemonSpecies, fetchTypeCatalog } from '@/services/pokeapi'
 import { usePokemonStore } from '@/stores/pokemon'
 import { PAGE_SIZE, STORAGE_KEY } from '@/types/pokemon'
 import type {
@@ -19,6 +19,7 @@ vi.mock('@/services/pokeapi', () => ({
   fetchTypeCatalog: vi.fn<(type: TypeName) => Promise<TypeCatalogResponse>>(),
   fetchPokemonDetail: vi.fn<(name: string) => Promise<PokemonDetail>>(),
   fetchPokemonSpecies: vi.fn<(id: number) => Promise<PokemonSpecies>>(),
+  fetchAbilityName: vi.fn<(url: string, fallback: string) => Promise<string>>(),
 }))
 
 const BASE = 'https://pokeapi.co/api/v2'
@@ -387,7 +388,7 @@ function makeDetail(
       { base_stat: 50, stat: { name: 'special-defense' } },
       { base_stat: 90, stat: { name: 'speed' } },
     ],
-    abilities: [{ slot: 1, ability: { name: ability } }],
+    abilities: [{ slot: 1, ability: { name: ability, url: `https://pokeapi.co/api/v2/ability/${id}/` } }],
     sprites: {
       front_default: artwork(id),
       other: {
@@ -477,6 +478,8 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     vi.mocked(fetchTypeCatalog).mockReset()
     vi.mocked(fetchPokemonDetail).mockReset()
     vi.mocked(fetchPokemonSpecies).mockReset()
+    vi.mocked(fetchAbilityName).mockReset()
+    vi.mocked(fetchAbilityName).mockResolvedValue('Ability ES')
     store = usePokemonStore()
   })
 
@@ -484,6 +487,7 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await preloadWith({ electric: ['ground'] })
     vi.mocked(fetchPokemonDetail).mockResolvedValueOnce(pikachuDetail)
     vi.mocked(fetchPokemonSpecies).mockResolvedValueOnce(pikachuSpecies)
+    vi.mocked(fetchAbilityName).mockResolvedValueOnce('Elektrostátika')
 
     await store.openDetail('pikachu')
     await flushPromises()
@@ -494,11 +498,11 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     expect(store.selectedSpecies).toEqual({
       peso: '6,9 kg',
       altura: '0,7 m',
-      categoria: 'Pokémon Ratón',
+      categoria: 'RATÓN',
       descripcion:
         'Cuanto más potente es la energía que genera, más blandas y elásticas se vuelven las bolsas de sus mejillas.',
       genero: '50% / 50%',
-      habilidad: 'Static',
+      habilidad: 'Elektrostátika',
       debilidades: ['ground'],
       genderRate: 4,
     })
@@ -572,13 +576,14 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     })
     vi.mocked(fetchPokemonDetail).mockResolvedValueOnce(bulbasaurDetail)
     vi.mocked(fetchPokemonSpecies).mockResolvedValueOnce(bulbasaurSpecies)
+    vi.mocked(fetchAbilityName).mockResolvedValueOnce('Espesura')
 
     await store.openDetail('bulbasaur')
     await flushPromises()
 
     expect(store.selectedSpecies?.genero).toBe('87,5% / 12,5%')
-    expect(store.selectedSpecies?.categoria).toBe('Pokémon Semilla')
-    expect(store.selectedSpecies?.habilidad).toBe('Overgrow')
+    expect(store.selectedSpecies?.categoria).toBe('SEMILLA')
+    expect(store.selectedSpecies?.habilidad).toBe('Espesura')
     expect(store.selectedSpecies?.debilidades).toEqual(['fire', 'ice', 'poison', 'flying', 'bug', 'ground', 'psychic'])
   })
 
@@ -590,7 +595,7 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await flushPromises()
 
     expect(store.selectedSpecies?.genero).toBe('Sin género')
-    expect(store.selectedSpecies?.categoria).toBe('Seed Pokémon')
+    expect(store.selectedSpecies?.categoria).toBe('SEED POKÉMON')
     expect(store.selectedSpecies?.descripcion).toBe('Some English text.')
   })
 
@@ -731,6 +736,8 @@ describe('pokemon store — type preload slice (2.9)', () => {
     vi.mocked(fetchTypeCatalog).mockReset()
     vi.mocked(fetchPokemonDetail).mockReset()
     vi.mocked(fetchPokemonSpecies).mockReset()
+    vi.mocked(fetchAbilityName).mockReset()
+    vi.mocked(fetchAbilityName).mockResolvedValue('Ability ES')
     store = usePokemonStore()
   })
 
