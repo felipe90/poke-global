@@ -85,12 +85,15 @@ export interface FavoritePokemon {
   addedAt: string
 }
 
-/** Local metadata for a type: Spanish label, card color, and icon asset. */
+/** Local metadata for a type: Spanish label, card color, icon asset, and the
+ *  decorative Figma element drawn behind the card's pokémon sprite. */
 export interface TypeMeta {
   name: TypeName
   esLabel: string
   color: string
   icon: string
+  /** Decorative vector graphic (Figma Components > Elements) behind the sprite. */
+  element: string
 }
 
 /** Response of `GET /api/v2/type/{type}` — full catalog, unpaginated. */

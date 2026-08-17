@@ -115,7 +115,7 @@ const currentStep = ref(0)
 
 .onboarding__subtitle {
   margin: 0;
-  font-size: var(--font-data-value);
+  font-size: var(--font-size-sm);
   font-weight: 400;
   color: var(--subtitle);
 }

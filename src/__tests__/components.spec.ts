@@ -181,11 +181,21 @@ describe('SearchBar (5.4)', () => {
     vi.useRealTimers()
   })
 
-  it('renders a labeled input with the exact placeholder', () => {
+  it('renders an input with the exact placeholder and no visible label', () => {
     const wrapper = mount(SearchBar)
     const input = wrapper.get('input')
     expect(input.attributes('placeholder')).toBe('Buscar Pokémon...')
-    expect(wrapper.get('label').text()).toContain('Buscar')
+    expect(input.attributes('aria-label')).toBe('Buscar Pokémon')
+    expect(wrapper.find('label').exists()).toBe(false)
+  })
+
+  it('renders a circular filter button with a search icon, emitting open-filter', async () => {
+    const wrapper = mount(SearchBar)
+    const button = wrapper.get('.search-bar__filter')
+    expect(button.attributes('aria-label')).toBe('Abrir filtros')
+    expect(button.find('img').exists()).toBe(true)
+    await button.trigger('click')
+    expect(wrapper.emitted('open-filter')).toHaveLength(1)
   })
 
   it('emits the query to store.searchFilter after the 300 ms debounce', async () => {

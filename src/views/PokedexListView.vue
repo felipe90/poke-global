@@ -23,16 +23,6 @@ const hasMoreFiltered = computed(
   () => (store.filterSliceIndex + 1) * PAGE_SIZE < store.filteredSet.length,
 )
 
-function countMessage(n: number): string {
-  return n === 1 ? 'Se ha encontrado 1 resultado' : `Se han encontrado ${n} resultados`
-}
-
-const countText = computed(() => {
-  if (store.searchFilter.trim() !== '') return countMessage(store.filteredList.length)
-  if (filterActive.value) return countMessage(store.filteredSet.length)
-  return ''
-})
-
 /** Ordered list captured as the nav context when a card is activated. */
 const navContext = computed(() => {
   if (filterActive.value) return store.filteredSet.map((item) => item.name)
@@ -92,33 +82,8 @@ onMounted(() => {
     :aria-busy="store.loadingFirst || store.loadingMore"
   >
     <div class="pokedex-list-view__toolbar">
-      <SearchBar />
-      <div class="pokedex-list-view__actions">
-        <button
-          type="button"
-          class="filter-control"
-          @click="sheetOpen = true"
-        >
-          Filtrar
-        </button>
-        <button
-          v-if="filterActive"
-          type="button"
-          class="clear-filter"
-          @click="store.clearFilter()"
-        >
-          Borrar filtro
-        </button>
-      </div>
+      <SearchBar @open-filter="sheetOpen = true" />
     </div>
-
-    <p
-      v-if="countText"
-      class="result-count"
-      aria-live="polite"
-    >
-      {{ countText }}
-    </p>
 
     <LoadingSpinner
       v-if="store.loadingFirst"
@@ -190,35 +155,6 @@ onMounted(() => {
   z-index: 2;
   background: var(--bg);
   padding-bottom: var(--space-info-gap);
-}
-
-.pokedex-list-view__actions {
-  display: flex;
-  gap: var(--space-info-gap);
-}
-
-.filter-control,
-.clear-filter {
-  padding: var(--space-info-gap) var(--space-card);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--bg);
-  font-size: var(--font-data-value);
-  font-weight: 600;
-}
-
-.filter-control:focus-visible,
-.clear-filter:focus-visible {
-  outline: 2px solid var(--title);
-  outline-offset: 2px;
-}
-
-.result-count {
-  margin: 0;
-  font-size: var(--font-data-label);
-  font-weight: 500;
-  color: var(--subtitle);
 }
 
 .pokemon-grid {

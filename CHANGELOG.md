@@ -495,13 +495,48 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador midiendo computed styles — TabBar 77px full width, items 62×44, iconos con `mask-image` activo (fondo `#0d47a1` en el activo), `#app` 360px. Suite 211/211 + type-check + lint PASS.
 - **Archivos afectados**: `src/components/TabBar.vue`, `src/styles/tokens.css`, `src/styles/main.css`, `src/assets/icons/house.svg` + `globe.svg` + `heart.svg` + `user.svg`, `src/__tests__/components.spec.ts`.
 
+### [architecture] Tipos dinámicos — debilidades del API + fallback gris (sin localStorage)
+
+- **Descripción**: Evaluado y descartado cachear `GET /type` en localStorage (la API trae 21 tipos pero `stellar`/`unknown`/`shadow` tienen **0 pokémons** — verificados por curl). Se eligió el **Nivel 1**: las debilidades ahora se derivan de `damage_relations.double_damage_from` de los catálogos que el preload ya trae (los 18), eliminando `WEAKNESS_CHART` estático.
+- **Match API↔Figma**: `resolveEsLabel` prefiere `names[es]` del API y cae al `esLabel` del Figma; `resolveWeaknesses` deriva del catálogo; `TypeCatalogResponse` ahora incluye `names`. `TYPE_META.esLabel` se conserva como fallback de diseño (solo los 18 van al filtro).
+- **Fallback gris (opción 2)**: `FALLBACK_TYPE_COLOR #9e9e9e` para tipos no mapeados en card, badge y detalle; el filtro sigue mostrando solo los 18 de `TYPE_META`.
+- **Gotcha crítico**: en Vue 3 las refs NO se desenvuelven dentro de `computed(() => ...)` — `meta?.color` era undefined y el badge salía gris; fue `meta.value?.color`. Rompió 50 tests hasta diagnosticarlo.
+- **Verificación**: navegador con la API real — Bulbasaur muestra debilidades del API (Volador/Veneno/Bicho/Fuego/Hielo + Tierra/Psíquico). Suite 215/215 + type-check + lint PASS.
+- **Archivos afectados**: `src/data/types.ts`, `src/types/pokemon.ts`, `src/stores/pokemon.ts`, `TypeBadge.vue`, `PokemonCard.vue`, `PokemonDetailPanel.vue`, 4 archivos de tests.
+
+### [feature] Fuentes oficiales del Figma + auditoría tipográfica contra la API
+
+- **Descripción**: Se instalaron `@fontsource/poppins` y `@fontsource/montserrat` (400–700, self-hosted) — antes la app caía a system-ui. Se consultó la **API real del Figma** (token en `.env`, file `edU7Pms8bvosgSYW23yOds`) y se extrajo la tipografía por nodo.
+- **Hallazgo**: el Figma usa **Poppins** (256 nodos) como fuente principal y **Montserrat** (32 nodos) solo en: "Se han encontrado N resultados" (14/500 `#9E9E9E`), "Borrar filtro" (14/500 `#1E88E5`), textos del BottomSheet y subtítulos.
+- **Correcciones aplicadas** (9 desajustes): onboarding subtítulo 14/400; TabBar 10px (activo 700 / inactivo 500 — el Figma usa 10, no 12); chip tipo 11px; detalle Nº 16/500; detalle descripción 14/400; estados (error/construcción/vacío) título 20/600 `#333333` + subtítulo 14/400 `#4d4d4d` (tokens `--state-title`/`--state-subtitle`).
+- **Tokens nuevos**: `--font-size-2xs` (10), `--font-size-sm` (14), `--font-size-lg` (20), `--font-family-montserrat`, `--state-title`, `--state-subtitle`.
+- **Verificación**: `document.fonts` carga Poppins y Montserrat; computed styles confirman TabBar 10/700 activo, chip 11px, detalle Nº 16px, estados 20/600. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `package.json`, `src/main.ts`, `src/styles/tokens.css`, `main.css`, `OnboardingView.vue`, `PokemonDetailPanel.vue`.
+
+### [architecture] PokemonCard reconstruida a la geometría exacta del Figma
+
+- **Descripción**: La card se reconstruyó leyendo el componente **Card** de la página Components del Figma vía API (COMPONENT 318.6×102 r16 gap29 → Info + Image Container 126×102 r16). Estructura final: card 328×102 r16 `min-height` con padding-left 16; info-section column `space-between` (Nº arriba, tipos abajo gap 2); media-section 126×102 r16 padding 4/16 pegada a bordes sup/der/inf.
+- **Elementos decorativos**: se exportaron los 18 SVGs del COMPONENT_SET **Elements** (id 6:206, variantes `Property 1={tipo}`) → `src/assets/images/element-{tipo}.svg` (hoja grass, llama fire...). `TypeMeta.element` nuevo; la card renderiza el element DETRÁS del sprite (absolute primero en el DOM).
+- **Colores derivados**: la card usa `lightenColor(base, 0.5)` y la media `darkenColor(base, 0.08)` — helpers nuevos que derivan las variantes claro/oscuro del color base del tipo (el render del PNG difiere del color sólido de la API; solución dinámica sin hardcodear).
+- **FavoriteButton**: ahora acepta prop `size` (36 card / 28 detalle), borde blanco, fondo translúcido `rgba(255,255,255,0.3)`.
+- **Fixes de layout**: badges en columna → `flex-wrap: nowrap` + info sin padding lateral; gap 2px entre nombre y badges; sprite 94×94 centrado (dx/dy 0).
+- **Verificación**: navegador midiendo rects — card 328×102 r16, media 126×103 pegada (top/right/bottom 0), element 126×103, sprite centrado, badges fila. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonCard.vue`, `FavoriteButton.vue`, `data/types.ts` (lightenColor/darkenColor + element), `types/pokemon.ts` (TypeMeta.element), 18 SVGs nuevos, tests.
+
+### [feature] SearchBar completo — input + filtros + resultados integrados
+
+- **Descripción**: El componente de búsqueda quedó completo: fila con input (48px, r30, borde 1.5px `--border-default`, icono `search.svg` 20×20 dentro a la izquierda, placeholder Poppins 14/400 `--text-disabled #9E9E9E`) + botón filtros circular (52×48 r30); padding-top 48px sin laterales (el frame da los 16px).
+- **Fila de resultados** integrada en el componente: "Se han encontrado **N resultados**" (Montserrat 14/500 `#9E9E9E`, el "N resultados" en bold 700) + link "Borrar filtro" (Montserrat 14/500 `#1E88E5` subrayado) — visible con búsqueda/filtro activo. La vista ya no maneja count/clear-filter.
+- **Tokens nuevos**: `--border-default`, `--text-disabled`, `--text-link`.
+- **Gotchas**: Vue colapsa el whitespace entre spans en el render — el espacio entre "encontrado" y el número se perdió; fix con `{{ ' ' + resultCount }}`.
+- **Verificación**: navegador — input 264×48 r30, botón 52×48, resultados con strong 700, "Borrar filtro" subrayado `#1E88E5`. Suite 216/216 + type-check + lint PASS.
+- **Archivos afectados**: `src/components/SearchBar.vue`, `src/styles/main.css`, `src/styles/tokens.css`, `src/views/PokedexListView.vue`, 2 archivos de tests.
+
 ## Pendiente / Próximos pasos
 
-- [ ] **Commit + push pendiente**: todo el trabajo de la sesión está sin commitear (CHANGELOG actualizado aquí; wobble, precarga, FeedbackState, TabBar). Consultar con el usuario si incluir `public/favicon.ico` (modificado, sospechoso de build artifact) y `.engram/config.json` (config local del MCP).
-- [ ] **Lista de pokémon (`/`)**: revisar alineación al Figma — cards, search bar, resultado de búsqueda/filtro, sentinel de infinite scroll.
-- [ ] **Detalle de pokémon (`/pokemon/:name`)**: revisar alineación al Figma — header con círculo del tipo + imagen, chips junto al nombre, campos 2 columnas, Debilidades, Próximo/Anterior, estados de carga con `LoadingSpinner`.
-- [ ] **Favoritos con datos**: pantalla con cards + trash + snapshot localStorage + sync cross-tab (el estado vacío ya quedó cubierto por `FeedbackState`).
-- [ ] **Cargar la fuente Poppins** (token `--font-family` ya apunta a ella; falta `@fontsource/poppins` o Google Fonts) para la tipografía real del Figma.
+- [ ] **Lista de pokémon (`/`)**: revisar alineación al Figma — search bar y cards ya refinados; queda resultado de búsqueda/filtro y sentinel de infinite scroll.
+- [ ] **Detalle de pokémon (`/pokemon/:name`)**: revisar alineación al Figma — header con círculo del tipo + imagen, chips junto al nombre, campos 2 columnas, Debilidades, Próximo/Anterior, estados de carga con `LoadingSpinner` (tipografía ya auditada).
+- [ ] **Favoritos con datos**: pantalla con cards + trash + snapshot localStorage + sync cross-tab (el estado vacío ya quedó cubierto por `FeedbackState`; la card reutilizada).
 - [ ] **README** AI-First: qué es, cómo se desarrolla, cómo se prueba, decisiones.
 - [ ] Fix del nit de `vitest.config.ts` (extensión en el import).
 

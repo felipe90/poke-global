@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { FALLBACK_TYPE_COLOR, getTypeMeta } from '@/data/types'
+import { FALLBACK_TYPE_COLOR, darkenColor, getTypeMeta, lightenColor } from '@/data/types'
 import { usePokemonStore } from '@/stores/pokemon'
 import type { FavoritePokemon, PokemonSummary, TypeName } from '@/types/pokemon'
 
@@ -49,10 +49,23 @@ const types = computed<TypeName[]>(() => {
   return store.nameToTypes.get(props.summary.name) ?? []
 })
 
-const background = computed(() => {
+const baseColor = computed(() => {
   const primary = types.value[0]
-  if (!primary) return undefined
+  if (!primary) return FALLBACK_TYPE_COLOR
   return getTypeMeta(primary)?.color ?? FALLBACK_TYPE_COLOR
+})
+
+/** Card background: the type color lightened (Figma render uses a light tint). */
+const background = computed(() => lightenColor(baseColor.value, 0.5))
+
+/** Media-section background: the type color darkened (interior card). */
+const mediaBackground = computed(() => darkenColor(baseColor.value, 0.08))
+
+/** Decorative Figma element graphic behind the sprite (by primary type). */
+const elementUrl = computed(() => {
+  const primary = types.value[0]
+  if (!primary) return null
+  return getTypeMeta(primary)?.element ?? null
 })
 
 const imageUrl = computed(() => {
@@ -79,8 +92,10 @@ function activate(): void {
     @click="activate"
   >
     <div class="pokemon-card__info">
-      <span class="pokemon-card__number">{{ numero }}</span>
-      <h3 class="pokemon-card__name">{{ displayName }}</h3>
+      <div class="pokemon-card__text">
+        <span class="pokemon-card__number">{{ numero }}</span>
+        <h3 class="pokemon-card__name">{{ displayName }}</h3>
+      </div>
       <div
         v-if="types.length > 0"
         class="pokemon-card__types"
@@ -92,65 +107,127 @@ function activate(): void {
         />
       </div>
     </div>
-    <FavoriteButton
-      class="pokemon-card__favorite"
-      :name="name"
-      :id="id"
-      :image-url="imageUrl ?? ''"
-      :types="types"
-      @click.stop
-    />
-    <img
-      v-if="imageUrl"
-      class="pokemon-card__image"
-      :src="imageUrl"
-      :alt="name"
-    />
+    <div
+      class="pokemon-card__media"
+      :style="{ backgroundColor: mediaBackground }"
+    >
+      <img
+        v-if="elementUrl"
+        class="pokemon-card__element"
+        :src="elementUrl"
+        alt=""
+        aria-hidden="true"
+      />
+      <img
+        v-if="imageUrl"
+        class="pokemon-card__image"
+        :src="imageUrl"
+        :alt="name"
+      />
+      <FavoriteButton
+        class="pokemon-card__favorite"
+        :name="name"
+        :id="id"
+        :image-url="imageUrl ?? ''"
+        :types="types"
+        @click.stop
+      />
+    </div>
   </button>
 </template>
 
 <style scoped>
 .pokemon-card {
   position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: var(--space-sm);
   color: #fff;
   border: none;
   text-align: left;
   background: var(--bg);
+  border-radius: 16px;
+  min-height: 102px;
+  padding: 0 0 0 var(--space-card);
+}
+
+.pokemon-card__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-card) 0;
+}
+
+.pokemon-card__text {
+  display: flex;
+  flex-direction: column;
 }
 
 .pokemon-card__number {
   font-size: var(--font-number);
   font-weight: 600;
+  color: var(--subtitle);
 }
 
 .pokemon-card__name {
-  margin: 0;
+  margin: -2px 0 0;
   font-size: var(--font-card-name);
   font-weight: 600;
+  line-height: 1.2;
+  color: var(--title);
 }
 
 .pokemon-card__types {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+.pokemon-card__media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 126px;
+  min-height: 102px;
+  border-radius: 16px;
+  padding: 4px 16px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.pokemon-card__element {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .pokemon-card__image {
-  width: 96px;
-  height: 96px;
+  position: relative;
+  width: 94px;
+  height: 94px;
   object-fit: contain;
   pointer-events: none;
 }
 
 .pokemon-card__favorite {
   position: absolute;
-  top: var(--space-info-gap);
-  right: var(--space-info-gap);
-  padding: var(--space-info-gap);
-}
-
-.pokemon-card__favorite:focus-visible {
-  outline: 2px solid var(--bg);
-  outline-offset: 2px;
+  top: 12px;
+  right: 12px;
 }
 
 .pokemon-card:focus-visible {

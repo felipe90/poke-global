@@ -73,13 +73,14 @@ button {
   color: var(--subtitle);
   font-family: var(--font-family);
   font-weight: 500;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-2xs);
   line-height: var(--line-height-xs);
   text-align: center;
 }
 
 .tab-item.active {
   color: var(--tab-active);
+  font-weight: 700;
 }
 
 .tab-item__icon {
@@ -123,13 +124,13 @@ button {
   align-items: center;
   justify-content: space-between;
   border-radius: var(--radius-card);
-  padding: var(--space-card);
 }
 
 .pokemon-card__info {
   display: flex;
   flex-direction: column;
   gap: var(--space-info-gap);
+  padding: 16px 0 16px 16px;
 }
 
 .pokemon-card__types {
@@ -167,11 +168,12 @@ button {
 .type-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-info-gap);
-  padding: 3px 6px;
-  border-radius: var(--radius-pill);
+  gap: 5.8px;
+  padding: 2.9px 6px;
+  border-radius: 48.6px;
   color: #fff;
-  font-size: var(--font-data-label);
+  font-family: var(--font-family);
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -208,16 +210,16 @@ button {
 
 .state__title {
   margin: 0;
-  font-size: var(--font-screen-title);
-  font-weight: 500;
-  color: var(--title);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--state-title);
 }
 
 .state__subtitle {
   margin: 0;
-  font-size: var(--font-data-value);
+  font-size: var(--font-size-sm);
   font-weight: 400;
-  color: var(--subtitle);
+  color: var(--state-subtitle);
   max-width: 420px;
 }
 
@@ -226,33 +228,60 @@ button {
   height: auto;
 }
 
-/* ---------------------------------------------------------------- Search */
+/* ---------------------------------------------------------------- Search
+   Complete search component: input + filter button in one row, then a
+   results row (count + clear filter) when a query/filter is active.
+   Padding-top 48px per Figma; no lateral margins/padding (the app frame
+   supplies the 16px side spacing). */
 
 .search-bar {
   display: flex;
   flex-direction: column;
-  gap: var(--space-info-gap);
+  gap: var(--space-sm);
+  padding-top: 48px;
 }
 
-.search-bar__label {
-  font-size: var(--font-data-label);
-  font-weight: 500;
-  color: var(--subtitle);
+.search-bar__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.search-bar__field {
+  position: relative;
+  flex: 1;
+}
+
+.search-bar__icon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-card);
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
 }
 
 .search-bar__input {
   width: 100%;
-  padding: 12px var(--space-card);
-  border: 1px solid var(--progress-track);
-  border-radius: var(--radius-card);
+  height: 48px;
+  padding: 14px var(--space-card) 14px 44px;
+  border: 1.5px solid var(--border-default, #e0e0e0);
+  border-radius: 30px;
   background: #fff;
   color: var(--title);
+  font-family: var(--font-family);
   font-size: var(--font-search);
   font-weight: 400;
 }
 
 .search-bar__input::placeholder {
-  color: var(--subtitle);
+  color: var(--text-disabled, #9e9e9e);
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: var(--font-search);
+  line-height: 100%;
+  letter-spacing: 0;
 }
 
 .search-bar__input:focus-visible {
@@ -260,16 +289,95 @@ button {
   outline-offset: 1px;
 }
 
-/* ----------------------------------------------------- Favorite button */
+.search-bar__filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 48px;
+  padding: 14px var(--space-card);
+  border: 1.5px solid var(--border-default, #e0e0e0);
+  border-radius: 30px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.search-bar__filter-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.search-bar__filter:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.search-bar__results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 22px;
+}
+
+.search-bar__count {
+  margin: 0;
+  height: 22px;
+  font-family: var(--font-family-montserrat);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-md);
+  letter-spacing: 0;
+  color: var(--text-disabled, #9e9e9e);
+}
+
+.search-bar__count-text {
+  font-weight: 500;
+}
+
+.search-bar__count-strong {
+  font-weight: 700;
+}
+
+.search-bar__clear {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-family-montserrat);
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-md);
+  letter-spacing: 0;
+  color: var(--text-link, #1e88e5);
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-offset: 0%;
+  text-decoration-thickness: 0%;
+  text-decoration-skip-ink: auto;
+  cursor: pointer;
+}
+
+.search-bar__clear:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+
+/* ----------------------------------------------------- Favorite button
+   Figma Card: Fav 36×36 r=50%, white border, translucent white fill. */
 
 .favorite-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-card);
-  border: none;
-  border-radius: var(--radius-icon-circle);
-  background: transparent;
+  padding: 0;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+.favorite-button__icon {
+  object-fit: contain;
 }
 
 .favorite-button:focus-visible {

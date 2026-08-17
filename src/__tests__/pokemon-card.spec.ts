@@ -50,13 +50,14 @@ describe('PokemonCard (5.1)', () => {
     expect(wrapper.findAll('.type-badge')).toHaveLength(2)
   })
 
-  it('applies the type color as the card background from the map', async () => {
+  it('applies the lightened type color as the card background from the map', async () => {
     const { usePokemonStore } = await import('@/stores/pokemon')
     const store = usePokemonStore()
     store.nameToTypes = new Map([['bulbasaur', ['grass', 'poison']]])
 
     const wrapper = mountCard({ name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/' })
-    expect(wrapper.attributes('style')).toContain('rgb(139, 195, 74)')
+    // grass #8bc34a lightened 50% → rgb(197, 225, 165)
+    expect(wrapper.attributes('style')).toContain('rgb(197, 225, 165)')
   })
 
   it('renders Nº + name without chips when the type map has no entry (preload error)', async () => {

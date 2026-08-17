@@ -185,7 +185,7 @@ describe('PokedexListView (4.3)', () => {
       mod.fetchPokemonPage.mockResolvedValue(page(0, ['bulbasaur'], null)),
     )
     await flushPromises()
-    await wrapper.get('.filter-control').trigger('click')
+    await wrapper.get('.search-bar__filter').trigger('click')
     await nextTick()
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Filtra por tus preferencias')
@@ -201,8 +201,8 @@ describe('PokedexListView (4.3)', () => {
       store.searchFilter = 'bulba'
     })
     await flushPromises()
-    expect(wrapper.find('.clear-filter').exists()).toBe(true)
-    await wrapper.get('.clear-filter').trigger('click')
+    expect(wrapper.find('.search-bar__clear').exists()).toBe(true)
+    await wrapper.get('.search-bar__clear').trigger('click')
     await nextTick()
     expect(store.appliedTypes).toEqual([])
     expect(store.searchFilter).toBe('')

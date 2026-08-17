@@ -101,6 +101,7 @@ const statRows = [
           :id="detail.id"
           :image-url="artwork ?? ''"
           :types="favoriteTypes"
+          :size="28"
           @click="emit('toggleFavorite')"
         />
       </div>
@@ -376,7 +377,7 @@ const statRows = [
 
 .detail-heading__number {
   margin: -4px 0 0;
-  font-size: var(--font-number);
+  font-size: var(--font-size-md);
   font-weight: 500;
   color: var(--subtitle);
 }
@@ -395,7 +396,7 @@ const statRows = [
 
 .detail-description {
   margin: 0;
-  font-size: var(--font-data-value);
+  font-size: var(--font-size-sm);
   font-weight: 400;
   color: var(--subtitle);
 }

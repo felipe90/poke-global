@@ -19,6 +19,11 @@
   --tapbar-bg: #fafafa;
   --tapbar-border-top: #e0e0e0;
 
+  /* Borders (Figma: border-default) */
+  --border-default: #e0e0e0;
+  --text-disabled: #9e9e9e;
+  --text-link: #1e88e5;
+
   /* Button (Figma: button variants) */
   --button-primary-default-bg: #1e88e5;
   --button-secondary-default-bg: #eeeeee;
@@ -86,6 +91,16 @@
   --font-cta: 18px;
   --font-search: 14px;
   --font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-family-montserrat: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-2xs: 10px;
   --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
   --line-height-xs: 16px;
+  --line-height-md: 22px;
+
+  /* State screens (Figma: Pokedex_Error/Construcción/Favoritos vacío) */
+  --state-title: #333333;
+  --state-subtitle: #4d4d4d;
 }

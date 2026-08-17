@@ -25,30 +25,70 @@ import iconRock from '@/assets/icons/type-rock.png'
 import iconSteel from '@/assets/icons/type-steel.png'
 import iconWater from '@/assets/icons/type-water.png'
 
-/** 18-entry metadata: canonical name, Spanish label, card color, icon asset. */
+import elementBug from '@/assets/images/element-bug.svg'
+import elementDark from '@/assets/images/element-dark.svg'
+import elementDragon from '@/assets/images/element-dragon.svg'
+import elementElectric from '@/assets/images/element-electric.svg'
+import elementFairy from '@/assets/images/element-fairy.svg'
+import elementFighting from '@/assets/images/element-fighting.svg'
+import elementFire from '@/assets/images/element-fire.svg'
+import elementFlying from '@/assets/images/element-flying.svg'
+import elementGhost from '@/assets/images/element-ghost.svg'
+import elementGrass from '@/assets/images/element-grass.svg'
+import elementGround from '@/assets/images/element-ground.svg'
+import elementIce from '@/assets/images/element-ice.svg'
+import elementNormal from '@/assets/images/element-normal.svg'
+import elementPoison from '@/assets/images/element-poison.svg'
+import elementPsychic from '@/assets/images/element-psychic.svg'
+import elementRock from '@/assets/images/element-rock.svg'
+import elementSteel from '@/assets/images/element-steel.svg'
+import elementWater from '@/assets/images/element-water.svg'
+
+/** 18-entry metadata: canonical name, Spanish label, card color, icon asset,
+ *  and the decorative element graphic behind the card sprite. */
 export const TYPE_META: TypeMeta[] = [
-  { name: 'grass', esLabel: 'Planta', color: '#8bc34a', icon: iconGrass },
-  { name: 'fire', esLabel: 'Fuego', color: '#ff9800', icon: iconFire },
-  { name: 'water', esLabel: 'Agua', color: '#6390f0', icon: iconWater },
-  { name: 'electric', esLabel: 'Eléctrico', color: '#f7d02c', icon: iconElectric },
-  { name: 'psychic', esLabel: 'Psíquico', color: '#9c27b0', icon: iconPsychic },
-  { name: 'poison', esLabel: 'Veneno', color: '#9c27b0', icon: iconPoison },
-  { name: 'normal', esLabel: 'Normal', color: '#a8a77a', icon: iconNormal },
-  { name: 'bug', esLabel: 'Bicho', color: '#a6b91a', icon: iconBug },
-  { name: 'fighting', esLabel: 'Lucha', color: '#c22e28', icon: iconFighting },
-  { name: 'ground', esLabel: 'Tierra', color: '#e2bf65', icon: iconGround },
-  { name: 'rock', esLabel: 'Roca', color: '#b6a136', icon: iconRock },
-  { name: 'ice', esLabel: 'Hielo', color: '#96d9d6', icon: iconIce },
-  { name: 'fairy', esLabel: 'Hada', color: '#d685ad', icon: iconFairy },
-  { name: 'ghost', esLabel: 'Fantasma', color: '#735797', icon: iconGhost },
-  { name: 'dragon', esLabel: 'Dragón', color: '#6f35fc', icon: iconDragon },
-  { name: 'dark', esLabel: 'Siniestro', color: '#705746', icon: iconDark },
-  { name: 'steel', esLabel: 'Acero', color: '#b7b7ce', icon: iconSteel },
-  { name: 'flying', esLabel: 'Volador', color: '#a98ff3', icon: iconFlying },
+  { name: 'grass', esLabel: 'Planta', color: '#8bc34a', icon: iconGrass, element: elementGrass },
+  { name: 'fire', esLabel: 'Fuego', color: '#ff9800', icon: iconFire, element: elementFire },
+  { name: 'water', esLabel: 'Agua', color: '#6390f0', icon: iconWater, element: elementWater },
+  { name: 'electric', esLabel: 'Eléctrico', color: '#f7d02c', icon: iconElectric, element: elementElectric },
+  { name: 'psychic', esLabel: 'Psíquico', color: '#9c27b0', icon: iconPsychic, element: elementPsychic },
+  { name: 'poison', esLabel: 'Veneno', color: '#9c27b0', icon: iconPoison, element: elementPoison },
+  { name: 'normal', esLabel: 'Normal', color: '#a8a77a', icon: iconNormal, element: elementNormal },
+  { name: 'bug', esLabel: 'Bicho', color: '#a6b91a', icon: iconBug, element: elementBug },
+  { name: 'fighting', esLabel: 'Lucha', color: '#c22e28', icon: iconFighting, element: elementFighting },
+  { name: 'ground', esLabel: 'Tierra', color: '#e2bf65', icon: iconGround, element: elementGround },
+  { name: 'rock', esLabel: 'Roca', color: '#b6a136', icon: iconRock, element: elementRock },
+  { name: 'ice', esLabel: 'Hielo', color: '#96d9d6', icon: iconIce, element: elementIce },
+  { name: 'fairy', esLabel: 'Hada', color: '#d685ad', icon: iconFairy, element: elementFairy },
+  { name: 'ghost', esLabel: 'Fantasma', color: '#735797', icon: iconGhost, element: elementGhost },
+  { name: 'dragon', esLabel: 'Dragón', color: '#6f35fc', icon: iconDragon, element: elementDragon },
+  { name: 'dark', esLabel: 'Siniestro', color: '#705746', icon: iconDark, element: elementDark },
+  { name: 'steel', esLabel: 'Acero', color: '#b7b7ce', icon: iconSteel, element: elementSteel },
+  { name: 'flying', esLabel: 'Volador', color: '#a98ff3', icon: iconFlying, element: elementFlying },
 ]
 
 /** Neutral background used when a type has no Figma color (unmapped/unknown). */
 export const FALLBACK_TYPE_COLOR = '#9e9e9e'
+
+/** Mix a hex color toward white (amount 0..1) — used for the card's light tint. */
+export function lightenColor(hex: string, amount: number): string {
+  const value = hex.replace('#', '')
+  const r = parseInt(value.slice(0, 2), 16)
+  const g = parseInt(value.slice(2, 4), 16)
+  const b = parseInt(value.slice(4, 6), 16)
+  const mix = (channel: number): number => Math.round(channel + (255 - channel) * amount)
+  return `#${[mix(r), mix(g), mix(b)].map((c) => c.toString(16).padStart(2, '0')).join('')}`
+}
+
+/** Mix a hex color toward black (amount 0..1) — used for the media-section tint. */
+export function darkenColor(hex: string, amount: number): string {
+  const value = hex.replace('#', '')
+  const r = parseInt(value.slice(0, 2), 16)
+  const g = parseInt(value.slice(2, 4), 16)
+  const b = parseInt(value.slice(4, 6), 16)
+  const mix = (channel: number): number => Math.round(channel * (1 - amount))
+  return `#${[mix(r), mix(g), mix(b)].map((c) => c.toString(16).padStart(2, '0')).join('')}`
+}
 
 /**
  * Lookup helper: TypeMeta by canonical name.
