@@ -733,6 +733,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — app 360px, sheet/overlay 360px centrado, 2 separadores en la lista (inicio y fin), separador del detalle OK, header de favoritos por encima de las cards (z-index token). Suite **236/236** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/Separator.vue` (nuevo), `TypeFilterSheet.vue`, `PokemonDetailPanel.vue`, `SwipeToReveal.vue`, `PokedexListView.vue`, `FavoritesView.vue`, `src/styles/tokens.css` (+3), `main.css` (#app 360px), `eslint.config.ts`.
 
+### [bugfix] Favoritos desde el detalle guardan imagen estática, no GIF
+
+- **Descripción**: Al dar favorito **desde el detalle**, el snapshot guardaba el GIF animado (`showdown`), por lo que esa card en la lista de favoritos se veía animada. La lista (`PokemonCard`) ya usaba la estática. Nuevo helper `getStaticSprite` (`front_default ?? official-artwork`); `PokemonDetailPanel` pasa `favoriteImage` (estática) al `FavoriteButton` mientras el header mantiene el GIF (`artwork`). La lista de favoritos ahora siempre muestra la imagen estática, sin importar desde dónde se agregó.
+- **Verificación**: navegador — snapshot guarda `pokemon/1.png` (estático), header sigue `showdown/1.gif`, card de favoritos muestra `1.png`. Suite **239/239** + type-check + lint PASS.
+- **Archivos afectados**: `src/services/pokeapi.ts` (`getStaticSprite`), `src/components/PokemonDetailPanel.vue`, tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
