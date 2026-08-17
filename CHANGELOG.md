@@ -724,9 +724,11 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
-- [ ] **Detalle de pokémon (`/pokemon/:name`)**: alineado al Figma — header círculo + imagen, chips, características, GenderBar, Debilidades, sin nav/stats. Pendiente: revisar estados de carga con `LoadingSpinner`.
+- [x] **Detalle de pokémon (`/pokemon/:name`)**: **TERMINADO** — alineado al Figma: GIF animado de showdown, header tipo card (fondo 498×498 + elemento con máscara + artwork centrado), chevron oficial, chips, PropertyBox con iconos, GenderBar (colores por sexo, división recta), Debilidades, sin nav/stats, categoría transformada, habilidad en español, share separado/centrado.
 - [ ] **Favoritos con datos**: swipe-to-reveal implementado; falta revisar snapshot localStorage + sync cross-tab a fondo (el estado vacío y cabecera ya OK).
 - [ ] **README** AI-First: actualizado con mapa de navegación, arquitectura y layout.
+
+> El detalle de la implementación queda terminado; lo siguiente son edge cases y mejoras técnicas.
 
 ---
 
