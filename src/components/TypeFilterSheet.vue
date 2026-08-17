@@ -417,6 +417,9 @@ function onKeydown(event: KeyboardEvent): void {
   display: flex;
   flex-direction: column;
   gap: var(--space-sheet-gap);
+  /* Top shadow separates the button panel from the list above (Figma:
+     box-shadow 0 -1px 3px 0 rgba(0,0,0,0.12)). */
+  box-shadow: var(--shadow-top);
 }
 
 .sheet__actions :deep(.app-button) {
