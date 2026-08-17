@@ -98,6 +98,7 @@ const genderRate = computed(() => fields.value.genderRate)
           />
         </button>
         <FavoriteButton
+          class="detail-header__favorite"
           :name="detail.name"
           :id="detail.id"
           :image-url="artwork ?? ''"
@@ -270,6 +271,13 @@ const genderRate = computed(() => fields.value.genderRate)
 .detail-header__back-icon {
   width: 9px;
   height: 16px;
+}
+
+/* The heart icon is centered in a 28px button while the chevron sits in a
+   38px button — push the heart inward so its icon is as far from the right
+   edge as the chevron is from the left edge (Figma keeps them symmetric). */
+.detail-header__favorite {
+  margin-right: 7.5px;
 }
 
 .detail-header__back:focus-visible {
