@@ -137,6 +137,21 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(wrapper.text()).toContain('Pokémon Semilla')
     expect(wrapper.text()).toContain('Habilidad')
     expect(wrapper.text()).toContain('Overgrow')
+    // Property icons come from the Figma assets (labels uppercase via CSS,
+    // verified visually in the browser — jsdom does not apply scoped styles).
+    const boxes = wrapper.findAll('.property-box')
+    expect(boxes.map((b) => b.find('.property-box__label').text())).toEqual([
+      'Peso',
+      'Altura',
+      'Categoría',
+      'Habilidad',
+    ])
+    expect(boxes.map((b) => b.find('.property-box__icon').attributes('src'))).toEqual([
+      expect.stringContaining('M8%202.5'),
+      expect.stringContaining('M13.125%2013.0621'),
+      expect.stringContaining('M2.66699%208.75195'),
+      expect.stringContaining('M8.00016%2014.6667'),
+    ])
   })
 
   it('renders the gender bar with male/female percentages', () => {
@@ -147,6 +162,13 @@ describe('PokemonDetailPanel (5.10)', () => {
     const segments = wrapper.findAll('.gender-bar__segment')
     expect(segments).toHaveLength(1)
     expect(segments[0]?.attributes('style')).toContain('87.5%')
+    // Figma styling (colors/uppercase/radius verified visually in the
+    // browser — jsdom does not apply scoped styles).
+    const icons = wrapper.findAll('.gender-bar__icon')
+    expect(icons).toHaveLength(2)
+    // Vite inlines SVGs as data URIs; distinguish by path content.
+    expect(icons[0]?.attributes('src')).toContain('M7.125%208.24963')
+    expect(icons[1]?.attributes('src')).toContain('M13.1248%207.12512')
   })
 
   it('renders the gender bar as Sin género for genderless pokémon', () => {

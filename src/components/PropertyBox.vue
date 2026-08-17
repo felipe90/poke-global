@@ -46,11 +46,14 @@ defineProps<{
   font-size: var(--font-data-label);
   font-weight: 500;
   color: var(--subtitle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .property-box__value {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   width: 154px;
   height: 43px;
@@ -59,7 +62,10 @@ defineProps<{
   border-radius: 15px;
   font-size: var(--font-data-value);
   font-weight: 500;
+  line-height: 1.15;
   color: var(--title);
+  text-align: center;
   box-sizing: border-box;
+  overflow: hidden;
 }
 </style>

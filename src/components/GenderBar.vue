@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import femaleIcon from '@/assets/icons/gender/female.svg'
+import maleIcon from '@/assets/icons/gender/male.svg'
+
 const props = defineProps<{ genderRate: number }>()
 
 /** -1 = genderless; otherwise male = (8 - rate)/8, female = rate/8. */
@@ -23,7 +26,7 @@ function format(value: number): string {
 
 <template>
   <div class="gender-bar">
-    <span class="gender-bar__label">{{ genderless ? 'Género' : 'Género' }}</span>
+    <span class="gender-bar__label">Género</span>
     <template v-if="genderless">
       <span class="gender-bar__empty">Sin género</span>
     </template>
@@ -36,35 +39,21 @@ function format(value: number): string {
       </div>
       <div class="gender-bar__legend">
         <span class="gender-bar__legend-item">
-          <svg
+          <img
             class="gender-bar__icon"
-            width="18"
-            height="18"
-            viewBox="0 0 18 18"
-            fill="none"
+            :src="maleIcon"
+            alt=""
             aria-hidden="true"
-          >
-            <path
-              d="M13.5 1.5h-4v1.8h1.35l-1.8 1.8a4.2 4.2 0 1 0 0 5.94L9.9 10l1.27 1.27-1.25 1.25a4.2 4.2 0 1 0 0-5.94l1.8-1.8V6.6h1.8zM8.25 11.1a2.4 2.4 0 1 1 0-4.8 2.4 2.4 0 0 1 0 4.8z"
-              fill="#424242"
-            />
-          </svg>
+          />
           <span>{{ maleLabel }}</span>
         </span>
         <span class="gender-bar__legend-item">
-          <svg
+          <img
             class="gender-bar__icon"
-            width="18"
-            height="18"
-            viewBox="0 0 18 18"
-            fill="none"
+            :src="femaleIcon"
+            alt=""
             aria-hidden="true"
-          >
-            <path
-              d="M8.25 2.4h1.5v2.1a3.6 3.6 0 1 1-3.9 3.6v-.15h-1.5v-1.5h1.5V4.95H4.5v-1.5h1.05V2.4h1.5v1.05h1.2zM9 6.3a2.1 2.1 0 1 0 0 4.2 2.1 2.1 0 0 0 0-4.2z"
-              fill="#424242"
-            />
-          </svg>
+          />
           <span>{{ femaleLabel }}</span>
         </span>
       </div>
@@ -80,8 +69,12 @@ function format(value: number): string {
 }
 
 .gender-bar__label {
-  font-size: var(--font-data-label);
+  font-family: var(--font-family, 'Poppins'), sans-serif;
   font-weight: 500;
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: 5%;
+  text-transform: uppercase;
   color: var(--subtitle);
   text-align: center;
 }
@@ -89,9 +82,10 @@ function format(value: number): string {
 .gender-bar__track {
   width: 100%;
   height: 8px;
-  border-radius: 9999px;
+  border-radius: 49px;
   overflow: hidden;
-  background: var(--progress-track);
+  /* The track shows the female share; the male segment covers its part. */
+  background: #ff7596;
 }
 
 .gender-bar__empty {
@@ -103,8 +97,8 @@ function format(value: number): string {
 
 .gender-bar__segment {
   height: 100%;
+  /* Straight division: no border-radius on the segment. */
   background: #2551c3;
-  border-radius: 9999px;
 }
 
 .gender-bar__legend {
@@ -123,6 +117,8 @@ function format(value: number): string {
 }
 
 .gender-bar__icon {
+  width: 18px;
+  height: 18px;
   color: var(--subtitle);
 }
 </style>

@@ -2,6 +2,10 @@
 import { computed } from 'vue'
 
 import chevronLeft from '@/assets/icons/nav/chevron-left.svg'
+import abilityIcon from '@/assets/icons/properties/ability.svg'
+import categoryIcon from '@/assets/icons/properties/category.svg'
+import heightIcon from '@/assets/icons/properties/height.svg'
+import weightIcon from '@/assets/icons/properties/weight.svg'
 import { FALLBACK_TYPE_COLOR, getTypeMeta, resolveWeaknesses } from '@/data/types'
 import { getAnimatedSprite } from '@/services/pokeapi'
 import { deriveSpecies, usePokemonStore } from '@/stores/pokemon'
@@ -144,20 +148,24 @@ const genderRate = computed(() => fields.value.genderRate)
           <PropertyBox
             label="Peso"
             :value="fields.peso"
+            :icon-url="weightIcon"
           />
           <PropertyBox
             label="Altura"
             :value="fields.altura"
+            :icon-url="heightIcon"
           />
         </div>
         <div class="detail-characteristics__row">
           <PropertyBox
             label="Categoría"
             :value="fields.categoria"
+            :icon-url="categoryIcon"
           />
           <PropertyBox
             label="Habilidad"
             :value="fields.habilidad"
+            :icon-url="abilityIcon"
           />
         </div>
       </dl>
