@@ -673,6 +673,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — orden `detail-heading → elements → description → characteristics → gender-bar → weaknesses`, sin nav/stats, segmento 87.5% (Bulbasaur), Debilidades 18px. Suite **230/230** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/GenderBar.vue` (nuevo), `PokemonDetailPanel.vue`, `PokemonDetailView.vue`, `stores/pokemon.ts` (genderRate), tests.
 
+### [architecture] PokemonCard `navigateDisabled` — favoritos sin navegación por click
+
+- **Descripción**: Con el swipe-to-reveal en favoritos, el click en una card ya no debe navegar al detalle (el swipe + trash manejan las acciones). `PokemonCard` acepta `navigateDisabled` — `activate()` se convierte en no-op y no emite `navigate`/`activate` — activado en `FavoritesView` (`navigate-disabled`), y se eliminó el handler `@navigate="goDetail"` (función borrada).
+- **Verificación**: navegador — click en card de favoritos deja el path en `/favorites` (sin redirect). Suite **230/230** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonCard.vue` (prop + guard), `src/views/FavoritesView.vue`, test de favoritos (assert de no-navegación).
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
