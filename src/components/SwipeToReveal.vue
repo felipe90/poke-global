@@ -78,8 +78,10 @@ function onCardClickCapture(event: Event): void {
   user-select: none;
   touch-action: pan-y;
   /* Smooth the container's width/radius expansion when it breaks out of the
-     app padding on swipe (margin + border-radius, same timing as the card). */
+     app padding on swipe (margin + width + border-radius, same timing as
+     the card). */
   transition: margin 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+    width 0.25s cubic-bezier(0.25, 1, 0.5, 1),
     border-radius 0.25s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -92,11 +94,12 @@ function onCardClickCapture(event: Event): void {
 
 /* While swiping or open, the container breaks out of .app-main's 16px side
    padding and spans the full app width, so the card's leading edge slides
-   past the app boundary and clips. Only the left side stays rounded — the
-   right edge (revealing the red) becomes square. */
+   past the app boundary and clips. All corners become square (straight
+   edges) — the reveal is full-bleed, not a rounded chip. */
 .swipe-container--active {
+  width: calc(100% + 2 * var(--space-card));
   margin-inline: calc(-1 * var(--space-card));
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  border-radius: 0;
 }
 
 /* The red action layer is a full-bleed rectangle (no radius/margin/padding of

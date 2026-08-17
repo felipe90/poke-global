@@ -151,7 +151,9 @@ function remove(name: string): void {
   width: 100%;
 }
 
+/* The swipe container manages its own width (100% idle, full-bleed +32px
+   when open) — do not override it here. */
 .favorites-list__card {
-  width: 100%;
+  display: block;
 }
 </style>
