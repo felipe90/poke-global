@@ -402,9 +402,12 @@ const genderRate = computed(() => fields.value.genderRate)
   gap: 12px;
 }
 
-/* Share sits apart from the weaknesses block and centers horizontally. */
+/* Share sits apart from the weaknesses block and centers horizontally. The
+   bottom margin mirrors the top separation (16px body gap + 32px margin =
+   48px) so scrolling down leaves breathing room before the tab menu. */
 .detail-share {
   align-items: center;
   margin-top: calc(2 * var(--space-card));
+  margin-bottom: calc(3 * var(--space-card));
 }
 </style>
