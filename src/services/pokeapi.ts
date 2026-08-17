@@ -90,6 +90,12 @@ export function getOfficialArtwork(detail: PokemonDetail): string | null {
   return detail.sprites.other['official-artwork'].front_default
 }
 
+/** Animated battle sprite (GIF) — the one the detail Figma shows. Falls back
+ *  to the official artwork when the API has no showdown sprite. */
+export function getAnimatedSprite(detail: PokemonDetail): string | null {
+  return detail.sprites.other.showdown.front_default ?? getOfficialArtwork(detail)
+}
+
 /**
  * Fixed share format — never includes species-derived fields:
  * `{name}, {types, slot order}, HP {hp}, Attack {attack}, Defense {defense}, Speed {speed}`

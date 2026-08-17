@@ -6,6 +6,7 @@ import {
   fetchPokemonPage,
   fetchPokemonSpecies,
   fetchTypeCatalog,
+  getAnimatedSprite,
   getOfficialArtwork,
   statsToPokemonStats,
 } from '@/services/pokeapi'
@@ -37,6 +38,9 @@ function makeDetail(name: string, id: number, types: PokemonDetail['types'], sta
       other: {
         'official-artwork': {
           front_default: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+        },
+        showdown: {
+          front_default: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${id}.gif`,
         },
       },
     },
@@ -283,6 +287,28 @@ describe('pokeapi service', () => {
       expect(getOfficialArtwork(pikachuDetail)).toBe(
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
       )
+    })
+  })
+
+  describe('getAnimatedSprite', () => {
+    it('returns the showdown GIF when present', () => {
+      expect(getAnimatedSprite(pikachuDetail)).toBe(
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif',
+      )
+    })
+
+    it('falls back to the official artwork when the showdown sprite is missing', () => {
+      const noGif: PokemonDetail = {
+        ...pikachuDetail,
+        sprites: {
+          front_default: null,
+          other: {
+            'official-artwork': { front_default: 'https://example.com/pikachu-art.png' },
+            showdown: { front_default: null },
+          },
+        },
+      }
+      expect(getAnimatedSprite(noGif)).toBe('https://example.com/pikachu-art.png')
     })
   })
 

@@ -390,7 +390,10 @@ function makeDetail(
     abilities: [{ slot: 1, ability: { name: ability } }],
     sprites: {
       front_default: artwork(id),
-      other: { 'official-artwork': { front_default: artwork(id) } },
+      other: {
+        'official-artwork': { front_default: artwork(id) },
+        showdown: { front_default: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${id}.gif` },
+      },
     },
     species: { url: `${BASE}/pokemon-species/${id}/` },
   }

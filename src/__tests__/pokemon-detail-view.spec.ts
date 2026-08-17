@@ -47,7 +47,13 @@ function makeDetail(name: string, id: number): PokemonDetail {
       { base_stat: 45, stat: { name: 'speed' } },
     ],
     abilities: [{ slot: 1, ability: { name: 'overgrow' } }],
-    sprites: { front_default: null, other: { 'official-artwork': { front_default: 'art.png' } } },
+    sprites: {
+      front_default: null,
+      other: {
+        'official-artwork': { front_default: 'art.png' },
+        showdown: { front_default: 'art.gif' },
+      },
+    },
     species: { url: `${BASE}/pokemon-species/${id}/` },
   }
 }

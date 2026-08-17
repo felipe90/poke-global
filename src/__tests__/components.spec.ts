@@ -371,7 +371,13 @@ describe('ShareButton (5.12)', () => {
       { base_stat: 90, stat: { name: 'speed' } },
     ],
     abilities: [{ slot: 1, ability: { name: 'static' } }],
-    sprites: { front_default: null, other: { 'official-artwork': { front_default: null } } },
+    sprites: {
+      front_default: null,
+      other: {
+        'official-artwork': { front_default: null },
+        showdown: { front_default: null },
+      },
+    },
     species: { url: 'https://pokeapi.co/api/v2/pokemon-species/25' },
   }
 

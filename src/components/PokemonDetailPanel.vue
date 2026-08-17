@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import chevronLeft from '@/assets/icons/nav/chevron-left.svg'
 import { FALLBACK_TYPE_COLOR, getTypeMeta, resolveWeaknesses } from '@/data/types'
-import { getOfficialArtwork } from '@/services/pokeapi'
+import { getAnimatedSprite } from '@/services/pokeapi'
 import { deriveSpecies, usePokemonStore } from '@/stores/pokemon'
 import type { PokemonDerivedSpecies } from '@/stores/pokemon'
 import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
@@ -37,7 +38,7 @@ const fields = computed(() => {
   return props.derived ?? deriveSpecies(props.detail, props.species ?? null, resolveWeaknessesFor)
 })
 
-const artwork = computed(() => props.detail.sprites.front_default ?? getOfficialArtwork(props.detail))
+const artwork = computed(() => getAnimatedSprite(props.detail))
 
 const favoriteTypes = computed(() => props.detail.types.map((entry) => entry.type.name))
 
@@ -47,6 +48,17 @@ const headerColor = computed(() => {
   return primary ? getTypeMeta(primary)?.color ?? FALLBACK_TYPE_COLOR : undefined
 })
 
+/** Decorative Figma element graphic behind the artwork (by primary type). */
+const elementUrl = computed(() => {
+  const primary = props.detail.types[0]?.type.name
+  return primary ? getTypeMeta(primary)?.element ?? null : null
+})
+
+/** Element style: the mask URL needs url("...") with quotes — built in JS. */
+function elementStyle(): Record<string, string> {
+  return { '--element-icon': `url("${elementUrl.value ?? ''}")` }
+}
+
 const genderRate = computed(() => fields.value.genderRate)
 </script>
 
@@ -54,10 +66,17 @@ const genderRate = computed(() => fields.value.genderRate)
   <article class="detail-panel">
     <header class="detail-header">
       <div
-        class="detail-header__circle"
+        class="detail-header__background"
         :style="headerColor ? { backgroundColor: headerColor } : {}"
         aria-hidden="true"
-      ></div>
+      >
+        <span
+          v-if="elementUrl"
+          class="detail-header__element"
+          :style="elementStyle()"
+          aria-hidden="true"
+        />
+      </div>
 
       <div class="detail-header__top">
         <button
@@ -66,22 +85,12 @@ const genderRate = computed(() => fields.value.genderRate)
           aria-label="Volver"
           @click="emit('back')"
         >
-          <svg
-            width="38"
-            height="38"
-            viewBox="0 0 38 38"
-            fill="none"
+          <img
+            class="detail-header__back-icon"
+            :src="chevronLeft"
+            alt=""
             aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              d="M24 10 L13 19 L24 28"
-              stroke="currentColor"
-              stroke-width="3"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+          />
         </button>
         <FavoriteButton
           :name="detail.name"
@@ -180,20 +189,39 @@ const genderRate = computed(() => fields.value.genderRate)
 
 /* ---------------------------------------------------------------- Header */
 
+/* Card-like container structure: outer container, color background, and the
+   type element behind the artwork (same pattern as the list card). */
 .detail-header {
   position: relative;
   height: 307px;
   overflow: hidden;
 }
 
-.detail-header__circle {
+.detail-header__background {
   position: absolute;
-  top: -96px;
-  left: 50%;
+  top: -227px;
+  left: -63px;
   width: 498px;
   height: 498px;
   border-radius: 50%;
-  transform: translateX(-50%);
+}
+
+.detail-header__element {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  /* White gradient + type icon (PNG alpha) as the mask shape — same as the
+     list card's decorative element. */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  -webkit-mask: var(--element-icon) center / contain no-repeat;
+  mask: var(--element-icon) center / contain no-repeat;
+  pointer-events: none;
 }
 
 .detail-header__top {
@@ -217,8 +245,12 @@ const genderRate = computed(() => fields.value.genderRate)
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: var(--bg);
   cursor: pointer;
+}
+
+.detail-header__back-icon {
+  width: 9px;
+  height: 16px;
 }
 
 .detail-header__back:focus-visible {
@@ -226,14 +258,15 @@ const genderRate = computed(() => fields.value.genderRate)
   outline-offset: 2px;
 }
 
+/* The artwork is independent of the background container — absolute
+   coordinates from the Figma (top 143.2, left 102, 142.23 x 154.87). */
 .detail-header__artwork {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 142px;
-  height: 155px;
+  top: 143.2px;
+  left: 102px;
+  width: 142.23px;
+  height: 154.87px;
   object-fit: contain;
-  transform: translate(-50%, -58%);
 }
 
 /* ------------------------------------------------------------------ Body */

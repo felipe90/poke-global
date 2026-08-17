@@ -679,6 +679,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — click en card de favoritos deja el path en `/favorites` (sin redirect). Suite **230/230** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PokemonCard.vue` (prop + guard), `src/views/FavoritesView.vue`, test de favoritos (assert de no-navegación).
 
+### [architecture] Detalle al Figma — GIF showdown, estructura tipo card, artwork independiente, chevron oficial
+
+- **Descripción**: El sprite del header del detalle ahora es el **GIF animado** de la API (`sprites.other.showdown.front_default`, ~45×49) vía `getAnimatedSprite()` con fallback al official-artwork. El header adopta la **estructura tipo card** de la lista: contenedor grande → fondo de color **498×498** (`top -227px, left -63px`, radius 50%, saliendo ~50% por arriba) → elemento del tipo con **máscara en gradación** (gradiente blanco 0.85→0.15 + PNG del tipo como mask). La imagen del pokémon es **independiente del fondo** (hijo directo del header) con geometría exacta del Figma: **142.23×154.87, top 143.2, left 102**. El botón Volver usa el **chevron oficial** del Figma (9×16, stroke blanco 2.5) restaurado en `src/assets/icons/nav/chevron-left.svg`.
+- **Verificación**: navegador — GIF anima (2 capturas a 450ms con hashes distintos), artwork 142.22×154.86 top 143.19, fondo 498×498 top −227, elemento con gradiente + mask `type-grass.png`, chevron 9×16. Suite **234/234** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`, `src/services/pokeapi.ts` (`getAnimatedSprite`), `src/types/pokemon.ts` (`sprites.other.showdown`), `src/assets/icons/nav/chevron-left.svg`, tests.
+
 ## Pendiente / Próximos pasos
 
 - [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.

@@ -59,7 +59,10 @@ const bulbasaurDetail: PokemonDetail = {
   abilities: [{ slot: 1, ability: { name: 'overgrow' } }],
   sprites: {
     front_default: 'https://example.com/bulbasaur.png',
-    other: { 'official-artwork': { front_default: 'https://example.com/bulbasaur-art.png' } },
+    other: {
+      'official-artwork': { front_default: 'https://example.com/bulbasaur-art.png' },
+      showdown: { front_default: 'https://example.com/bulbasaur.gif' },
+    },
   },
   species: { url: 'https://pokeapi.co/api/v2/pokemon-species/1' },
 }
@@ -96,7 +99,10 @@ const pikachuDetail: PokemonDetail = {
   abilities: [{ slot: 1, ability: { name: 'static' } }],
   sprites: {
     front_default: null,
-    other: { 'official-artwork': { front_default: null } },
+    other: {
+      'official-artwork': { front_default: null },
+      showdown: { front_default: null },
+    },
   },
   species: { url: 'https://pokeapi.co/api/v2/pokemon-species/25' },
 }
@@ -112,12 +118,12 @@ function mountPanel(
 }
 
 describe('PokemonDetailPanel (5.10)', () => {
-  it('renders Nº padded, name, and the front_default sprite', () => {
+  it('renders Nº padded, name, and the animated showdown sprite (GIF)', () => {
     const wrapper = mountPanel(bulbasaurDetail)
     expect(wrapper.text()).toContain('Nº001')
     expect(wrapper.text()).toContain('Bulbasaur')
     const image = wrapper.get('img[alt="bulbasaur"]')
-    expect(image.attributes('src')).toBe('https://example.com/bulbasaur.png')
+    expect(image.attributes('src')).toBe('https://example.com/bulbasaur.gif')
   })
 
   it('renders all derived fields: description, Peso, Altura, Categoría, Habilidad', () => {
@@ -205,26 +211,53 @@ describe('PokemonDetailPanel (5.10)', () => {
     expect(wrapper.emitted('share')).toHaveLength(1)
   })
 
-  it('renders the header circle in the first type color (grass #8bc34a)', () => {
+  it('renders the header background in the first type color (grass #8bc34a)', () => {
     const wrapper = mountPanel(bulbasaurDetail)
-    const circle = wrapper.get('.detail-header__circle')
-    expect((circle.element as HTMLElement).style.backgroundColor).toBe('rgb(139, 195, 74)')
+    const background = wrapper.get('.detail-header__background')
+    expect((background.element as HTMLElement).style.backgroundColor).toBe('rgb(139, 195, 74)')
   })
 
-  it('renders the header circle in the first type color for a different type (electric #f7d02c)', () => {
+  it('renders the header background in the first type color for a different type (electric #f7d02c)', () => {
     const wrapper = mountPanel(pikachuDetail, null)
-    const circle = wrapper.get('.detail-header__circle')
-    expect((circle.element as HTMLElement).style.backgroundColor).toBe('rgb(247, 208, 44)')
+    const background = wrapper.get('.detail-header__background')
+    expect((background.element as HTMLElement).style.backgroundColor).toBe('rgb(247, 208, 44)')
   })
 
-  it('renders the sprite inside the header, on top of the circle', () => {
+  it('renders the type element with the white gradient mask inside the background', () => {
+    const wrapper = mountPanel(bulbasaurDetail)
+    const background = wrapper.get('.detail-header__background')
+    const element = background.find('.detail-header__element')
+    expect(element.exists()).toBe(true)
+    expect(element.attributes('style')).toContain('--element-icon: url')
+  })
+
+  it('renders the sprite inside the header, independent of the background container', () => {
     const wrapper = mountPanel(bulbasaurDetail)
     const header = wrapper.find('.detail-header')
     expect(header.exists()).toBe(true)
     const artwork = header.find('.detail-header__artwork')
     expect(artwork.exists()).toBe(true)
-    expect(artwork.attributes('src')).toBe('https://example.com/bulbasaur.png')
-    expect(header.find('.detail-header__circle').exists()).toBe(true)
+    expect(artwork.attributes('src')).toBe('https://example.com/bulbasaur.gif')
+    expect(header.find('.detail-header__background').exists()).toBe(true)
+    // Independent: the artwork is a direct child of the header, not of the background.
+    expect(artwork.element.parentElement?.className).toContain('detail-header')
+    expect(artwork.element.parentElement?.className).not.toContain('detail-header__background')
+  })
+
+  it('falls back to the official artwork when the animated sprite is missing', () => {
+    const noGif: PokemonDetail = {
+      ...pikachuDetail,
+      sprites: {
+        front_default: null,
+        other: {
+          'official-artwork': { front_default: 'https://example.com/pikachu-art.png' },
+          showdown: { front_default: null },
+        },
+      },
+    }
+    const wrapper = mountPanel(noGif)
+    const artwork = wrapper.find('.detail-header__artwork')
+    expect(artwork.attributes('src')).toBe('https://example.com/pikachu-art.png')
   })
 
   it('emits back when the header back arrow is activated', async () => {

@@ -59,7 +59,10 @@ export interface PokemonDetail {
   abilities: { slot: number; ability: { name: string } }[]
   sprites: {
     front_default: string | null
-    other: { 'official-artwork': { front_default: string | null } }
+    other: {
+      'official-artwork': { front_default: string | null }
+      showdown: { front_default: string | null }
+    }
   }
   species: { url: string }
 }
