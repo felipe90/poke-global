@@ -72,3 +72,28 @@ function iconStyle(): Record<string, string> {
     />
   </button>
 </template>
+
+<style scoped>
+.favorite-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid var(--color-white);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.favorite-button__icon {
+  background-color: currentColor;
+  -webkit-mask: var(--favorite-icon) center / contain no-repeat;
+  mask: var(--favorite-icon) center / contain no-repeat;
+}
+
+.favorite-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+</style>

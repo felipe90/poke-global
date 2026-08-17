@@ -39,3 +39,22 @@ async function share(): Promise<void> {
     </p>
   </div>
 </template>
+
+<style scoped>
+.share-button {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-info-gap);
+}
+
+.share-button__feedback {
+  margin: 0;
+  font-size: var(--font-data-label);
+  font-weight: 500;
+  color: var(--subtitle);
+}
+
+.share-button__feedback--error {
+  color: var(--danger);
+}
+</style>

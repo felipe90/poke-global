@@ -250,6 +250,34 @@ function onKeydown(event: KeyboardEvent): void {
 </template>
 
 <style scoped>
+.sheet {
+  background: var(--bg);
+  border-top-left-radius: var(--radius-sheet-top);
+  border-top-right-radius: var(--radius-sheet-top);
+  box-shadow: var(--shadow-top);
+  padding: var(--space-sheet-tb) var(--space-sheet-lr) var(--space-sheet-bottom);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sheet-gap);
+  /* Mobile-first: cap at the app frame width (360px) so desktop stays
+     consistent with the phone layout. `vh` (not dvh) keeps the sheet stable
+     in Chrome's responsive/device toolbar where dvh shrinks with the URL bar. */
+  width: 100%;
+  max-width: 360px;
+  height: 70vh;
+}
+
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.5);
+}
+
 .sheet__header {
   display: flex;
   flex-direction: column;

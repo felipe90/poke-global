@@ -27,13 +27,13 @@ defineProps<{
 .property-box {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .property-box__header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .property-box__icon {
@@ -54,10 +54,10 @@ defineProps<{
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-xs);
   width: 154px;
   height: 43px;
-  padding: 8px;
+  padding: var(--space-xs);
   border: 1px solid var(--border-default, #e0e0e0);
   border-radius: 15px;
   font-size: var(--font-data-value);

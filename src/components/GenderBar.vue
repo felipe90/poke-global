@@ -66,7 +66,7 @@ function format(value: number): string {
   display: flex;
   flex-direction: column;
   /* Double the info gap (2 x 4px) between the label and the track. */
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .gender-bar__label {
@@ -86,7 +86,7 @@ function format(value: number): string {
   border-radius: 49px;
   overflow: hidden;
   /* The track shows the female share; the male segment covers its part. */
-  background: #ff7596;
+  background: var(--gender-female);
 }
 
 .gender-bar__empty {
@@ -99,7 +99,7 @@ function format(value: number): string {
 .gender-bar__segment {
   height: 100%;
   /* Straight division: no border-radius on the segment. */
-  background: #2551c3;
+  background: var(--gender-male);
 }
 
 .gender-bar__legend {

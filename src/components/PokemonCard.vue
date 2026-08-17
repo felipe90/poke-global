@@ -265,4 +265,30 @@ function activate(): void {
   outline: 2px solid var(--title);
   outline-offset: 2px;
 }
+
+/* Shimmer while a card's type metadata resolves */
+.pokemon-card--loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.pokemon-card--loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  animation: card-shimmer 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pokemon-card--loading::after {
+    animation: none;
+  }
+}
 </style>

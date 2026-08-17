@@ -19,6 +19,10 @@
   --check-default: #1f49b6;
   --check-border: #d6d6d6;
 
+  /* Gender bar (Figma: Género) — male / female segment colors */
+  --gender-male: #2551c3;
+  --gender-female: #ff7596;
+
   /* TabBar (Figma: tapBar) */
   --tapbar-bg: #fafafa;
   --tapbar-border-top: #e0e0e0;

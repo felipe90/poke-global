@@ -35,3 +35,34 @@ const background = computed(() => meta.value?.color ?? FALLBACK_TYPE_COLOR)
     <span class="type-badge__label">{{ label }}</span>
   </span>
 </template>
+
+<style scoped>
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5.8px;
+  padding: 2.9px 6px;
+  border-radius: 48.6px;
+  color: var(--color-white);
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.type-badge__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-icon-circle);
+  background: var(--surface-default);
+  pointer-events: none;
+}
+
+.type-badge__icon img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+</style>

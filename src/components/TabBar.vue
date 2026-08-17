@@ -60,3 +60,60 @@ function onKeydown(event: KeyboardEvent): void {
     </RouterLink>
   </nav>
 </template>
+
+<style scoped>
+.tab-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 77px;
+  padding: var(--space-lg) var(--space-md);
+  background: var(--tapbar-bg);
+  border-top: 1px solid var(--tapbar-border-top);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  box-shadow: var(--shadow-top);
+}
+
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xxs);
+  width: 62px;
+  height: 44px;
+  text-decoration: none;
+  color: var(--subtitle);
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: var(--font-size-2xs);
+  line-height: var(--line-height-xs);
+  text-align: center;
+}
+
+.tab-item.active {
+  color: var(--tab-active);
+  font-weight: 700;
+}
+
+.tab-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 24px;
+  gap: var(--space-none);
+  padding: var(--space-xxs);
+  border-radius: var(--radius-lg);
+  background: currentColor;
+  -webkit-mask: var(--tab-icon) center / contain no-repeat;
+  mask: var(--tab-icon) center / contain no-repeat;
+}
+
+.tab-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+</style>
