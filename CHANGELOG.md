@@ -775,12 +775,20 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Decisión técnica**: Se agregó `fetchAllPokemon` al mock de `@/services/pokeapi` en `views.spec.ts` con `mockResolvedValue([])` — la precarga del índice es un detalle del Splash, no de la vista Construcción; el test conserva su intención (la vista placeholder no hace red propia) y queda determinista en cualquier entorno.
 - **Archivos afectados**: `src/__tests__/views.spec.ts`. Verificado: 243/243 unit PASS.
 
+### [docs] README: sección Edge Cases + notas para el evaluador
+
+- **Descripción**: README actualizado para la entrega: nueva sección **Edge Cases** (tabla de 15 casos con problema/solución — índice de búsqueda completo, formas mega, habilidad ES, imagen estática de favoritos, header sticky por z-index, scroll horizontal del detalle, full-bleed del header, ease-in del loader, simetría chevron/favorito, panel de acciones del sheet, ancho 360px, refactor ES→EN, e2e determinista, CI, fix de determinismo en views.spec), sección **Testing & CI** (243 unit + 10 e2e + jobs del workflow), y sección **Notes for the Evaluator** (cómo reproducir, fidelidad al Figma, verificación, ramas, trazabilidad, y qué se hizo deliberadamente).
+- **Decisión técnica**: Documentar los edge cases como tabla problema→solución (no solo lista) para que el evaluador entienda el porqué; actualizar conteos obsoletos (216→243 unit, "4 endpoints"→5 con `/ability/{id}`, e2e "declared"→implementado) y añadir CI al stack.
+- **Archivos afectados**: `README.md`, `CHANGELOG.md`.
+
 ## Estado
 
 - ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
 - ✅ **Detalle de pokémon (`/pokemon/:name`)**: alineado al Figma — GIF animado, header tipo card, chevron oficial, chips, PropertyBox con iconos, GenderBar, Debilidades, categoría transformada, habilidad en español, share separado/centrado.
 - ✅ **Favoritos con datos**: swipe-to-reveal, header sticky, snapshot localStorage, sync cross-tab, imágenes estáticas.
 - ✅ **README** AI-First: mapa de navegación, arquitectura y layout.
+- ✅ **Edge cases** (`dev/edge-cases`): índice de búsqueda completo, formas mega, habilidad en español, favoritos con imagen estática, detail sin scroll horizontal + full-bleed, ease-in del loader, app 360px, panel del sheet full-width, refactor ES→EN.
+- ✅ **E2E + CI**: 10 specs Playwright deterministas (chromium) + GitHub Actions (`quality` + `e2e`) verdes.
 
 > La implementación de las vistas está terminada. Los edge cases y mejoras técnicas se trabajan en la rama `dev/edge-cases`.
 
