@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   buildShareText,
   fetchAbilityName,
+  fetchAllPokemon,
   fetchPokemonDetail,
   fetchPokemonPage,
   fetchPokemonSpecies,
@@ -138,6 +139,43 @@ describe('pokeapi service', () => {
       await fetchPokemonPage(24)
 
       expect(fetchMock).toHaveBeenCalledWith(`${BASE_URL}/pokemon?limit=${PAGE_SIZE}&offset=24`)
+    })
+  })
+
+  describe('fetchAllPokemon', () => {
+    it('fetches the full roster with an upper-bound limit and returns all results', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          count: 1351,
+          next: null,
+          previous: null,
+          results: [
+            { name: 'mew', url: `${BASE_URL}/pokemon/151/` },
+            { name: 'bulbasaur', url: `${BASE_URL}/pokemon/1/` },
+          ],
+        }),
+      )
+      const all = await fetchAllPokemon()
+      expect(fetchMock).toHaveBeenCalledWith(`${BASE_URL}/pokemon?limit=99999`)
+      expect(all).toHaveLength(2)
+      expect(all[0]?.name).toBe('mew')
+    })
+
+    it('caches the roster so a second call does not re-fetch', async () => {
+      // Isolate the module so the cache from the previous test doesn't leak.
+      vi.resetModules()
+      const { fetchAllPokemon: fetchAllFresh } = await import('@/services/pokeapi')
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          count: 1351,
+          next: null,
+          previous: null,
+          results: [{ name: 'mew', url: `${BASE_URL}/pokemon/151/` }],
+        }),
+      )
+      await fetchAllFresh()
+      await fetchAllFresh()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
     })
   })
 

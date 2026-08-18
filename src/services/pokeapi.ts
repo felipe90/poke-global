@@ -15,6 +15,7 @@ import type {
   PokemonListResponse,
   PokemonSpecies,
   PokemonStats,
+  PokemonSummary,
   TypeCatalogResponse,
   TypeName,
 } from '@/types/pokemon'
@@ -38,6 +39,26 @@ async function fetchJson<T>(url: string): Promise<T> {
 export async function fetchPokemonPage(offset: number): Promise<PokemonListResponse> {
   return fetchJson<PokemonListResponse>(`${BASE_URL}/pokemon?limit=${PAGE_SIZE}&offset=${offset}`)
 }
+
+let allPokemonCache: PokemonSummary[] | null = null
+
+/** Fetch the FULL name/url index of every pokémon in a single request.
+ *  The limit is an upper bound larger than the current roster — the API caps
+ *  `results` at its own `count`, so this stays correct even when new pokémon
+ *  are added later. Lightweight (names+urls only) and used as the search
+ *  index so any pokémon (even not yet scrolled into the list) is found
+ *  locally. Cached in memory for the session; failures are not cached so the
+ *  next call retries. */
+export async function fetchAllPokemon(): Promise<PokemonSummary[]> {
+  if (allPokemonCache) return allPokemonCache
+  const data = await fetchJson<PokemonListResponse>(`${BASE_URL}/pokemon?limit=${FULL_CATALOG_LIMIT}`)
+  allPokemonCache = data.results
+  return allPokemonCache
+}
+
+/** Upper bound for the full-catalog fetch; the API returns up to `count`
+ *  results, so this never needs bumping as the roster grows. */
+const FULL_CATALOG_LIMIT = 99999
 
 /** Fetch a pokémon detail by name (cached in memory by name). */
 export async function fetchPokemonDetail(name: string): Promise<PokemonDetail> {

@@ -10,6 +10,7 @@ import { defineStore } from 'pinia'
 import { TYPE_META, resolveWeaknesses } from '@/data/types'
 import {
   fetchAbilityName,
+  fetchAllPokemon,
   fetchPokemonDetail,
   fetchPokemonPage,
   fetchPokemonSpecies,
@@ -266,13 +267,34 @@ export const usePokemonStore = defineStore('pokemon', () => {
   // ------------------------------------------------------------------ Search
   const searchFilter = ref('')
 
-  /** Local search over the active base list (loaded pages or visible slices). */
+  /** Full name/url index of every pokémon (search source). Loaded once at
+   *  startup so searching finds pokémon not yet scrolled into the list. */
+  const searchIndex = ref<PokemonSummary[]>([])
+  const searchIndexReady = ref(false)
+
+  async function preloadSearchIndex(): Promise<void> {
+    if (searchIndexReady.value) return
+    try {
+      searchIndex.value = await fetchAllPokemon()
+      searchIndexReady.value = true
+    } catch {
+      /* Non-fatal: search degrades to the loaded list until the index loads. */
+    }
+  }
+
+  /** Local search: the full index (when ready) for the query, else the
+   *  loaded list so pagination/scroll behavior is unchanged. */
   const filteredList = computed(() => {
+    const query = searchFilter.value.trim().toLowerCase()
+    if (query === '' && appliedTypes.value.length === 0 && filteredSet.value.length === 0) {
+      return pokemonList.value
+    }
     const base =
       appliedTypes.value.length > 0 || filteredSet.value.length > 0
         ? visibleFiltered.value
-        : pokemonList.value
-    const query = searchFilter.value.trim().toLowerCase()
+        : searchIndexReady.value && searchIndex.value.length > 0
+          ? searchIndex.value
+          : pokemonList.value
     if (query === '') return base
     return base.filter((item) => item.name.toLowerCase().includes(query))
   })
@@ -520,6 +542,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
 
     searchFilter,
     filteredList,
+    searchIndex,
+    searchIndexReady,
+    preloadSearchIndex,
 
     contextNames,
     setNavContext,

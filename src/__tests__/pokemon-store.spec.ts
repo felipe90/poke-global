@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
-import { fetchAbilityName, fetchPokemonDetail, fetchPokemonPage, fetchPokemonSpecies, fetchTypeCatalog } from '@/services/pokeapi'
+import { fetchAbilityName, fetchAllPokemon, fetchPokemonDetail, fetchPokemonPage, fetchPokemonSpecies, fetchTypeCatalog } from '@/services/pokeapi'
 import { usePokemonStore } from '@/stores/pokemon'
 import { PAGE_SIZE, STORAGE_KEY } from '@/types/pokemon'
 import type {
@@ -20,6 +20,7 @@ vi.mock('@/services/pokeapi', () => ({
   fetchPokemonDetail: vi.fn<(name: string) => Promise<PokemonDetail>>(),
   fetchPokemonSpecies: vi.fn<(id: number) => Promise<PokemonSpecies>>(),
   fetchAbilityName: vi.fn<(url: string, fallback: string) => Promise<string>>(),
+  fetchAllPokemon: vi.fn<() => Promise<PokemonSummary[]>>(),
 }))
 
 const BASE = 'https://pokeapi.co/api/v2'
@@ -314,6 +315,25 @@ describe('pokemon store — search slice (2.3)', () => {
     expect(summaryNames(store.filteredList)).toEqual(['charmander', 'charizard'])
   })
 
+  it('preloadSearchIndex lets the search find pokémon not yet loaded in the list', async () => {
+    vi.mocked(fetchPokemonPage).mockResolvedValueOnce(page(0, ['bulbasaur'], null))
+    await store.loadFirstPage()
+    // The index covers the whole roster — mew is NOT in the loaded list page.
+    vi.mocked(fetchAllPokemon).mockResolvedValueOnce([
+      { name: 'bulbasaur', url: `${BASE}/pokemon/1/` },
+      { name: 'mew', url: `${BASE}/pokemon/151/` },
+    ])
+    await store.preloadSearchIndex()
+
+    store.searchFilter = 'mew'
+    expect(summaryNames(store.filteredList)).toEqual(['mew'])
+
+    // With an empty query (and no type filter) the loaded page is used, so
+    // scroll/pagination behavior is unchanged — the index is only a search aid.
+    store.searchFilter = ''
+    expect(summaryNames(store.filteredList)).toEqual(['bulbasaur'])
+  })
+
   it('filteredList searches within the visible filtered slices when a type filter is active', async () => {
     const names = Array.from({ length: 60 }, (_, i) => `pokemon-${i}`)
     vi.mocked(fetchTypeCatalog).mockResolvedValueOnce(makeCatalog(names))
@@ -480,6 +500,8 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     vi.mocked(fetchPokemonSpecies).mockReset()
     vi.mocked(fetchAbilityName).mockReset()
     vi.mocked(fetchAbilityName).mockResolvedValue('Ability ES')
+    vi.mocked(fetchAllPokemon).mockReset()
+    vi.mocked(fetchAllPokemon).mockResolvedValue([])
     store = usePokemonStore()
   })
 
@@ -738,6 +760,8 @@ describe('pokemon store — type preload slice (2.9)', () => {
     vi.mocked(fetchPokemonSpecies).mockReset()
     vi.mocked(fetchAbilityName).mockReset()
     vi.mocked(fetchAbilityName).mockResolvedValue('Ability ES')
+    vi.mocked(fetchAllPokemon).mockReset()
+    vi.mocked(fetchAllPokemon).mockResolvedValue([])
     store = usePokemonStore()
   })
 
