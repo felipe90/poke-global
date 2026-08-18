@@ -769,6 +769,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: `npm run test:e2e` → **10/10 pasan en chromium**. Lint + type-check + unit (243) + build OK.
 - **Archivos afectados**: `e2e/*` (nuevo), `playwright.config.ts`, `.github/workflows/ci.yml` (nuevo).
 
+### [fix] Unit: mock `fetchAllPokemon` en views.spec — CI determinista
+
+- **Descripción**: El job `quality` del CI fallaba en 2 tests de `views.spec.ts` (Construcción en `/regions` y `/profile` con "zero network"): al montar el shell, SplashView dispara `preloadSearchIndex()` → `fetchAllPokemon()`, que usa `fetch` real y no estaba mockeado en ese archivo (solo se mockeaban las otras 4 funciones de pokeapi). En el runner de GitHub el fetch se ejecutaba y rompía el assert `not.toHaveBeenCalled()`; localmente pasaba por timing/entorno.
+- **Decisión técnica**: Se agregó `fetchAllPokemon` al mock de `@/services/pokeapi` en `views.spec.ts` con `mockResolvedValue([])` — la precarga del índice es un detalle del Splash, no de la vista Construcción; el test conserva su intención (la vista placeholder no hace red propia) y queda determinista en cualquier entorno.
+- **Archivos afectados**: `src/__tests__/views.spec.ts`. Verificado: 243/243 unit PASS.
+
 ## Estado
 
 - ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
