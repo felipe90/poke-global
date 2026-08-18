@@ -60,6 +60,15 @@ function offsetFromUrl(url: string): number {
   return offset === null ? 0 : Number(offset)
 }
 
+/** Species id from a detail's `species.url`. Forms (mega, regional, etc.)
+ *  share the base pokémon's species, so `detail.id` is NOT the species id —
+ *  we must read it from the URL (e.g. mewtwo-mega-y -> species/150). */
+function speciesIdFromDetail(detail: PokemonDetail): number {
+  const parsed = new URL(detail.species.url)
+  const segments = parsed.pathname.split('/').filter(Boolean)
+  return Number(segments[segments.length - 1])
+}
+
 // ---- Pure derivation helpers (shared by the store and the detail panel) ----
 
 function formatDecimal(value: number): string {
@@ -412,23 +421,28 @@ export const usePokemonStore = defineStore('pokemon', () => {
   /** Non-blocking species load; failure degrades the species-derived fields. */
   function hydrateSpecies(detail: PokemonDetail): void {
     const weaknessFor = (type: TypeName): TypeName[] => resolveWeaknesses(type, typeCatalogs.get(type))
-    const cached = speciesById.get(detail.id)
+    const speciesId = speciesIdFromDetail(detail)
+    const cached = speciesById.get(speciesId)
+    const setSpecies = (species: PokemonSpecies | null): void => {
+      if (selectedDetail.value?.id !== detail.id) return
+      selectedSpecies.value = deriveSpecies(detail, species, weaknessFor)
+      // The Spanish ability name is fetched independently; re-apply it so the
+      // species derivation (which uses the English name as a placeholder) can
+      // never overwrite a localized label that already resolved. Idempotent.
+      hydrateAbility(detail)
+    }
     if (cached) {
-      selectedSpecies.value = deriveSpecies(detail, cached, weaknessFor)
+      setSpecies(cached)
       return
     }
-    void Promise.resolve(fetchPokemonSpecies(detail.id))
+    void Promise.resolve(fetchPokemonSpecies(speciesId))
       .then((species) => {
         if (!species) return
-        speciesById.set(detail.id, species)
-        if (selectedDetail.value?.id === detail.id) {
-          selectedSpecies.value = deriveSpecies(detail, species, weaknessFor)
-        }
+        speciesById.set(speciesId, species)
+        setSpecies(species)
       })
       .catch(() => {
-        if (selectedDetail.value?.id === detail.id) {
-          selectedSpecies.value = deriveSpecies(detail, null, weaknessFor)
-        }
+        setSpecies(null)
       })
   }
 
@@ -457,7 +471,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
       detailError.value = null
       detailNotFound.value = false
       hydrateSpecies(cached)
-      hydrateAbility(cached)
       return
     }
 
@@ -472,7 +485,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
       detailByName.set(name, detail)
       selectedDetail.value = detail
       hydrateSpecies(detail)
-      hydrateAbility(detail)
     } catch (error) {
       detailError.value = name
       detailNotFound.value = error instanceof Error && /\b404\b/.test(error.message)

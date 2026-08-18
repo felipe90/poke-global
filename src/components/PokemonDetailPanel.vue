@@ -212,7 +212,6 @@ const genderRate = computed(() => fields.value.genderRate)
 .detail-header {
   position: relative;
   height: 307px;
-  overflow: hidden;
 }
 
 .detail-header__background {
@@ -264,7 +263,7 @@ const genderRate = computed(() => fields.value.genderRate)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-card);
+  padding: var(--space-card) 0;
   color: var(--bg);
 }
 

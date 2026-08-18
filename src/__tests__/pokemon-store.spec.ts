@@ -530,6 +530,44 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     })
   })
 
+  it('uses the species from the detail url for forms (mega-y -> species 150, not 10044)', async () => {
+    // A mega form (id 10044) shares the base pokémon's species (mewtwo = 150),
+    // which lives in the detail's species.url — NOT the form's own id.
+    const megaY: PokemonDetail = {
+      id: 10044,
+      name: 'mewtwo-mega-y',
+      height: 15,
+      weight: 330,
+      types: [{ slot: 1, type: { name: 'psychic' } }],
+      stats: [{ base_stat: 106, stat: { name: 'hp' } }],
+      abilities: [{ slot: 1, ability: { name: 'turboblaze', url: `${BASE}/ability/1/` } }],
+      sprites: {
+        front_default: 'x.png',
+        other: {
+          'official-artwork': { front_default: 'y.png' },
+          showdown: { front_default: 'z.gif' },
+        },
+      },
+      species: { url: `${BASE}/pokemon-species/150/` },
+    }
+    vi.mocked(fetchPokemonDetail).mockResolvedValueOnce(megaY)
+    const mewtwoSpecies: PokemonSpecies = {
+      flavor_text_entries: [],
+      genera: [{ genus: 'Pokémon Genético', language: { name: 'es' } }],
+      gender_rate: 0,
+    }
+    vi.mocked(fetchPokemonSpecies).mockResolvedValueOnce(mewtwoSpecies)
+
+    await store.openDetail('mewtwo-mega-y')
+    await flushPromises()
+
+    // Must fetch species 150 (from the URL), not 10044 (the form id).
+    expect(fetchPokemonSpecies).toHaveBeenCalledWith(150)
+    expect(fetchPokemonSpecies).toHaveBeenCalledTimes(1)
+    expect(store.selectedDetail?.id).toBe(10044)
+    expect(store.selectedSpecies?.categoria).toBe('GENÉTICO')
+  })
+
   it('guards against duplicate concurrent fetches of the same name', async () => {
     vi.mocked(fetchPokemonSpecies).mockResolvedValue(pikachuSpecies)
     const gate = deferred<PokemonDetail>()
@@ -586,7 +624,7 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     expect(store.selectedSpecies?.categoria).toBe('—')
     expect(store.selectedSpecies?.descripcion).toBe('—')
     expect(store.selectedSpecies?.genero).toBe('—')
-    expect(store.selectedSpecies?.habilidad).toBe('Static')
+    expect(store.selectedSpecies?.habilidad).toBe('Ability ES')
     expect(store.selectedSpecies?.debilidades).toEqual(['ground'])
     expect(store.selectedSpecies?.peso).toBe('6,9 kg')
   })
