@@ -763,6 +763,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — detalle intacto (peso/altura/categoría/habilidad/descripción/número/género correctos). Suite **243/243** + type-check + lint PASS.
 - **Archivos afectados**: `src/stores/pokemon.ts`, `src/components/PokemonDetailPanel.vue`, `src/components/PokemonCard.vue`, tests.
 
+### [test] Suite e2e (Playwright) + CI GitHub Actions
+
+- **Descripción**: Suite e2e con Playwright para los 5 paths funcionales, **determinista** (intercepta toda la API con `page.route('**/api/v2/**')` — fixtures fake, sin depender de PokeAPI real): `onboarding.spec.ts` (Path 1: carga exitosa + fallback de error API con "Algo salió mal..."/Reintentar), `filter.spec.ts` (Path 2: bottom sheet, filtro por Fuego, lista actualizada), `favorites.spec.ts` (Path 3: estado vacío + swipe-to-delete con Pointer Events), `detail.spec.ts` (Path 4: header/artwork GIF/nombre/Nº/badges/PropertyBox/GenderBar/Debilidades + volver), `placeholder.spec.ts` (Path 5: "¡Muy pronto disponible!"). Helper `e2e/helpers/api.ts` con fixtures y `completeOnboarding`/`gotoList`. `playwright.config.ts` se acotó a **solo chromium** (rápido, sin deps extra). CI en `.github/workflows/ci.yml`: jobs `quality` (type-check+lint+unit) y `e2e` (build + playwright chromium + upload report si falla).
+- **Verificación**: `npm run test:e2e` → **10/10 pasan en chromium**. Lint + type-check + unit (243) + build OK.
+- **Archivos afectados**: `e2e/*` (nuevo), `playwright.config.ts`, `.github/workflows/ci.yml` (nuevo).
+
 ## Estado
 
 - ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
