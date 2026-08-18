@@ -745,6 +745,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — buscar "mew" sin scroll da 4 resultados; la lista vacía sigue paginando (48 cards, Bulbasaur primero). Suite **242/242** + type-check + lint PASS.
 - **Archivos afectados**: `src/services/pokeapi.ts` (`fetchAllPokemon`, `FULL_CATALOG_LIMIT`), `src/stores/pokemon.ts` (`searchIndex`/`preloadSearchIndex` + `filteredList`), `src/views/SplashView.vue`, tests.
 
+### [bugfix] Formas mega: species del url + race de habilidad ES
+
+- **Descripción**: Las formas (mega/regionales) comparten el species del pokémon base. `mewtwo-mega-y` tiene id 10044 pero su `species.url` apunta a 150; `hydrateSpecies` usaba `detail.id` → **404** de `species/10044` → categoría/descripción/género degradados y habilidad en inglés. Fix: `speciesIdFromDetail(detail)` extrae el id del `species.url`. Además se corrigió un **race condition**: `hydrateSpecies` y `hydrateAbility` corrían en paralelo y la derivación de species (con habilidad EN como placeholder) podía sobreescribir el nombre ES recién resuelto; ahora `hydrateSpecies` re-aplica `hydrateAbility` vía un `setSpecies` compartido, y se quitaron las llamadas redundantes en `openDetail`.
+- **Verificación**: navegador — Tyranitar-mega: categoría "CORAZA" (genus "Pokémon Coraza", correcto) y habilidad "Chorro Arena" (ES) estable en 4 muestreos (sin flipear a EN). Suite **243/243** + type-check + lint PASS.
+- **Archivos afectados**: `src/stores/pokemon.ts`, tests.
+
 ## Estado
 
 - ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
