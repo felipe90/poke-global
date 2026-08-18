@@ -757,6 +757,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — `hasHorizontalOverflow: false` (scrollWidth = clientWidth = 345); círculo 498×498 en `left -61/top -227` (recortado), artwork 142×155 visible. Suite **243/243** + type-check + lint PASS.
 - **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
 
+### [refactor] Campos derivados y variables en español → inglés
+
+- **Descripción**: Renombrado de identificadores en español a inglés en el código. `PokemonDerivedSpecies` (store): `peso→weight`, `altura→height`, `categoria→category`, `descripcion→description`, `genero→gender`, `habilidad→ability`, `debilidades→weaknesses`. El computed `numero→number` en la card y el panel del detalle (se dejan intactas las clases CSS `pokemon-card__number`/`detail-heading__number` y el label "Nº"). No se tocan los textos de UI (español intencional) ni las convenciones de localización `esLabel`/`esName`.
+- **Verificación**: navegador — detalle intacto (peso/altura/categoría/habilidad/descripción/número/género correctos). Suite **243/243** + type-check + lint PASS.
+- **Archivos afectados**: `src/stores/pokemon.ts`, `src/components/PokemonDetailPanel.vue`, `src/components/PokemonCard.vue`, tests.
+
 ## Estado
 
 - ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
