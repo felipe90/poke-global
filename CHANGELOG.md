@@ -739,6 +739,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — snapshot guarda `pokemon/1.png` (estático), header sigue `showdown/1.gif`, card de favoritos muestra `1.png`. Suite **239/239** + type-check + lint PASS.
 - **Archivos afectados**: `src/services/pokeapi.ts` (`getStaticSprite`), `src/components/PokemonDetailPanel.vue`, tests.
 
+### [bugfix] Búsqueda: índice completo precargado (sin quemar el total)
+
+- **Descripción**: La búsqueda solo filtraba las páginas ya cargadas, así que un pokémon no scrolleado (ej. **Mew**, id 151) daba 0 resultados. Ahora se precarga en el splash el **índice completo de nombres** (`fetchAllPokemon` → `GET /pokemon?limit=99999`, ~93 KB, solo names+urls, cacheado). `filteredList` lo usa cuando hay query (o filtro activo); con query vacía sigue usando la lista cargada para no alterar la paginación. El límite es una **cota superior** (no quemado en 1351): la API devuelve hasta su `count` real, así que sigue siendo correcto si mañana agregan más.
+- **Verificación**: navegador — buscar "mew" sin scroll da 4 resultados; la lista vacía sigue paginando (48 cards, Bulbasaur primero). Suite **242/242** + type-check + lint PASS.
+- **Archivos afectados**: `src/services/pokeapi.ts` (`fetchAllPokemon`, `FULL_CATALOG_LIMIT`), `src/stores/pokemon.ts` (`searchIndex`/`preloadSearchIndex` + `filteredList`), `src/views/SplashView.vue`, tests.
+
 ## Estado
 
 - ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
