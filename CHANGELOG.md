@@ -751,6 +751,12 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — Tyranitar-mega: categoría "CORAZA" (genus "Pokémon Coraza", correcto) y habilidad "Chorro Arena" (ES) estable en 4 muestreos (sin flipear a EN). Suite **243/243** + type-check + lint PASS.
 - **Archivos afectados**: `src/stores/pokemon.ts`, tests.
 
+### [bugfix] Scroll horizontal en el detalle
+
+- **Descripción**: El círculo de fondo decorativo (498px, centrado con `left: 50%` + `translateX(-50%)`) desborda el ancho del header y generaba **scroll horizontal** en la vista de detalle (`.app-main` scrollWidth 422 > 345). Fix: `overflow: hidden` en `.detail-header` — el círculo sigue saliendo por arriba y los lados (recortado, visual intacto) pero ya no empuja scroll.
+- **Verificación**: navegador — `hasHorizontalOverflow: false` (scrollWidth = clientWidth = 345); círculo 498×498 en `left -61/top -227` (recortado), artwork 142×155 visible. Suite **243/243** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
+
 ## Estado
 
 - ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
