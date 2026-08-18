@@ -29,13 +29,13 @@ import type {
 
 /** Derived species fields shown in the rich detail panel; degrade to `—`. */
 export interface PokemonDerivedSpecies {
-  peso: string
-  altura: string
-  categoria: string
-  descripcion: string
-  genero: string
-  habilidad: string
-  debilidades: TypeName[]
+  weight: string
+  height: string
+  category: string
+  description: string
+  gender: string
+  ability: string
+  weaknesses: TypeName[]
   /** -1 = genderless; 0..8 = female ratio. Used by the GenderBar. */
   genderRate: number
 }
@@ -120,13 +120,13 @@ export function deriveSpecies(
   resolveWeaknessesFor?: (type: TypeName) => TypeName[],
 ): PokemonDerivedSpecies {
   return {
-    peso: `${formatDecimal(detail.weight / 10)} kg`,
-    altura: `${formatDecimal(detail.height / 10)} m`,
-    categoria: species ? resolveCategory(species) : '—',
-    descripcion: species ? resolveDescription(species) : '—',
-    genero: species ? resolveGender(species.gender_rate) : '—',
-    habilidad: resolveAbility(detail),
-    debilidades: resolveWeaknessesFor
+    weight: `${formatDecimal(detail.weight / 10)} kg`,
+    height: `${formatDecimal(detail.height / 10)} m`,
+    category: species ? resolveCategory(species) : '—',
+    description: species ? resolveDescription(species) : '—',
+    gender: species ? resolveGender(species.gender_rate) : '—',
+    ability: resolveAbility(detail),
+    weaknesses: resolveWeaknessesFor
       ? detail.types.flatMap((entry) => resolveWeaknessesFor(entry.type.name))
       : [],
     genderRate: species ? species.gender_rate : -1,
@@ -455,7 +455,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     void Promise.resolve(fetchAbilityName(slot1.ability.url, fallback))
       .then((esName) => {
         if (selectedSpecies.value && selectedDetail.value?.id === detail.id) {
-          selectedSpecies.value = { ...selectedSpecies.value, habilidad: esName }
+          selectedSpecies.value = { ...selectedSpecies.value, ability: esName }
         }
       })
       .catch(() => {

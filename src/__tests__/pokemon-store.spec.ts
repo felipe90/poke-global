@@ -518,14 +518,14 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     expect(fetchPokemonSpecies).toHaveBeenCalledWith(25)
     expect(store.selectedDetail?.name).toBe('pikachu')
     expect(store.selectedSpecies).toEqual({
-      peso: '6,9 kg',
-      altura: '0,7 m',
-      categoria: 'RATÓN',
-      descripcion:
+      weight: '6,9 kg',
+      height: '0,7 m',
+      category: 'RATÓN',
+      description:
         'Cuanto más potente es la energía que genera, más blandas y elásticas se vuelven las bolsas de sus mejillas.',
-      genero: '50% / 50%',
-      habilidad: 'Elektrostátika',
-      debilidades: ['ground'],
+      gender: '50% / 50%',
+      ability: 'Elektrostátika',
+      weaknesses: ['ground'],
       genderRate: 4,
     })
   })
@@ -565,7 +565,7 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     expect(fetchPokemonSpecies).toHaveBeenCalledWith(150)
     expect(fetchPokemonSpecies).toHaveBeenCalledTimes(1)
     expect(store.selectedDetail?.id).toBe(10044)
-    expect(store.selectedSpecies?.categoria).toBe('GENÉTICO')
+    expect(store.selectedSpecies?.category).toBe('GENÉTICO')
   })
 
   it('guards against duplicate concurrent fetches of the same name', async () => {
@@ -621,12 +621,12 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await store.openDetail('pikachu')
     await flushPromises()
 
-    expect(store.selectedSpecies?.categoria).toBe('—')
-    expect(store.selectedSpecies?.descripcion).toBe('—')
-    expect(store.selectedSpecies?.genero).toBe('—')
-    expect(store.selectedSpecies?.habilidad).toBe('Ability ES')
-    expect(store.selectedSpecies?.debilidades).toEqual(['ground'])
-    expect(store.selectedSpecies?.peso).toBe('6,9 kg')
+    expect(store.selectedSpecies?.category).toBe('—')
+    expect(store.selectedSpecies?.description).toBe('—')
+    expect(store.selectedSpecies?.gender).toBe('—')
+    expect(store.selectedSpecies?.ability).toBe('Ability ES')
+    expect(store.selectedSpecies?.weaknesses).toEqual(['ground'])
+    expect(store.selectedSpecies?.weight).toBe('6,9 kg')
   })
 
   it('renders gendered percentages male first (bulbasaur rate 1 → 87,5% / 12,5%)', async () => {
@@ -641,10 +641,10 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await store.openDetail('bulbasaur')
     await flushPromises()
 
-    expect(store.selectedSpecies?.genero).toBe('87,5% / 12,5%')
-    expect(store.selectedSpecies?.categoria).toBe('SEMILLA')
-    expect(store.selectedSpecies?.habilidad).toBe('Espesura')
-    expect(store.selectedSpecies?.debilidades).toEqual(['fire', 'ice', 'poison', 'flying', 'bug', 'ground', 'psychic'])
+    expect(store.selectedSpecies?.gender).toBe('87,5% / 12,5%')
+    expect(store.selectedSpecies?.category).toBe('SEMILLA')
+    expect(store.selectedSpecies?.ability).toBe('Espesura')
+    expect(store.selectedSpecies?.weaknesses).toEqual(['fire', 'ice', 'poison', 'flying', 'bug', 'ground', 'psychic'])
   })
 
   it('renders genderless pokemon and falls back to English genus/flavor', async () => {
@@ -654,9 +654,9 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await store.openDetail('pikachu')
     await flushPromises()
 
-    expect(store.selectedSpecies?.genero).toBe('Sin género')
-    expect(store.selectedSpecies?.categoria).toBe('SEED POKÉMON')
-    expect(store.selectedSpecies?.descripcion).toBe('Some English text.')
+    expect(store.selectedSpecies?.gender).toBe('Sin género')
+    expect(store.selectedSpecies?.category).toBe('SEED POKÉMON')
+    expect(store.selectedSpecies?.description).toBe('Some English text.')
   })
 
   it('degrades categoria/descripcion to — when no es/en entry exists', async () => {
@@ -666,9 +666,9 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await store.openDetail('pikachu')
     await flushPromises()
 
-    expect(store.selectedSpecies?.categoria).toBe('—')
-    expect(store.selectedSpecies?.descripcion).toBe('—')
-    expect(store.selectedSpecies?.genero).toBe('Sin género')
+    expect(store.selectedSpecies?.category).toBe('—')
+    expect(store.selectedSpecies?.description).toBe('—')
+    expect(store.selectedSpecies?.gender).toBe('Sin género')
   })
 })
 
