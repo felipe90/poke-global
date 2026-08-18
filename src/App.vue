@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
+import { Analytics } from '@vercel/analytics/vue'
 
 import TabBar from '@/components/TabBar.vue'
 
@@ -11,6 +12,7 @@ const showTabBar = computed(() => !route.meta.public)
 </script>
 
 <template>
+  <Analytics />
   <main class="app-main">
     <RouterView v-slot="{ Component }">
       <KeepAlive include="PokedexListView,FavoritesView">
