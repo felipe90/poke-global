@@ -212,6 +212,10 @@ const genderRate = computed(() => fields.value.genderRate)
 .detail-header {
   position: relative;
   height: 307px;
+  /* Clip the oversized decorative background circle (498px, centered) so it
+     peeks out of the top and sides without creating horizontal overflow.
+     The artwork and element are inside this box and remain fully visible. */
+  overflow: hidden;
 }
 
 .detail-header__background {
