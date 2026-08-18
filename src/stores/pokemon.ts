@@ -10,6 +10,7 @@ import { defineStore } from 'pinia'
 import { TYPE_META, resolveWeaknesses } from '@/data/types'
 import {
   fetchAbilityName,
+  fetchAllPokemon,
   fetchPokemonDetail,
   fetchPokemonPage,
   fetchPokemonSpecies,
@@ -28,13 +29,13 @@ import type {
 
 /** Derived species fields shown in the rich detail panel; degrade to `—`. */
 export interface PokemonDerivedSpecies {
-  peso: string
-  altura: string
-  categoria: string
-  descripcion: string
-  genero: string
-  habilidad: string
-  debilidades: TypeName[]
+  weight: string
+  height: string
+  category: string
+  description: string
+  gender: string
+  ability: string
+  weaknesses: TypeName[]
   /** -1 = genderless; 0..8 = female ratio. Used by the GenderBar. */
   genderRate: number
 }
@@ -57,6 +58,15 @@ function offsetFromUrl(url: string): number {
   const parsed = new URL(url)
   const offset = parsed.searchParams.get('offset')
   return offset === null ? 0 : Number(offset)
+}
+
+/** Species id from a detail's `species.url`. Forms (mega, regional, etc.)
+ *  share the base pokémon's species, so `detail.id` is NOT the species id —
+ *  we must read it from the URL (e.g. mewtwo-mega-y -> species/150). */
+function speciesIdFromDetail(detail: PokemonDetail): number {
+  const parsed = new URL(detail.species.url)
+  const segments = parsed.pathname.split('/').filter(Boolean)
+  return Number(segments[segments.length - 1])
 }
 
 // ---- Pure derivation helpers (shared by the store and the detail panel) ----
@@ -110,13 +120,13 @@ export function deriveSpecies(
   resolveWeaknessesFor?: (type: TypeName) => TypeName[],
 ): PokemonDerivedSpecies {
   return {
-    peso: `${formatDecimal(detail.weight / 10)} kg`,
-    altura: `${formatDecimal(detail.height / 10)} m`,
-    categoria: species ? resolveCategory(species) : '—',
-    descripcion: species ? resolveDescription(species) : '—',
-    genero: species ? resolveGender(species.gender_rate) : '—',
-    habilidad: resolveAbility(detail),
-    debilidades: resolveWeaknessesFor
+    weight: `${formatDecimal(detail.weight / 10)} kg`,
+    height: `${formatDecimal(detail.height / 10)} m`,
+    category: species ? resolveCategory(species) : '—',
+    description: species ? resolveDescription(species) : '—',
+    gender: species ? resolveGender(species.gender_rate) : '—',
+    ability: resolveAbility(detail),
+    weaknesses: resolveWeaknessesFor
       ? detail.types.flatMap((entry) => resolveWeaknessesFor(entry.type.name))
       : [],
     genderRate: species ? species.gender_rate : -1,
@@ -266,13 +276,34 @@ export const usePokemonStore = defineStore('pokemon', () => {
   // ------------------------------------------------------------------ Search
   const searchFilter = ref('')
 
-  /** Local search over the active base list (loaded pages or visible slices). */
+  /** Full name/url index of every pokémon (search source). Loaded once at
+   *  startup so searching finds pokémon not yet scrolled into the list. */
+  const searchIndex = ref<PokemonSummary[]>([])
+  const searchIndexReady = ref(false)
+
+  async function preloadSearchIndex(): Promise<void> {
+    if (searchIndexReady.value) return
+    try {
+      searchIndex.value = await fetchAllPokemon()
+      searchIndexReady.value = true
+    } catch {
+      /* Non-fatal: search degrades to the loaded list until the index loads. */
+    }
+  }
+
+  /** Local search: the full index (when ready) for the query, else the
+   *  loaded list so pagination/scroll behavior is unchanged. */
   const filteredList = computed(() => {
+    const query = searchFilter.value.trim().toLowerCase()
+    if (query === '' && appliedTypes.value.length === 0 && filteredSet.value.length === 0) {
+      return pokemonList.value
+    }
     const base =
       appliedTypes.value.length > 0 || filteredSet.value.length > 0
         ? visibleFiltered.value
-        : pokemonList.value
-    const query = searchFilter.value.trim().toLowerCase()
+        : searchIndexReady.value && searchIndex.value.length > 0
+          ? searchIndex.value
+          : pokemonList.value
     if (query === '') return base
     return base.filter((item) => item.name.toLowerCase().includes(query))
   })
@@ -390,23 +421,28 @@ export const usePokemonStore = defineStore('pokemon', () => {
   /** Non-blocking species load; failure degrades the species-derived fields. */
   function hydrateSpecies(detail: PokemonDetail): void {
     const weaknessFor = (type: TypeName): TypeName[] => resolveWeaknesses(type, typeCatalogs.get(type))
-    const cached = speciesById.get(detail.id)
+    const speciesId = speciesIdFromDetail(detail)
+    const cached = speciesById.get(speciesId)
+    const setSpecies = (species: PokemonSpecies | null): void => {
+      if (selectedDetail.value?.id !== detail.id) return
+      selectedSpecies.value = deriveSpecies(detail, species, weaknessFor)
+      // The Spanish ability name is fetched independently; re-apply it so the
+      // species derivation (which uses the English name as a placeholder) can
+      // never overwrite a localized label that already resolved. Idempotent.
+      hydrateAbility(detail)
+    }
     if (cached) {
-      selectedSpecies.value = deriveSpecies(detail, cached, weaknessFor)
+      setSpecies(cached)
       return
     }
-    void Promise.resolve(fetchPokemonSpecies(detail.id))
+    void Promise.resolve(fetchPokemonSpecies(speciesId))
       .then((species) => {
         if (!species) return
-        speciesById.set(detail.id, species)
-        if (selectedDetail.value?.id === detail.id) {
-          selectedSpecies.value = deriveSpecies(detail, species, weaknessFor)
-        }
+        speciesById.set(speciesId, species)
+        setSpecies(species)
       })
       .catch(() => {
-        if (selectedDetail.value?.id === detail.id) {
-          selectedSpecies.value = deriveSpecies(detail, null, weaknessFor)
-        }
+        setSpecies(null)
       })
   }
 
@@ -419,7 +455,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     void Promise.resolve(fetchAbilityName(slot1.ability.url, fallback))
       .then((esName) => {
         if (selectedSpecies.value && selectedDetail.value?.id === detail.id) {
-          selectedSpecies.value = { ...selectedSpecies.value, habilidad: esName }
+          selectedSpecies.value = { ...selectedSpecies.value, ability: esName }
         }
       })
       .catch(() => {
@@ -435,7 +471,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
       detailError.value = null
       detailNotFound.value = false
       hydrateSpecies(cached)
-      hydrateAbility(cached)
       return
     }
 
@@ -450,7 +485,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
       detailByName.set(name, detail)
       selectedDetail.value = detail
       hydrateSpecies(detail)
-      hydrateAbility(detail)
     } catch (error) {
       detailError.value = name
       detailNotFound.value = error instanceof Error && /\b404\b/.test(error.message)
@@ -520,6 +554,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
 
     searchFilter,
     filteredList,
+    searchIndex,
+    searchIndexReady,
+    preloadSearchIndex,
 
     contextNames,
     setNavContext,

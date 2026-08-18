@@ -7,7 +7,7 @@ import categoryIcon from '@/assets/icons/properties/category.svg'
 import heightIcon from '@/assets/icons/properties/height.svg'
 import weightIcon from '@/assets/icons/properties/weight.svg'
 import { FALLBACK_TYPE_COLOR, getTypeMeta, resolveWeaknesses } from '@/data/types'
-import { getAnimatedSprite } from '@/services/pokeapi'
+import { getAnimatedSprite, getStaticSprite } from '@/services/pokeapi'
 import { deriveSpecies, usePokemonStore } from '@/stores/pokemon'
 import type { PokemonDerivedSpecies } from '@/stores/pokemon'
 import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
@@ -15,6 +15,7 @@ import type { PokemonDetail, PokemonSpecies, TypeName } from '@/types/pokemon'
 import FavoriteButton from './FavoriteButton.vue'
 import GenderBar from './GenderBar.vue'
 import PropertyBox from './PropertyBox.vue'
+import Separator from './Separator.vue'
 import ShareButton from './ShareButton.vue'
 import TypeBadge from './TypeBadge.vue'
 
@@ -32,7 +33,7 @@ const emit = defineEmits<{
   share: []
 }>()
 
-const numero = computed(() => `Nº${String(props.detail.id).padStart(3, '0')}`)
+const number = computed(() => `Nº${String(props.detail.id).padStart(3, '0')}`)
 
 const displayName = computed(() => props.detail.name.charAt(0).toUpperCase() + props.detail.name.slice(1))
 
@@ -44,6 +45,10 @@ const fields = computed(() => {
 })
 
 const artwork = computed(() => getAnimatedSprite(props.detail))
+
+/** Static sprite for the favorite snapshot — the header shows the GIF, but
+ *  the favorites list must render the static image (same as the list card). */
+const favoriteImage = computed(() => getStaticSprite(props.detail))
 
 const favoriteTypes = computed(() => props.detail.types.map((entry) => entry.type.name))
 
@@ -106,7 +111,7 @@ const genderRate = computed(() => fields.value.genderRate)
           class="detail-header__favorite"
           :name="detail.name"
           :id="detail.id"
-          :image-url="artwork ?? ''"
+          :image-url="favoriteImage ?? ''"
           :types="favoriteTypes"
           :size="28"
           @click="emit('toggleFavorite')"
@@ -124,7 +129,7 @@ const genderRate = computed(() => fields.value.genderRate)
     <section class="detail-body">
       <div class="detail-heading">
         <h2 class="detail-heading__name">{{ displayName }}</h2>
-        <span class="detail-heading__number">{{ numero }}</span>
+        <span class="detail-heading__number">{{ number }}</span>
       </div>
 
       <div class="detail-elements">
@@ -136,35 +141,32 @@ const genderRate = computed(() => fields.value.genderRate)
       </div>
 
       <div class="detail-description-block">
-        <p class="detail-description">{{ fields.descripcion }}</p>
-        <hr
-          class="detail-divider"
-          aria-hidden="true"
-        />
+        <p class="detail-description">{{ fields.description }}</p>
+        <Separator />
       </div>
 
       <dl class="detail-characteristics">
         <div class="detail-characteristics__row">
           <PropertyBox
             label="Peso"
-            :value="fields.peso"
+            :value="fields.weight"
             :icon-url="weightIcon"
           />
           <PropertyBox
             label="Altura"
-            :value="fields.altura"
+            :value="fields.height"
             :icon-url="heightIcon"
           />
         </div>
         <div class="detail-characteristics__row">
           <PropertyBox
             label="Categoría"
-            :value="fields.categoria"
+            :value="fields.category"
             :icon-url="categoryIcon"
           />
           <PropertyBox
             label="Habilidad"
-            :value="fields.habilidad"
+            :value="fields.ability"
             :icon-url="abilityIcon"
           />
         </div>
@@ -173,14 +175,14 @@ const genderRate = computed(() => fields.value.genderRate)
       <GenderBar :gender-rate="genderRate" />
 
       <section
-        v-if="fields.debilidades.length > 0"
+        v-if="fields.weaknesses.length > 0"
         class="detail-weaknesses"
         aria-label="Debilidades"
       >
         <h3 class="detail-weaknesses__title">Debilidades</h3>
         <div class="detail-weaknesses__chips">
           <TypeBadge
-            v-for="type in fields.debilidades"
+            v-for="type in fields.weaknesses"
             :key="type"
             :type="type"
           />
@@ -210,6 +212,14 @@ const genderRate = computed(() => fields.value.genderRate)
 .detail-header {
   position: relative;
   height: 307px;
+  /* Break out of .app-main's 16px side padding so the decorative background
+     circle spans the full app width, edge to edge. The explicit width keeps
+     the negative margin symmetric on both sides within the flex column. */
+  width: calc(100% + 2 * var(--space-card));
+  margin-inline: calc(-1 * var(--space-card));
+  /* Clip the oversized decorative background circle (498px, centered) so it
+     peeks out of the top and sides without creating horizontal overflow.
+     The artwork and element are inside this box and remain fully visible. */
   overflow: hidden;
 }
 
@@ -262,7 +272,7 @@ const genderRate = computed(() => fields.value.genderRate)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-card);
+  padding: var(--space-card) 0;
   color: var(--bg);
 }
 
@@ -281,13 +291,14 @@ const genderRate = computed(() => fields.value.genderRate)
 .detail-header__back-icon {
   width: 9px;
   height: 16px;
+  margin-left: var(--space-xl);
 }
 
 /* The heart icon is centered in a 28px button while the chevron sits in a
    38px button — push the heart inward so its icon is as far from the right
    edge as the chevron is from the left edge (Figma keeps them symmetric). */
 .detail-header__favorite {
-  margin-right: 7.5px;
+  margin-right: var(--space-xl);
 }
 
 .detail-header__back:focus-visible {
@@ -351,12 +362,6 @@ const genderRate = computed(() => fields.value.genderRate)
   font-size: var(--font-size-sm);
   font-weight: 400;
   color: var(--subtitle);
-}
-
-.detail-divider {
-  margin: 0;
-  border: none;
-  border-top: 1px solid var(--progress-track);
 }
 
 .detail-characteristics {

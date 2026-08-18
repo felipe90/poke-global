@@ -20,10 +20,12 @@ const reducedMotion = ref(
 let timer: ReturnType<typeof setTimeout> | undefined
 
 onMounted(() => {
-  // Preload the first catalog page + type catalogs behind the splash so the
-  // list is already populated when the user arrives. Both are idempotent.
+  // Preload the first catalog page + type catalogs + the full name index
+  // behind the splash so the list is populated and searching finds any
+  // pokémon immediately. All are idempotent.
   void store.loadFirstPage()
   void store.preloadTypes()
+  void store.preloadSearchIndex()
 
   timer = setTimeout(() => {
     void router.push('/onboarding')

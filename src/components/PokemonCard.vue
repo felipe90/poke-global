@@ -40,7 +40,7 @@ const id = computed(() => {
   return Number(segments[segments.length - 1])
 })
 
-const numero = computed(() => `Nº${String(id.value).padStart(3, '0')}`)
+const number = computed(() => `Nº${String(id.value).padStart(3, '0')}`)
 
 const name = computed(() => props.favorite?.name ?? props.summary?.name ?? '')
 
@@ -103,7 +103,7 @@ function activate(): void {
   >
     <div class="pokemon-card__info">
       <div class="pokemon-card__text">
-        <span class="pokemon-card__number">{{ numero }}</span>
+        <span class="pokemon-card__number">{{ number }}</span>
         <h3 class="pokemon-card__name">{{ displayName }}</h3>
       </div>
       <div

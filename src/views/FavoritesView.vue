@@ -80,10 +80,9 @@ function remove(name: string): void {
 
 <style scoped>
 .favorites-view {
-  flex: 1;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 
 /* Header: back button left, centered title (3-col grid keeps it centered).
@@ -91,7 +90,9 @@ function remove(name: string): void {
 .page-header {
   position: sticky;
   top: 0;
-  z-index: 2;
+  /* Above the sticky layer (cards use --layer-sticky) so the header always
+     covers them while the list scrolls underneath. */
+  z-index: var(--layer-header);
   display: grid;
   grid-template-columns: 40px 1fr 40px;
   align-items: center;

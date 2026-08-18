@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import AppButton from '@/components/AppButton.vue'
 import ErrorState from '@/components/ErrorState.vue'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import PokeballLoader from '@/components/PokeballLoader.vue'
 import PokemonDetailPanel from '@/components/PokemonDetailPanel.vue'
 import { usePokemonStore } from '@/stores/pokemon'
 
@@ -49,44 +49,55 @@ watch(
 
 <template>
   <div class="pokemon-detail-view">
-    <div
-      v-if="store.detailLoading"
-      class="pokemon-detail-view__loading"
+    <Transition
+      name="detail-fade"
+      mode="out-in"
     >
-      <LoadingSpinner />
-    </div>
-
-    <section
-      v-else-if="store.detailNotFound"
-      class="not-found"
-    >
-      <h2 class="not-found__title">Pokémon no encontrado</h2>
-      <p class="not-found__text">No existe un Pokémon con ese nombre.</p>
-      <AppButton @click="router.push('/')">
-        Volver a la Pokédex
-      </AppButton>
-    </section>
-
-    <ErrorState
-      v-else-if="store.detailError"
-      @retry="retry"
-    />
-
-    <template v-else-if="store.selectedDetail">
-      <h2
-        ref="headingRef"
-        tabindex="-1"
-        class="detail-heading visually-hidden"
+      <div
+        v-if="store.detailLoading"
+        key="loading"
+        class="pokemon-detail-view__loading"
       >
-        {{ displayName }}
-      </h2>
+        <PokeballLoader />
+      </div>
 
-      <PokemonDetailPanel
-        :detail="store.selectedDetail"
-        :derived="store.selectedSpecies"
-        @back="goBack"
+      <section
+        v-else-if="store.detailNotFound"
+        key="not-found"
+        class="not-found"
+      >
+        <h2 class="not-found__title">Pokémon no encontrado</h2>
+        <p class="not-found__text">No existe un Pokémon con ese nombre.</p>
+        <AppButton @click="router.push('/')">
+          Volver a la Pokédex
+        </AppButton>
+      </section>
+
+      <ErrorState
+        v-else-if="store.detailError"
+        key="error"
+        @retry="retry"
       />
-    </template>
+
+      <div
+        v-else-if="store.selectedDetail"
+        key="panel"
+      >
+        <h2
+          ref="headingRef"
+          tabindex="-1"
+          class="detail-heading visually-hidden"
+        >
+          {{ displayName }}
+        </h2>
+
+        <PokemonDetailPanel
+          :detail="store.selectedDetail"
+          :derived="store.selectedSpecies"
+          @back="goBack"
+        />
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -100,8 +111,10 @@ watch(
 
 .pokemon-detail-view__loading {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: var(--space-card) 0;
+  flex: 1;
+  padding: var(--space-2xl) 0;
 }
 
 .visually-hidden {
@@ -137,5 +150,22 @@ watch(
   margin: 0;
   font-size: var(--font-data-value);
   color: var(--subtitle);
+}
+
+/* Smooth ease-in when the pokeball loader gives way to the loaded detail. */
+.detail-fade-enter-active,
+.detail-fade-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.detail-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.detail-fade-leave-to {
+  opacity: 0;
 }
 </style>

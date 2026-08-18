@@ -137,7 +137,7 @@ function onCardClickCapture(event: Event): void {
 
 .card-layer {
   position: relative;
-  z-index: 2;
+  z-index: var(--layer-sticky);
   will-change: transform;
   border-radius: var(--radius-lg);
   /* Matches the container timing so the card and the expanding container

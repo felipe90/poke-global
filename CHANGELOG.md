@@ -727,14 +727,70 @@ Tipos usados: `setup` · `fix` · `architecture` · `feature` · `tests` · `doc
 - **Verificación**: navegador — todos los componentes siguen renderizando con estilos correctos (card 16px, badge 48.6px, search 48px, tab 77px, share flex, gender #2551C3, sheet 360×590 radius 24 animando). Suite **236/236** + type-check + lint PASS.
 - **Archivos afectados**: `src/styles/main.css` (reducido), `src/styles/tokens.css` (+2), 9 componentes `.vue` con `<style scoped>`.
 
-## Pendiente / Próximos pasos
+### [architecture] Separator.vue + tokens de stacking layers + app a 360px
 
-- [ ] **Lista de pokémon (`/`)**: search bar y cards refinados; infinite scroll arreglado; toolbar sticky OK; queda revisar resultado de búsqueda/filtro.
-- [x] **Detalle de pokémon (`/pokemon/:name`)**: **TERMINADO** — alineado al Figma: GIF animado de showdown, header tipo card (fondo 498×498 + elemento con máscara + artwork centrado), chevron oficial, chips, PropertyBox con iconos, GenderBar (colores por sexo, división recta), Debilidades, sin nav/stats, categoría transformada, habilidad en español, share separado/centrado.
-- [ ] **Favoritos con datos**: swipe-to-reveal implementado; falta revisar snapshot localStorage + sync cross-tab a fondo (el estado vacío y cabecera ya OK).
-- [ ] **README** AI-First: actualizado con mapa de navegación, arquitectura y layout.
+- **Descripción**: Nuevo `Separator.vue` (hr con `border-top: 1px solid var(--progress-track)`, extraído del `detail-divider`), reutilizado en el detalle y en la **lista de filtros del bottom sheet** (al inicio y al final). Se definieron **tokens de stacking layers** (`--layer-sticky: 2`, `--layer-header: 3`, `--layer-overlay: 100`) y se reemplazaron los `z-index` hardcodeados en SwipeToReveal, toolbar de PokedexListView, header de Favoritos y overlay del sheet. Además: **ancho de la app fijado a 360px** (`max-width: 360`, antes 480 fluido) y el bottom sheet/overlay ajustados para coincidir con ese ancho (sheet `width: 100%`, overlay `max-width: 360` + centrado).
+- **Verificación**: navegador — app 360px, sheet/overlay 360px centrado, 2 separadores en la lista (inicio y fin), separador del detalle OK, header de favoritos por encima de las cards (z-index token). Suite **236/236** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/Separator.vue` (nuevo), `TypeFilterSheet.vue`, `PokemonDetailPanel.vue`, `SwipeToReveal.vue`, `PokedexListView.vue`, `FavoritesView.vue`, `src/styles/tokens.css` (+3), `main.css` (#app 360px), `eslint.config.ts`.
 
-> El detalle de la implementación queda terminado; lo siguiente son edge cases y mejoras técnicas.
+### [bugfix] Favoritos desde el detalle guardan imagen estática, no GIF
+
+- **Descripción**: Al dar favorito **desde el detalle**, el snapshot guardaba el GIF animado (`showdown`), por lo que esa card en la lista de favoritos se veía animada. La lista (`PokemonCard`) ya usaba la estática. Nuevo helper `getStaticSprite` (`front_default ?? official-artwork`); `PokemonDetailPanel` pasa `favoriteImage` (estática) al `FavoriteButton` mientras el header mantiene el GIF (`artwork`). La lista de favoritos ahora siempre muestra la imagen estática, sin importar desde dónde se agregó.
+- **Verificación**: navegador — snapshot guarda `pokemon/1.png` (estático), header sigue `showdown/1.gif`, card de favoritos muestra `1.png`. Suite **239/239** + type-check + lint PASS.
+- **Archivos afectados**: `src/services/pokeapi.ts` (`getStaticSprite`), `src/components/PokemonDetailPanel.vue`, tests.
+
+### [bugfix] Búsqueda: índice completo precargado (sin quemar el total)
+
+- **Descripción**: La búsqueda solo filtraba las páginas ya cargadas, así que un pokémon no scrolleado (ej. **Mew**, id 151) daba 0 resultados. Ahora se precarga en el splash el **índice completo de nombres** (`fetchAllPokemon` → `GET /pokemon?limit=99999`, ~93 KB, solo names+urls, cacheado). `filteredList` lo usa cuando hay query (o filtro activo); con query vacía sigue usando la lista cargada para no alterar la paginación. El límite es una **cota superior** (no quemado en 1351): la API devuelve hasta su `count` real, así que sigue siendo correcto si mañana agregan más.
+- **Verificación**: navegador — buscar "mew" sin scroll da 4 resultados; la lista vacía sigue paginando (48 cards, Bulbasaur primero). Suite **242/242** + type-check + lint PASS.
+- **Archivos afectados**: `src/services/pokeapi.ts` (`fetchAllPokemon`, `FULL_CATALOG_LIMIT`), `src/stores/pokemon.ts` (`searchIndex`/`preloadSearchIndex` + `filteredList`), `src/views/SplashView.vue`, tests.
+
+### [bugfix] Formas mega: species del url + race de habilidad ES
+
+- **Descripción**: Las formas (mega/regionales) comparten el species del pokémon base. `mewtwo-mega-y` tiene id 10044 pero su `species.url` apunta a 150; `hydrateSpecies` usaba `detail.id` → **404** de `species/10044` → categoría/descripción/género degradados y habilidad en inglés. Fix: `speciesIdFromDetail(detail)` extrae el id del `species.url`. Además se corrigió un **race condition**: `hydrateSpecies` y `hydrateAbility` corrían en paralelo y la derivación de species (con habilidad EN como placeholder) podía sobreescribir el nombre ES recién resuelto; ahora `hydrateSpecies` re-aplica `hydrateAbility` vía un `setSpecies` compartido, y se quitaron las llamadas redundantes en `openDetail`.
+- **Verificación**: navegador — Tyranitar-mega: categoría "CORAZA" (genus "Pokémon Coraza", correcto) y habilidad "Chorro Arena" (ES) estable en 4 muestreos (sin flipear a EN). Suite **243/243** + type-check + lint PASS.
+- **Archivos afectados**: `src/stores/pokemon.ts`, tests.
+
+### [bugfix] Scroll horizontal en el detalle
+
+- **Descripción**: El círculo de fondo decorativo (498px, centrado con `left: 50%` + `translateX(-50%)`) desborda el ancho del header y generaba **scroll horizontal** en la vista de detalle (`.app-main` scrollWidth 422 > 345). Fix: `overflow: hidden` en `.detail-header` — el círculo sigue saliendo por arriba y los lados (recortado, visual intacto) pero ya no empuja scroll.
+- **Verificación**: navegador — `hasHorizontalOverflow: false` (scrollWidth = clientWidth = 345); círculo 498×498 en `left -61/top -227` (recortado), artwork 142×155 visible. Suite **243/243** + type-check + lint PASS.
+- **Archivos afectados**: `src/components/PokemonDetailPanel.vue`.
+
+### [refactor] Campos derivados y variables en español → inglés
+
+- **Descripción**: Renombrado de identificadores en español a inglés en el código. `PokemonDerivedSpecies` (store): `peso→weight`, `altura→height`, `categoria→category`, `descripcion→description`, `genero→gender`, `habilidad→ability`, `debilidades→weaknesses`. El computed `numero→number` en la card y el panel del detalle (se dejan intactas las clases CSS `pokemon-card__number`/`detail-heading__number` y el label "Nº"). No se tocan los textos de UI (español intencional) ni las convenciones de localización `esLabel`/`esName`.
+- **Verificación**: navegador — detalle intacto (peso/altura/categoría/habilidad/descripción/número/género correctos). Suite **243/243** + type-check + lint PASS.
+- **Archivos afectados**: `src/stores/pokemon.ts`, `src/components/PokemonDetailPanel.vue`, `src/components/PokemonCard.vue`, tests.
+
+### [test] Suite e2e (Playwright) + CI GitHub Actions
+
+- **Descripción**: Suite e2e con Playwright para los 5 paths funcionales, **determinista** (intercepta toda la API con `page.route('**/api/v2/**')` — fixtures fake, sin depender de PokeAPI real): `onboarding.spec.ts` (Path 1: carga exitosa + fallback de error API con "Algo salió mal..."/Reintentar), `filter.spec.ts` (Path 2: bottom sheet, filtro por Fuego, lista actualizada), `favorites.spec.ts` (Path 3: estado vacío + swipe-to-delete con Pointer Events), `detail.spec.ts` (Path 4: header/artwork GIF/nombre/Nº/badges/PropertyBox/GenderBar/Debilidades + volver), `placeholder.spec.ts` (Path 5: "¡Muy pronto disponible!"). Helper `e2e/helpers/api.ts` con fixtures y `completeOnboarding`/`gotoList`. `playwright.config.ts` se acotó a **solo chromium** (rápido, sin deps extra). CI en `.github/workflows/ci.yml`: jobs `quality` (type-check+lint+unit) y `e2e` (build + playwright chromium + upload report si falla).
+- **Verificación**: `npm run test:e2e` → **10/10 pasan en chromium**. Lint + type-check + unit (243) + build OK.
+- **Archivos afectados**: `e2e/*` (nuevo), `playwright.config.ts`, `.github/workflows/ci.yml` (nuevo).
+
+### [fix] Unit: mock `fetchAllPokemon` en views.spec — CI determinista
+
+- **Descripción**: El job `quality` del CI fallaba en 2 tests de `views.spec.ts` (Construcción en `/regions` y `/profile` con "zero network"): al montar el shell, SplashView dispara `preloadSearchIndex()` → `fetchAllPokemon()`, que usa `fetch` real y no estaba mockeado en ese archivo (solo se mockeaban las otras 4 funciones de pokeapi). En el runner de GitHub el fetch se ejecutaba y rompía el assert `not.toHaveBeenCalled()`; localmente pasaba por timing/entorno.
+- **Decisión técnica**: Se agregó `fetchAllPokemon` al mock de `@/services/pokeapi` en `views.spec.ts` con `mockResolvedValue([])` — la precarga del índice es un detalle del Splash, no de la vista Construcción; el test conserva su intención (la vista placeholder no hace red propia) y queda determinista en cualquier entorno.
+- **Archivos afectados**: `src/__tests__/views.spec.ts`. Verificado: 243/243 unit PASS.
+
+### [docs] README: sección Edge Cases + notas para el evaluador
+
+- **Descripción**: README actualizado para la entrega: nueva sección **Edge Cases** (tabla de 15 casos con problema/solución — índice de búsqueda completo, formas mega, habilidad ES, imagen estática de favoritos, header sticky por z-index, scroll horizontal del detalle, full-bleed del header, ease-in del loader, simetría chevron/favorito, panel de acciones del sheet, ancho 360px, refactor ES→EN, e2e determinista, CI, fix de determinismo en views.spec), sección **Testing & CI** (243 unit + 10 e2e + jobs del workflow), y sección **Notes for the Evaluator** (cómo reproducir, fidelidad al Figma, verificación, ramas, trazabilidad, y qué se hizo deliberadamente).
+- **Decisión técnica**: Documentar los edge cases como tabla problema→solución (no solo lista) para que el evaluador entienda el porqué; actualizar conteos obsoletos (216→243 unit, "4 endpoints"→5 con `/ability/{id}`, e2e "declared"→implementado) y añadir CI al stack.
+- **Archivos afectados**: `README.md`, `CHANGELOG.md`.
+
+## Estado
+
+- ✅ **Lista de pokémon (`/`)**: search bar y cards refinados, infinite scroll, toolbar sticky, búsqueda/filtro OK.
+- ✅ **Detalle de pokémon (`/pokemon/:name`)**: alineado al Figma — GIF animado, header tipo card, chevron oficial, chips, PropertyBox con iconos, GenderBar, Debilidades, categoría transformada, habilidad en español, share separado/centrado.
+- ✅ **Favoritos con datos**: swipe-to-reveal, header sticky, snapshot localStorage, sync cross-tab, imágenes estáticas.
+- ✅ **README** AI-First: mapa de navegación, arquitectura y layout.
+- ✅ **Edge cases** (`dev/edge-cases`): índice de búsqueda completo, formas mega, habilidad en español, favoritos con imagen estática, detail sin scroll horizontal + full-bleed, ease-in del loader, app 360px, panel del sheet full-width, refactor ES→EN.
+- ✅ **E2E + CI**: 10 specs Playwright deterministas (chromium) + GitHub Actions (`quality` + `e2e`) verdes.
+
+> La implementación de las vistas está terminada. Los edge cases y mejoras técnicas se trabajan en la rama `dev/edge-cases`.
 
 ---
 

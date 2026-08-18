@@ -12,6 +12,8 @@ vi.mock('@/services/pokeapi', async (importOriginal) => {
     fetchTypeCatalog: vi.fn<typeof actual.fetchTypeCatalog>(),
     fetchPokemonDetail: vi.fn<typeof actual.fetchPokemonDetail>(),
     fetchPokemonSpecies: vi.fn<typeof actual.fetchPokemonSpecies>(),
+    // The Splash preloads the full name index; keep it network-free too.
+    fetchAllPokemon: vi.fn<typeof actual.fetchAllPokemon>().mockResolvedValue([]),
   }
 })
 

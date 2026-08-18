@@ -18,6 +18,8 @@ cross-tab sync, one-tap share, and designed loading / error / construction state
 - [Architecture](#architecture)
 - [Layout](#layout)
 - [Key Decisions](#key-decisions)
+- [Edge Cases](#edge-cases)
+- [Testing & CI](#testing--ci)
 - [Getting Started](#getting-started)
 - [Scripts](#scripts)
 - [Project Structure](#project-structure)
@@ -79,8 +81,9 @@ Splash → Onboarding the app resumes exactly there.
 | State | **Pinia 4** (single setup store) | One store owns catalog, filter, search, detail, and favorites |
 | Routing | **Vue Router 5** | URL-driven list → detail; deep links, history, and a cold-load guard |
 | Build | **Vite 8** | Fast dev server, standard Vue tooling |
-| Unit tests | **Vitest 4** + Vue Test Utils (jsdom) | **216 tests** covering services, store, composables, components, and views |
-| E2E | **Playwright** | Browser-level journey (declared; requires dev/preview server + browsers) |
+| Unit tests | **Vitest 4** + Vue Test Utils (jsdom) | **243 tests** covering services, store, composables, components, and views |
+| E2E | **Playwright** (chromium) | **10 specs** covering the 5 functional paths, **deterministic** (PokeAPI fully intercepted) |
+| CI | **GitHub Actions** | Two jobs: `quality` (type-check + lint + unit) and `e2e` (build + Playwright chromium) |
 | Lint / format | ESLint + oxlint + Prettier | Consistent code; scripts run with `--fix` |
 | Fonts | `@fontsource/poppins` + `@fontsource/montserrat` | Self-hosted Figma fonts (400–700), no CDN |
 
@@ -91,7 +94,7 @@ Splash → Onboarding the app resumes exactly there.
 Strict layer separation — each layer depends only on the ones below it:
 
 ```
-views ──► components ──► store ──► services ──► PokeAPI (4 whitelisted endpoints)
+views ──► components ──► store ──► services ──► PokeAPI (5 whitelisted endpoints)
                 ▲               │
                 │               └──► storage ──► localStorage (pokemon-favorites)
                 └──────── types + data (contracts & static type metadata) — no cycles
@@ -103,7 +106,7 @@ views ──► components ──► store ──► services ──► PokeAPI 
   element asset), `FALLBACK_TYPE_COLOR`, and pure helpers (`lightenColor`/`darkenColor`,
   `resolveEsLabel`, `resolveWeaknesses`). **Weaknesses are derived at runtime from the type
   catalogs** — there is no static weakness chart anymore.
-- **services** (`src/services/`) — `pokeapi.ts` is the ONLY module allowed to call PokeAPI (4
+- **services** (`src/services/`) — `pokeapi.ts` is the ONLY module allowed to call PokeAPI (5
   endpoints, each with an in-memory session cache; failed/404 never cached). `storage.ts` persists
   favorites with a safe in-memory fallback.
 - **store** (`src/stores/pokemon.ts`) — single `usePokemonStore`: catalog pagination, type preload,
@@ -152,11 +155,12 @@ scroll container — the standard app-shell pattern:
 
 ## Key Decisions
 
-1. **4 whitelisted PokeAPI endpoints, session caches.** The assessment asked for 2 calls; the
+1. **5 whitelisted PokeAPI endpoints, session caches.** The assessment asked for 2 calls; the
    official Figma's rich detail requires species text, so the scope was consciously expanded
    (documented in the SDD proposal) to `GET /pokemon`, `GET /pokemon/{name}`,
-   `GET /pokemon-species/{id}`, `GET /type/{tipo}`. Each has an in-memory cache — a visited detail
-   or type is fetched at most once per session.
+   `GET /pokemon-species/{id}`, `GET /type/{tipo}`, and `GET /ability/{id}` (localized ES ability
+   names). Each has an in-memory cache — a visited detail, type, or ability is fetched at most
+   once per session.
 
 2. **Type-catalog preload → `nameToTypes` map (zero network per card).** At list init the store
    prefetches the 18 type catalogs (bounded ≤6 in flight, cached), building
@@ -199,6 +203,46 @@ scroll container — the standard app-shell pattern:
 
 ---
 
+## Edge Cases
+
+Edge cases and hardening work lived on the `dev/edge-cases` branch (main stays the v1.0 baseline).
+Each one shipped with a unit test, and most were verified in the browser with real API data.
+
+| # | Edge case | Problem it solves | Solution |
+|---|-----------|-------------------|----------|
+| 1 | **Full-name search index** | Searching a pokémon not yet loaded in the list (e.g. `mew`) returned 0 results | The Splash preloads the **complete name index** (`GET /pokemon?limit=99999`, not a hardcoded 1351) once; the search matches against it whenever a query is active, while the empty-query path keeps the paginated list untouched |
+| 2 | **Mega / alternate forms** | `mega-y` (id 10044) has no `pokemon-species/{id}` → 404 on the detail screen | `speciesIdFromDetail` derives the species id from `detail.species.url`, so forms resolve to their base species (e.g. Mewtwo-mega-Y → species 150) and the detail renders normally |
+| 3 | **Localized ability** | PokeAPI's `detail.abilities[].ability.name` is English only | A 5th whitelisted call `GET /ability/{id}` resolves the ES name (fallback to EN); hydration is race-safe: switching forms re-applies the ability for the new species |
+| 4 | **Static favorite image** | Favoriting from the detail stored the animated GIF (heavy, and it animates in the favorites list) | The favorite snapshot stores the **static** sprite (`front_default` → `official-artwork`) while the detail itself keeps the GIF |
+| 5 | **Sticky favorites header** | The favorites header scrolled away behind the cards (z-index, not just layout) | `flex: 1 0 auto` on the scroll container + `--layer-header: 3` stacking token above the cards' `--layer-sticky: 2` |
+| 6 | **Horizontal scroll in detail** | The full-bleed decorative background circle (498px) overflowed the 360px frame | `overflow: hidden` on `.detail-header` clips the circle without changing the visual |
+| 7 | **Full-bleed header geometry** | The background circle must ignore the card's horizontal padding and touch the app edge | `margin-inline: calc(-1 * var(--space-card))` + `width: calc(100% + 2 * var(--space-card))` |
+| 8 | **Loader → detail ease-in** | The switch from the pokeball loader to the panel was abrupt (and got slower once ability calls were added) | `<Transition mode="out-in">` with a `detail-fade` keyframe, single-root panel |
+| 9 | **Symmetry of header controls** | The favorite heart sat closer to the edge than the back chevron | `margin-right: 7.5px` on `.detail-header__favorite` matches the chevron's offset exactly |
+| 10 | **Bottom-sheet actions panel** | The Apply buttons panel needed a top shadow, full width, and room below the separator | `box-shadow: var(--shadow-top)` + full-width panel (`margin-inline: -16px`) with top padding; `Separator.vue` at the top and bottom of the filter list |
+| 11 | **App width 360px** | The app frame was 480px but the Figma design is a 360px mobile frame; the sheet stayed fixed-width after the responsive change | `#app` max-width 360px; sheet/overlay follow (`width: 100%` + centered `max-width: 360px`) |
+| 12 | **ES→EN identifier refactor** | Some derived fields used Spanish identifiers (`peso`, `altura`, `categoria`…) — inconsistent with a senior-level codebase | Renamed to English (`weight`, `height`, `category`…) across the store/panel/tests; **UI copy stays Spanish** by design |
+| 13 | **Deterministic e2e** | E2E tests that hit the real PokeAPI are flaky and slow | All 10 specs intercept `**/api/v2/**` with local fixtures (deterministic, fast, offline); chromium-only |
+| 14 | **CI on GitHub Actions** | No automated gates on push/PR | `.github/workflows/ci.yml`: `quality` (type-check+lint+unit) + `e2e` (build + Playwright), report artifact on failure |
+| 15 | **CI determinism for placeholder views** | `views.spec.ts` asserted "zero network" but the Splash preloads the search index (real fetch) — failed on the runner | `fetchAllPokemon` mocked in `views.spec.ts` (`mockResolvedValue([])`); the placeholder views stay network-free by themselves |
+
+---
+
+## Testing & CI
+
+- **243 unit tests** (Vitest + Vue Test Utils, jsdom) across services, store, composables,
+  components, views, router, storage, and data helpers — hermetic, no network.
+- **10 e2e specs** (Playwright, chromium) covering the 5 functional paths: onboarding (happy +
+  API-error fallback), type filter, favorites (empty + swipe-to-delete), detail (all key elements),
+  and placeholder sections.
+- **CI (GitHub Actions)** runs both gates on every push to `main` / `dev/**` and on every PR:
+  `quality` (type-check, lint, unit) then `e2e` (build + Playwright chromium, report uploaded on
+  failure).
+- **Gates to run locally**: `npm run type-check`, `npm run lint`, `npm run test:unit -- --run`,
+  `npm run test:e2e`, `npm run build` — all green.
+
+---
+
 ## Getting Started
 
 ```sh
@@ -212,15 +256,21 @@ Open http://localhost:5173 — the app starts at Splash and moves through Onboar
 
 ```sh
 npm run dev                # Vite dev server
-npm run test:unit -- --run # Vitest unit suite (216 tests, jsdom)
+npm run test:unit -- --run # Vitest unit suite (243 tests, jsdom)
 npm run type-check         # vue-tsc --build
 npm run lint               # oxlint + eslint (both run with --fix)
 npm run build              # type-check + production build
-npm run test:e2e           # Playwright (starts dev/preview server; requires browsers)
+npm run test:e2e           # Playwright (10 chromium specs; starts dev/preview server)
 ```
 
-> **E2E note**: `npm run test:e2e` boots a local server and needs Playwright browsers installed
-> (`npx playwright install`). Unit + type-check + lint are the hermetic gates that always run.
+> **E2E note**: `npm run test:e2e` boots a local server and needs the Playwright chromium browser
+> installed (`npx playwright install chromium`). The specs are **deterministic**: they intercept all
+> of PokeAPI (`page.route('**/api/v2/**')`) with local fixtures, so they never depend on the real
+> network. Unit + type-check + lint are the hermetic gates that always run.
+>
+> **CI**: `.github/workflows/ci.yml` runs both gates on every push to `main`/`dev/**` and on every PR
+> — `quality` (type-check, lint, unit) and `e2e` (build + Playwright chromium, report uploaded on
+> failure).
 
 ---
 
@@ -231,7 +281,7 @@ src/
 ├── types/pokemon.ts          # API contracts, TypeName/TypeMeta (incl. element), TypeCatalogResponse
 ├── data/types.ts             # TYPE_META (18 types) + color/element helpers + resolve* helpers
 ├── services/
-│   ├── pokeapi.ts            # 4 whitelisted endpoints + session caches
+│   ├── pokeapi.ts            # 5 whitelisted endpoints + session caches
 │   └── storage.ts            # favorites persistence (try/catch fallback)
 ├── stores/pokemon.ts         # single usePokemonStore (catalog/filter/search/detail/favorites)
 ├── composables/              # useInfiniteScroll (root-aware) · useDebouncedRef · useClipboard
@@ -261,7 +311,7 @@ giving the change end-to-end traceability from intent to verification:
   `type-filter`, `feedback-states`).
 - `CHANGELOG.md` — a daily work diary documenting each decision, fix, and PR slice with rationale
   (delivery evidence for the assessment).
-- Every feature was developed RED → GREEN against `npm run test:unit -- --run`; the suite (216
+- Every feature was developed RED → GREEN against `npm run test:unit -- --run`; the suite (243
   tests) maps directly to spec scenarios.
 
 **AI-First note**: the implementation was produced through the Gentle-AI SDD harness — planning,
@@ -282,3 +332,29 @@ spec/design/tasks authored as artifacts, code applied in chained, independently 
   a static fallback.
 - **`vitest.config.ts` imports `./vite.config` without an extension** — a future Vite major may
   warn/error on this; trivial to fix.
+
+---
+
+## Notes for the Evaluator
+
+A few pointers to make reviewing the delivery fast and fair:
+
+- **Entry point**: the app starts at Splash → Onboarding → Pokédex. Everything is reproducible
+  with `npm install && npm run dev` (or `npm run preview` after `npm run build`).
+- **Fidelity to the Figma**: geometry, typography, spacing, and type colors were extracted from the
+  live Figma API and matched at token level (see `figma-design-notes.md`); the detail screen (GIF
+  artwork, gender bar, property boxes, weaknesses, full-bleed decorative background) and the filter
+  BottomSheet are the most Figma-heavy screens.
+- **Verification story**:
+  - `243 unit tests` — hermetic, deterministic, no network; the always-green gates.
+  - `10 e2e specs` — real browser, chromium-only, **deterministic** (PokeAPI fully intercepted);
+    run with `npm run test:e2e`.
+  - `GitHub Actions` CI — `quality` + `e2e` jobs green on push/PR.
+- **Branches**: `main` is the v1.0 baseline (the full Figma product); `dev/edge-cases` carries the
+  hardening (search index, mega forms, ability ES, favorites image, detail scroll/full-bleed,
+  sheet/app width, ES→EN identifiers) plus the e2e suite and CI.
+- **Traceability**: `CHANGELOG.md` is a day-by-day diary with rationale and affected files for every
+  change; the SDD artifacts (`openspec/`, kept local) tie intent → spec → design → tasks → tests.
+- **What was deliberately NOT done**: no "onboarding seen" persistence (per Figma spec), no static
+  weakness chart (derived live from the API), no animation library (pure CSS + reduced-motion), and
+  no per-card network calls in the list (type map preload).

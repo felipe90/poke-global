@@ -3,12 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   buildShareText,
   fetchAbilityName,
+  fetchAllPokemon,
   fetchPokemonDetail,
   fetchPokemonPage,
   fetchPokemonSpecies,
   fetchTypeCatalog,
   getAnimatedSprite,
   getOfficialArtwork,
+  getStaticSprite,
   statsToPokemonStats,
 } from '@/services/pokeapi'
 import { PAGE_SIZE } from '@/types/pokemon'
@@ -137,6 +139,43 @@ describe('pokeapi service', () => {
       await fetchPokemonPage(24)
 
       expect(fetchMock).toHaveBeenCalledWith(`${BASE_URL}/pokemon?limit=${PAGE_SIZE}&offset=24`)
+    })
+  })
+
+  describe('fetchAllPokemon', () => {
+    it('fetches the full roster with an upper-bound limit and returns all results', async () => {
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          count: 1351,
+          next: null,
+          previous: null,
+          results: [
+            { name: 'mew', url: `${BASE_URL}/pokemon/151/` },
+            { name: 'bulbasaur', url: `${BASE_URL}/pokemon/1/` },
+          ],
+        }),
+      )
+      const all = await fetchAllPokemon()
+      expect(fetchMock).toHaveBeenCalledWith(`${BASE_URL}/pokemon?limit=99999`)
+      expect(all).toHaveLength(2)
+      expect(all[0]?.name).toBe('mew')
+    })
+
+    it('caches the roster so a second call does not re-fetch', async () => {
+      // Isolate the module so the cache from the previous test doesn't leak.
+      vi.resetModules()
+      const { fetchAllPokemon: fetchAllFresh } = await import('@/services/pokeapi')
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({
+          count: 1351,
+          next: null,
+          previous: null,
+          results: [{ name: 'mew', url: `${BASE_URL}/pokemon/151/` }],
+        }),
+      )
+      await fetchAllFresh()
+      await fetchAllFresh()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -310,6 +349,28 @@ describe('pokeapi service', () => {
         },
       }
       expect(getAnimatedSprite(noGif)).toBe('https://example.com/pikachu-art.png')
+    })
+  })
+
+  describe('getStaticSprite', () => {
+    it('returns the static front_default sprite (not the GIF)', () => {
+      expect(getStaticSprite(pikachuDetail)).toBe(
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
+      )
+    })
+
+    it('falls back to the official artwork when front_default is missing', () => {
+      const noFront: PokemonDetail = {
+        ...pikachuDetail,
+        sprites: {
+          front_default: null,
+          other: {
+            'official-artwork': { front_default: 'https://example.com/pikachu-art.png' },
+            showdown: { front_default: 'https://example.com/pikachu.gif' },
+          },
+        },
+      }
+      expect(getStaticSprite(noFront)).toBe('https://example.com/pikachu-art.png')
     })
   })
 

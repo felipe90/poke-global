@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
-import { fetchAbilityName, fetchPokemonDetail, fetchPokemonPage, fetchPokemonSpecies, fetchTypeCatalog } from '@/services/pokeapi'
+import { fetchAbilityName, fetchAllPokemon, fetchPokemonDetail, fetchPokemonPage, fetchPokemonSpecies, fetchTypeCatalog } from '@/services/pokeapi'
 import { usePokemonStore } from '@/stores/pokemon'
 import { PAGE_SIZE, STORAGE_KEY } from '@/types/pokemon'
 import type {
@@ -20,6 +20,7 @@ vi.mock('@/services/pokeapi', () => ({
   fetchPokemonDetail: vi.fn<(name: string) => Promise<PokemonDetail>>(),
   fetchPokemonSpecies: vi.fn<(id: number) => Promise<PokemonSpecies>>(),
   fetchAbilityName: vi.fn<(url: string, fallback: string) => Promise<string>>(),
+  fetchAllPokemon: vi.fn<() => Promise<PokemonSummary[]>>(),
 }))
 
 const BASE = 'https://pokeapi.co/api/v2'
@@ -314,6 +315,25 @@ describe('pokemon store — search slice (2.3)', () => {
     expect(summaryNames(store.filteredList)).toEqual(['charmander', 'charizard'])
   })
 
+  it('preloadSearchIndex lets the search find pokémon not yet loaded in the list', async () => {
+    vi.mocked(fetchPokemonPage).mockResolvedValueOnce(page(0, ['bulbasaur'], null))
+    await store.loadFirstPage()
+    // The index covers the whole roster — mew is NOT in the loaded list page.
+    vi.mocked(fetchAllPokemon).mockResolvedValueOnce([
+      { name: 'bulbasaur', url: `${BASE}/pokemon/1/` },
+      { name: 'mew', url: `${BASE}/pokemon/151/` },
+    ])
+    await store.preloadSearchIndex()
+
+    store.searchFilter = 'mew'
+    expect(summaryNames(store.filteredList)).toEqual(['mew'])
+
+    // With an empty query (and no type filter) the loaded page is used, so
+    // scroll/pagination behavior is unchanged — the index is only a search aid.
+    store.searchFilter = ''
+    expect(summaryNames(store.filteredList)).toEqual(['bulbasaur'])
+  })
+
   it('filteredList searches within the visible filtered slices when a type filter is active', async () => {
     const names = Array.from({ length: 60 }, (_, i) => `pokemon-${i}`)
     vi.mocked(fetchTypeCatalog).mockResolvedValueOnce(makeCatalog(names))
@@ -480,6 +500,8 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     vi.mocked(fetchPokemonSpecies).mockReset()
     vi.mocked(fetchAbilityName).mockReset()
     vi.mocked(fetchAbilityName).mockResolvedValue('Ability ES')
+    vi.mocked(fetchAllPokemon).mockReset()
+    vi.mocked(fetchAllPokemon).mockResolvedValue([])
     store = usePokemonStore()
   })
 
@@ -496,16 +518,54 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     expect(fetchPokemonSpecies).toHaveBeenCalledWith(25)
     expect(store.selectedDetail?.name).toBe('pikachu')
     expect(store.selectedSpecies).toEqual({
-      peso: '6,9 kg',
-      altura: '0,7 m',
-      categoria: 'RATÓN',
-      descripcion:
+      weight: '6,9 kg',
+      height: '0,7 m',
+      category: 'RATÓN',
+      description:
         'Cuanto más potente es la energía que genera, más blandas y elásticas se vuelven las bolsas de sus mejillas.',
-      genero: '50% / 50%',
-      habilidad: 'Elektrostátika',
-      debilidades: ['ground'],
+      gender: '50% / 50%',
+      ability: 'Elektrostátika',
+      weaknesses: ['ground'],
       genderRate: 4,
     })
+  })
+
+  it('uses the species from the detail url for forms (mega-y -> species 150, not 10044)', async () => {
+    // A mega form (id 10044) shares the base pokémon's species (mewtwo = 150),
+    // which lives in the detail's species.url — NOT the form's own id.
+    const megaY: PokemonDetail = {
+      id: 10044,
+      name: 'mewtwo-mega-y',
+      height: 15,
+      weight: 330,
+      types: [{ slot: 1, type: { name: 'psychic' } }],
+      stats: [{ base_stat: 106, stat: { name: 'hp' } }],
+      abilities: [{ slot: 1, ability: { name: 'turboblaze', url: `${BASE}/ability/1/` } }],
+      sprites: {
+        front_default: 'x.png',
+        other: {
+          'official-artwork': { front_default: 'y.png' },
+          showdown: { front_default: 'z.gif' },
+        },
+      },
+      species: { url: `${BASE}/pokemon-species/150/` },
+    }
+    vi.mocked(fetchPokemonDetail).mockResolvedValueOnce(megaY)
+    const mewtwoSpecies: PokemonSpecies = {
+      flavor_text_entries: [],
+      genera: [{ genus: 'Pokémon Genético', language: { name: 'es' } }],
+      gender_rate: 0,
+    }
+    vi.mocked(fetchPokemonSpecies).mockResolvedValueOnce(mewtwoSpecies)
+
+    await store.openDetail('mewtwo-mega-y')
+    await flushPromises()
+
+    // Must fetch species 150 (from the URL), not 10044 (the form id).
+    expect(fetchPokemonSpecies).toHaveBeenCalledWith(150)
+    expect(fetchPokemonSpecies).toHaveBeenCalledTimes(1)
+    expect(store.selectedDetail?.id).toBe(10044)
+    expect(store.selectedSpecies?.category).toBe('GENÉTICO')
   })
 
   it('guards against duplicate concurrent fetches of the same name', async () => {
@@ -561,12 +621,12 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await store.openDetail('pikachu')
     await flushPromises()
 
-    expect(store.selectedSpecies?.categoria).toBe('—')
-    expect(store.selectedSpecies?.descripcion).toBe('—')
-    expect(store.selectedSpecies?.genero).toBe('—')
-    expect(store.selectedSpecies?.habilidad).toBe('Static')
-    expect(store.selectedSpecies?.debilidades).toEqual(['ground'])
-    expect(store.selectedSpecies?.peso).toBe('6,9 kg')
+    expect(store.selectedSpecies?.category).toBe('—')
+    expect(store.selectedSpecies?.description).toBe('—')
+    expect(store.selectedSpecies?.gender).toBe('—')
+    expect(store.selectedSpecies?.ability).toBe('Ability ES')
+    expect(store.selectedSpecies?.weaknesses).toEqual(['ground'])
+    expect(store.selectedSpecies?.weight).toBe('6,9 kg')
   })
 
   it('renders gendered percentages male first (bulbasaur rate 1 → 87,5% / 12,5%)', async () => {
@@ -581,10 +641,10 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await store.openDetail('bulbasaur')
     await flushPromises()
 
-    expect(store.selectedSpecies?.genero).toBe('87,5% / 12,5%')
-    expect(store.selectedSpecies?.categoria).toBe('SEMILLA')
-    expect(store.selectedSpecies?.habilidad).toBe('Espesura')
-    expect(store.selectedSpecies?.debilidades).toEqual(['fire', 'ice', 'poison', 'flying', 'bug', 'ground', 'psychic'])
+    expect(store.selectedSpecies?.gender).toBe('87,5% / 12,5%')
+    expect(store.selectedSpecies?.category).toBe('SEMILLA')
+    expect(store.selectedSpecies?.ability).toBe('Espesura')
+    expect(store.selectedSpecies?.weaknesses).toEqual(['fire', 'ice', 'poison', 'flying', 'bug', 'ground', 'psychic'])
   })
 
   it('renders genderless pokemon and falls back to English genus/flavor', async () => {
@@ -594,9 +654,9 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await store.openDetail('pikachu')
     await flushPromises()
 
-    expect(store.selectedSpecies?.genero).toBe('Sin género')
-    expect(store.selectedSpecies?.categoria).toBe('SEED POKÉMON')
-    expect(store.selectedSpecies?.descripcion).toBe('Some English text.')
+    expect(store.selectedSpecies?.gender).toBe('Sin género')
+    expect(store.selectedSpecies?.category).toBe('SEED POKÉMON')
+    expect(store.selectedSpecies?.description).toBe('Some English text.')
   })
 
   it('degrades categoria/descripcion to — when no es/en entry exists', async () => {
@@ -606,9 +666,9 @@ describe('pokemon store — detail + species slice (2.4)', () => {
     await store.openDetail('pikachu')
     await flushPromises()
 
-    expect(store.selectedSpecies?.categoria).toBe('—')
-    expect(store.selectedSpecies?.descripcion).toBe('—')
-    expect(store.selectedSpecies?.genero).toBe('Sin género')
+    expect(store.selectedSpecies?.category).toBe('—')
+    expect(store.selectedSpecies?.description).toBe('—')
+    expect(store.selectedSpecies?.gender).toBe('Sin género')
   })
 })
 
@@ -738,6 +798,8 @@ describe('pokemon store — type preload slice (2.9)', () => {
     vi.mocked(fetchPokemonSpecies).mockReset()
     vi.mocked(fetchAbilityName).mockReset()
     vi.mocked(fetchAbilityName).mockResolvedValue('Ability ES')
+    vi.mocked(fetchAllPokemon).mockReset()
+    vi.mocked(fetchAllPokemon).mockResolvedValue([])
     store = usePokemonStore()
   })
 
